@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services>
+	<service id="urn:uuid:b3c6cf5a-7e07-4f58-aacd-20b828b6fab7" contractID="urn:uuid:03d55093-a954-4667-b682-8116c417925d">
+		<ipAddress>192.168.0.51</ipAddress>
+		<port>80</port>
+		<url>http://192.168.0.51:8080/MyAwesomeService/index.jsp</url>
+		<description>This is an awesome service.  The scope of its awesomeness is hard to describe</description>
+		<data><![CDATA[This is some CDATA text]]></data>
+		<ttl></ttl>
+		<consumability>HUMAN_CONSUMABLE</consumability>
+	</service>
+	<service id="urn:uuid:7ab3daf0-d996-4db9-b144-9ffbd7f168d6" contractID="urn:uuid:ae2ed8ea-8b86-431c-8fb0-be233672c374">
+		<ipAddress></ipAddress>
+		<port></port>
+		<url>http://192.168.0.51:8080/AnotherAwesomeService/operation</url>
+		<description>This is another awesome service.  The scope of its awesomeness is eclipsed only by the other awesome service</description>
+		<data><![CDATA[This is some CDATA text]]></data>
+		<ttl>10</ttl>
+		<consumability>MACHINE_CONSUMABLE</consumability>
+	</service>
+</services>
