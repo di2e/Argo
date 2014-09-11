@@ -38,7 +38,7 @@ public class AsynchListener {
 	@GET
 	@Path("/testService")
 	public String testService() {
-		return "this is a test service.  yea.";
+		return "this is a test service bbxxbbb.  yea.";
 	}
 
 	@GET

@@ -8,7 +8,7 @@ import net.sf.json.JSONObject;
 
 public class Probe {
 
-	public static final String PROBE_GENERTOR_CONTRACT_ID= "uuid:55f1fecc-bfed-4be0-926b-b36a138a9943";
+	public static final String PROBE_GENERTOR_CONTRACT_ID= "urn:uuid:55f1fecc-bfed-4be0-926b-b36a138a9943";
 
 	public static final String XML = "XML";
 	public static final String JSON = "JSON";
@@ -20,7 +20,7 @@ public class Probe {
 	
 	public Probe(String respondToURL, String respondToPayloadType) {
 		UUID uuid = UUID.randomUUID();
-		probeID = "uuid:"+uuid.toString();	
+		probeID = "urn:uuid:"+uuid.toString();	
 		this.respondToURL = respondToURL;
 		this.respondToPayloadType = respondToPayloadType;
 	}
