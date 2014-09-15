@@ -18,7 +18,7 @@ public class ProbeGeneratorTest {
 	
 	@Test
 	public void testProbeGeneratorXML() throws IOException {
-		Probe probe = new Probe("http://localhost:8080/AsynchListener/api/responseHandler/probeResponse", Probe.XML);
+		Probe probe = new Probe("http://192.168.0.18:8080/AsynchListener/api/responseHandler/probeResponse", Probe.XML);
 		
 		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");
 		
@@ -27,7 +27,7 @@ public class ProbeGeneratorTest {
 	
 	@Test
 	public void testProbeGeneratorJSON() throws IOException {
-		Probe probe = new Probe("http://localhost:8080/AsynchListener/api/responseHandler/probeResponse", Probe.JSON);
+		Probe probe = new Probe("http://192.168.0.18:8080/AsynchListener/api/responseHandler/probeResponse", Probe.JSON);
 		
 		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");	
 		
@@ -36,7 +36,7 @@ public class ProbeGeneratorTest {
 	
 	@Test
 	public void testProbeGeneratorAllService() throws IOException {
-		Probe probe = new Probe("http://localhost:8080/AsynchListener/api/responseHandler/probeResponse", Probe.JSON);
+		Probe probe = new Probe("http://192.168.0.18:8080/AsynchListener/api/responseHandler/probeResponse", Probe.JSON);
 		
 //		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");	
 		

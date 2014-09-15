@@ -146,6 +146,8 @@ public class Responder {
 			try {
 				ProbePayloadBean payload = parseProbePayload(probeStr);
 				
+				System.out.println("Received probe id: "+payload.probeID);
+				
 				// Only handle probes that we haven't handled before
 				// The Probe Generator needs to send a stream of identical UDP packets
 				// to compensate for UDP reliability issues.  Therefore, the Responder
