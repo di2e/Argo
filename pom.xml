@@ -10,5 +10,6 @@
     <module>Responder</module>
     <module>ProbeGenerator</module>
     <module>AsynchListener</module>
+    <module>BrowserWeb</module>
   </modules>
 </project>
