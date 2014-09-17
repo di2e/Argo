@@ -4,19 +4,23 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.SocketException;
 
 public class ProbeGenerator {
 
 	public String multicastAddress;
 	public int multicastPort;
-    protected DatagramSocket socket = null;
+    protected MulticastSocket socket = null;
 	
-	public ProbeGenerator(String multicastAddress, int multicastPort) throws SocketException {
+	public ProbeGenerator(String multicastAddress, int multicastPort) throws IOException {
 		this.multicastAddress = multicastAddress;
 		this.multicastPort = multicastPort;
-		this.socket = new DatagramSocket(4003);
-	    System.out.println("Started datagram socket on port 4003");
+		this.socket = new MulticastSocket(4003);
+		
+		
+	    System.out.println("Started multicast socket on port 4003");
+	    System.out.println("Multicast socket default TTL is "+this.socket.getTimeToLive());
 	    
 	}
 
@@ -24,6 +28,7 @@ public class ProbeGenerator {
 		
 		
 		System.out.println("Sending probe on port "+multicastAddress+":"+multicastPort);
+		System.out.println("Probe requesting TTL of "+probe.ttl);
 		
 		try {
 			String msg = probe.asXML();
@@ -37,6 +42,7 @@ public class ProbeGenerator {
 			//send discovery string
 			InetAddress group = InetAddress.getByName(multicastAddress);
 			DatagramPacket packet = new DatagramPacket(msgBytes, msgBytes.length, group, multicastPort);
+			socket.setTimeToLive(probe.ttl);
 			socket.send(packet);
 			
 			System.out.println("Probe sent on port "+multicastAddress+":"+multicastPort);

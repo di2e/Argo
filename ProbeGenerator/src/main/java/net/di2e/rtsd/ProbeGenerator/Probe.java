@@ -16,6 +16,7 @@ public class Probe {
 	public String probeID;
 	public String respondToURL;
 	public String respondToPayloadType; // Should be XML or JSON
+	public int ttl = 255; // the default TTL for a probe is the max TTL of 255 - or the entire network
 	public ArrayList<String> serviceContractIDs = new ArrayList<String>();
 	
 	public Probe(String respondToURL, String respondToPayloadType) {

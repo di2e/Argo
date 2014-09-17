@@ -13,7 +13,7 @@ public class ProbeGeneratorTest {
 	ProbeGenerator gen = null;
 	
 	@Before
-	public void setupProbeGenerator() throws SocketException {
+	public void setupProbeGenerator() throws IOException {
 		gen = new ProbeGenerator("230.0.0.1", 4446);
 	}
 	
