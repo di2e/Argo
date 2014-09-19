@@ -134,6 +134,10 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 			config.data = ((Element) n).getTextContent();
 			n = service.getElementsByTagName("description").item(0);
 			config.description = ((Element) n).getTextContent();
+			n = service.getElementsByTagName("contractDescription").item(0);
+			config.contractDescription = ((Element) n).getTextContent();
+			n = service.getElementsByTagName("serviceName").item(0);
+			config.serviceName = ((Element) n).getTextContent();
 			n = service.getElementsByTagName("consumability").item(0);
 			config.consumability = ((Element) n).getTextContent();
 			
