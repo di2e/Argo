@@ -19,6 +19,8 @@ public class ServiceInfoBean {
 	public String data;
 	public Integer ttl = 0; //0 means that is never expires
 	public String description;
+	public String contractDescription;
+	public String serviceName;
 	public String consumability = MACHINE_CONSUMABLE; // default to machine consumable
 
 	public Date cacheStartTime = new Date();
@@ -45,6 +47,10 @@ public class ServiceInfoBean {
 			buf.append("\t\t<ttl>"+ttl+"</ttl>\n");
 		if (description != null)
 			buf.append("\t\t<description>"+description+"</description>\n");
+		if (contractDescription != null)
+			buf.append("\t\t<contractDescription>"+contractDescription+"</contractDescription>\n");
+		if (serviceName != null)
+			buf.append("\t\t<serviceName>"+serviceName+"</serviceName>\n");
 		if (consumability != null)
 			buf.append("\t\t<consumability>"+consumability+"</consumability>\n");
 		buf.append("\t</service>\n");
@@ -62,6 +68,8 @@ public class ServiceInfoBean {
 		json.put("data", data);
 		json.put("ttl", ttl);
 		json.put("description", description);
+		json.put("contractDescription", contractDescription);
+		json.put("serviceName", serviceName);
 		json.put("consumability", consumability);
 	
 		return json;		

@@ -56,6 +56,14 @@ public class AsynchListener {
 		return "Cleared Cache";
 	}
 	
+	@GET
+	@Path("/contracts")
+	@Produces("application/json")
+	public String getContracts() {
+		return cache.toContractJSON();
+	
+	}
+	
 	@POST
 	@Path("/probeResponse")
 	@Consumes("application/json")
@@ -104,6 +112,8 @@ public class AsynchListener {
 			config.url = serviceInfo.optString("url");
 			config.data = serviceInfo.optString("data");
 			config.description = serviceInfo.optString("description");
+			config.contractDescription = serviceInfo.optString("contractDescription");
+			config.serviceName = serviceInfo.optString("serviceName");
 			config.ttl = serviceInfo.optInt("ttl", 0);
 			config.consumability = serviceInfo.optString("consumability");
 			
@@ -160,6 +170,10 @@ public class AsynchListener {
 			config.data = ((Element) n).getTextContent();
 			n = service.getElementsByTagName("description").item(0);
 			config.description = ((Element) n).getTextContent();
+			n = service.getElementsByTagName("contractDescription").item(0);
+			config.contractDescription = ((Element) n).getTextContent();
+			n = service.getElementsByTagName("serviceName").item(0);
+			config.serviceName = ((Element) n).getTextContent();
 			n = service.getElementsByTagName("consumability").item(0);
 			config.consumability = ((Element) n).getTextContent();
 			n = service.getElementsByTagName("ttl").item(0);

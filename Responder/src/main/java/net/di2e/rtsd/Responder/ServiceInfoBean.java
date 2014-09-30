@@ -15,6 +15,8 @@ public class ServiceInfoBean {
 	public String data;
 	public Integer ttl = 0;
 	public String description;
+	public String contractDescription;
+	public String serviceName;
 	public String consumability = MACHINE_CONSUMABLE; // default to machine consumable
 
 
@@ -39,6 +41,10 @@ public class ServiceInfoBean {
 			buf.append("\t\t<ttl>"+ttl+"</ttl>\n");
 		if (description != null)
 			buf.append("\t\t<description>"+description+"</description>\n");
+		if (contractDescription != null)
+			buf.append("\t\t<contractDescription>"+contractDescription+"</contractDescription>\n");
+		if (serviceName != null)
+			buf.append("\t\t<serviceName>"+serviceName+"</serviceName>\n");
 		if (consumability != null)
 			buf.append("\t\t<consumability>"+consumability+"</consumability>\n");
 		buf.append("\t</service>\n");
@@ -55,6 +61,8 @@ public class ServiceInfoBean {
 		json.put("url", url);
 		json.put("data", data);
 		json.put("ttl", ttl);
+		json.put("contractDescription", contractDescription);
+		json.put("serviceName", serviceName);
 		json.put("description", description);
 		json.put("consumability", consumability);
 	
