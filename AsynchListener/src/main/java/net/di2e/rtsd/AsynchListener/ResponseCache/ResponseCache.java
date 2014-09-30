@@ -73,5 +73,22 @@ public class ResponseCache {
 	    
 		
 	}
+
+	public String toContractJSON() {
+		JSONObject json = new JSONObject();
+		JSONArray array = new JSONArray();
+		
+		clearExpired();
+		for (ServiceInfoBean infoBean : cache.values()) {
+			JSONObject contract = new JSONObject();
+			contract.put("contractID", infoBean.serviceContractID);
+			contract.put("contractDescription", infoBean.contractDescription);
+			array.add(contract);
+		}	
+		
+		json.put("contracts", array);
+		
+		return json.toString(4);
+	}
 	
 }

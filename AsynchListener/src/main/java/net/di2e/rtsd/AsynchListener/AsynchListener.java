@@ -56,6 +56,14 @@ public class AsynchListener {
 		return "Cleared Cache";
 	}
 	
+	@GET
+	@Path("/contracts")
+	@Produces("application/json")
+	public String getContracts() {
+		return cache.toContractJSON();
+	
+	}
+	
 	@POST
 	@Path("/probeResponse")
 	@Consumes("application/json")
