@@ -12,4 +12,38 @@
     <module>AsynchListener</module>
     <module>BrowserWeb</module>
   </modules>
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+      <id>DI2ENexus</id>
+      <name>DI2ENexus Snapshots</name>
+      <url>https://nexus.di2e.net/nexus/content/repositories/snapshots/</url>
+      <layout>default</layout>
+    </repository>
+  </repositories>  
+  <distributionManagement>
+    <snapshotRepository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>DI2ENexus</id>
+      <name>DI2ENexus Snapshots</name>
+      <url>https://nexus.di2e.net/nexus/content/repositories/snapshots/</url>
+      <layout>default</layout>
+    </snapshotRepository>
+    <repository>
+	  <uniqueVersion>false</uniqueVersion>
+      <id>DI2ENexus</id>
+      <name>DI2ENexus Release</name>
+      <url>https://nexus.di2e.net/nexus/content/repositories/releases/</url>
+      <layout>default</layout>
+    </repository>
+  </distributionManagement>
 </project>
