@@ -31,23 +31,15 @@
     	<version>2.0</version>
     	<scope>provided</scope>
     </dependency>
+	<dependency>
+	  <groupId>net.di2e.rtsd</groupId>
+	  <version>0.0.1-SNAPSHOT</version>
+	  <artifactId>ProbeGenerator</artifactId>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
+
   <build>
     <finalName>BrowserWeb</finalName>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
   </build>
 </project>

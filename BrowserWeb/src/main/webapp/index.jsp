@@ -33,7 +33,8 @@
 		  data: { },
 		  success: function( data ) {
 			  alert("Response: " + data);
-		  }
+		  },
+		  error: function ( data ) { alert("failed"); }
 		});
 
 
