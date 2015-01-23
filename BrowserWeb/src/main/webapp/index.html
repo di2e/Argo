@@ -15,11 +15,11 @@
   	ul.fancytree-container { font-size: 12pt }
   	span.fancytree-title { font-family: 'Karla', sans-serif; font-size: 14pt; }
   	div.service-details { font-family: 'Karla', serif; font-size: 15pt; }
-  	td.detail-key { font-family: 'Orbitron', sans-serif; background-color: rgb(199, 213, 213); padding: 3px 25px; font-weight: bold }
+  	td.detail-key { font-family: 'Karla', sans-serif; background-color: rgb(199, 213, 213); padding: 3px 25px; font-weight: bold }
   	td.detail-data { font-family: 'Karla', sans-serif; font-size: 14pt; padding: 0 }
   	a.detail-data { font-family: 'Karla', sans-serif; font-size: 14pt; padding: 0 }
-  	.ui-button-text { font-family: 'Orbitron', sans-serif; }
-    .ui-tabs { font-family: 'Orbitron', sans-serif; }
+  	.ui-button-text { font-family: 'Karla', sans-serif; }
+    .ui-tabs { font-family: 'Karla', sans-serif; }
   </style>
 
 <script type="text/javascript">
@@ -96,7 +96,7 @@
 		  
   function getServices() {
 	  $.ajax({
-		  url: "/AsynchListener/api/responseHandler/responses",
+		  url: "/BrowserWeb/api/controller/responses",
 		  data: { },
 		  success: function( data ) {
 			  //alert("got services");
@@ -132,7 +132,9 @@
 				  }
 
 			  $("#byContract").fancytree("option", "source",  newSource );
-			  
+
+			  var node = $("#byContract").fancytree("getRootNode");
+			  node.sortChildren(null, true);			  
 
 			  newSource = [];
 			  
@@ -142,9 +144,14 @@
  				  newSource.push({"title": service.serviceName + " : " + service.consumability, "key" : service.id, "data" : service});
 				  };
 
-				  $("#serviceList").fancytree("option", "source",  newSource );
+			  $("#serviceList").fancytree("option", "source",  newSource );
+
+			  node = $("#serviceList").fancytree("getRootNode");
+			  node.sortChildren(null, true);
 			  
-		  }
+		    }
+			 
+      
 		});
 
 
@@ -246,6 +253,10 @@
 	        }
 	      
 	    });
+		 var node = $("#byContract").fancytree("getRootNode");
+	     node.sortChildren(null, true);
+		 node = $("#serviceList").fancytree("getRootNode");
+	     node.sortChildren(null, true);
 		  
 	  };
 </script>
@@ -258,7 +269,7 @@
 	<div class="intro">
 		<div id="header">
 			<table style="width: 100%">
-			 <tr><td><a href="http://devtools.di2e.net" target="_blank"><img alt="" src="images/framework.png"\></a></td><td align="left"><p style="font-family: 'Josefin Sans', sans-serif; font-weight 600; font-size: 40pt">Runtime Service Discovery Browser</p></td></tr>
+			 <tr><td><a href="http://devtools.di2e.net" target="_blank"><img alt="" src="images/framework.png"/></a></td><td align="left"><p style="font-family: 'Karla', sans-serif; font-weight 300; font-size: 25pt">Runtime Service Discovery Browser</p></td></tr>
 			</table>
 			
 			

@@ -3,11 +3,11 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>net.di2e.rtsd</groupId>
+    <groupId>ws.argo</groupId>
     <artifactId>rtsd</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <groupId>net.di2e.rtsd</groupId>
+  <groupId>ws.argo.Browser</groupId>
   <artifactId>BrowserWeb</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>war</packaging>
@@ -37,6 +37,11 @@
 	  <artifactId>ProbeGenerator</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+	  <groupId>org.apache.httpcomponents</groupId>
+	  <artifactId>httpclient</artifactId>
+	  <version>4.2.5</version>
+	</dependency>
   </dependencies>
 
   <build>
