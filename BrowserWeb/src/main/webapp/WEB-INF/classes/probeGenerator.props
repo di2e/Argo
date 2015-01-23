@@ -1,0 +1,10 @@
+#multicastPort=4446
+#multicastGroupAddr=230.0.0.1
+#listenerProbeResponseURLPath=/AsynchListener/api/responseHandler/probeResponse
+#listenerResponsesURLPath=/AsynchListener/api/responseHandler/responses
+#listenerClearCacheURLPath=/AsynchListener/api/responseHandler/clearCache
+
+#No value for listenerIPAddress means that the ProbeGenerator should use the localhost address
+listenerIPAddress=
+listenerPort=8080
+
