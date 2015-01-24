@@ -1,4 +1,4 @@
-package net.di2e.rtsd.Responder;
+package ws.argo.Responder;
 
 import net.sf.json.JSONObject;
 

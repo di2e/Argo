@@ -2,14 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>rtsd</artifactId>
-    <groupId>net.di2e.rtsd</groupId>
-    <version>0.0.1-SNAPSHOT</version>
+    <groupId>ws.argo</groupId>
+    <version>0.1.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>net.di2e.rtsd</groupId>
+  <groupId>ws.argo.responder</groupId>
   <artifactId>Responder</artifactId>
   <name>Responder</name>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.2.1-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
   <build>
     <plugins>

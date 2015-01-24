@@ -1,4 +1,4 @@
-package net.di2e.rtsd.Responder.plugin;
+package ws.argo.Responder.plugin;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,16 +10,16 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.di2e.rtsd.Responder.ProbePayloadBean;
-import net.di2e.rtsd.Responder.ResponsePayloadBean;
-import net.di2e.rtsd.Responder.ServiceInfoBean;
-
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import ws.argo.Responder.ProbePayloadBean;
+import ws.argo.Responder.ResponsePayloadBean;
+import ws.argo.Responder.ServiceInfoBean;
 
 
 // This default probe handler will load up a list of IP addresses and port number associates

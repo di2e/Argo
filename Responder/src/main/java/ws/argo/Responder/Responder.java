@@ -1,4 +1,4 @@
-package net.di2e.rtsd.Responder;
+package ws.argo.Responder;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -19,9 +19,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.di2e.rtsd.Responder.plugin.ConfigFileProbeHandlerPluginImpl;
-import net.di2e.rtsd.Responder.plugin.ProbeHandlerPluginIntf;
-
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -32,13 +29,19 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import ws.argo.Responder.plugin.ConfigFileProbeHandlerPluginImpl;
+import ws.argo.Responder.plugin.ProbeHandlerPluginIntf;
 
 public class Responder {
 	
@@ -51,6 +54,7 @@ public class Responder {
 	private static Options options = null;	
 	
 	private Set<String> handledProbes = new HashSet<String>();
+	protected CloseableHttpClient httpClient;
 
 	private static class ResponderCLIValues {
     	public ResponderCLIValues(ResponderConfigurationBean propsConfig) {
@@ -131,6 +135,8 @@ public class Responder {
 
 		System.out.println("Responder started on "+cliValues.config.multicastAddress+":"+cliValues.config.multicastPort);
 		
+		httpClient = HttpClients.createDefault();
+
 		
 		// infinite loop until the responder is terminated
 		while (true) {
@@ -195,34 +201,37 @@ public class Responder {
 	
 		try {
 
-			DefaultHttpClient httpClient = new DefaultHttpClient();
-					
+			//DefaultHttpClient httpClient = new DefaultHttpClient();
+			
 			HttpPost postRequest = new HttpPost(respondToURL);
 
 			StringEntity input = new StringEntity(responseStr);
 			input.setContentType(contentType);
 			postRequest.setEntity(input);
 
-			HttpResponse httpResponse = httpClient.execute(postRequest);
-
-			int statusCode = httpResponse.getStatusLine().getStatusCode();
-			if (statusCode > 300) {
-				throw new RuntimeException("Failed : HTTP error code : "
-						+ httpResponse.getStatusLine().getStatusCode());
-			}
-
-			if (statusCode != 204) {
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-					(httpResponse.getEntity().getContent())));
-
-				String output;
-				System.out.println("Output from Listener .... \n");
-				while ((output = br.readLine()) != null) {
-					System.out.println(output);
+			CloseableHttpResponse httpResponse = httpClient.execute(postRequest);
+			try {
+		
+				int statusCode = httpResponse.getStatusLine().getStatusCode();
+				if (statusCode > 300) {
+					throw new RuntimeException("Failed : HTTP error code : "
+							+ httpResponse.getStatusLine().getStatusCode());
 				}
-			}
+	
+				if (statusCode != 204) {
+					BufferedReader br = new BufferedReader(new InputStreamReader(
+						(httpResponse.getEntity().getContent())));
+	
+					String output;
+					System.out.println("Output from Listener .... \n");
+					while ((output = br.readLine()) != null) {
+						System.out.println(output);
+					}
+				}
+			} finally {
 
-			httpClient.getConnectionManager().shutdown();
+				httpResponse.close();
+			}
 			
 			System.out.println("Response payload sent successfully to respondTo address.");
 
@@ -416,7 +425,7 @@ public class Responder {
 			String appHandlerClassname;
 			String configFilename;
 			
-			appHandlerClassname = prop.getProperty("probeHandlerClassname."+number, "net.di2e.rtsd.Responder.plugin.ConfigFileProbeHandlerPluginImpl");
+			appHandlerClassname = prop.getProperty("probeHandlerClassname."+number, "ws.argo.Responder.plugin.ConfigFileProbeHandlerPluginImpl");
 			configFilename = prop.getProperty("probeHandlerConfigFilename."+number, null);
 			
 			if (configFilename != null) {

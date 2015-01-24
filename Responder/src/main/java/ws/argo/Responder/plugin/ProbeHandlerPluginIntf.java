@@ -1,9 +1,9 @@
-package net.di2e.rtsd.Responder.plugin;
+package ws.argo.Responder.plugin;
 
 import java.io.IOException;
 
-import net.di2e.rtsd.Responder.ProbePayloadBean;
-import net.di2e.rtsd.Responder.ResponsePayloadBean;
+import ws.argo.Responder.ProbePayloadBean;
+import ws.argo.Responder.ResponsePayloadBean;
 
 public interface ProbeHandlerPluginIntf {
 
