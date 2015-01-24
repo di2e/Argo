@@ -1,4 +1,4 @@
-package net.di2e.rtsd.AsynchListener;
+package ws.argo.AsynchListener;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,8 +23,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import net.di2e.rtsd.AsynchListener.ResponseCache.ResponseCache;
-import net.di2e.rtsd.AsynchListener.ResponseCache.ServiceInfoBean;
+import ws.argo.AsynchListener.ResponseCache.ResponseCache;
+import ws.argo.AsynchListener.ResponseCache.ServiceInfoBean;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
