@@ -1,4 +1,4 @@
-package net.di2e.rtsd.ProbeGenerator;
+package ws.argo.ProbeGenerator;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

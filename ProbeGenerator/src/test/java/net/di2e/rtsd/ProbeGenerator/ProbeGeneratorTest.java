@@ -8,6 +8,9 @@ import org.junit.Before;
 import org.junit.After;
 import org.junit.Test;
 
+import ws.argo.ProbeGenerator.Probe;
+import ws.argo.ProbeGenerator.ProbeGenerator;
+
 public class ProbeGeneratorTest {
 
 	ProbeGenerator gen = null;
