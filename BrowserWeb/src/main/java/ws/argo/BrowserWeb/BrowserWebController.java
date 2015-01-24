@@ -1,4 +1,4 @@
-package net.di2e.rtsd.BrowserWeb;
+package ws.argo.BrowserWeb;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,12 +13,13 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
-import net.di2e.rtsd.ProbeGenerator.Probe;
-import net.di2e.rtsd.ProbeGenerator.ProbeGenerator;
+import ws.argo.ProbeGenerator.Probe;
+import ws.argo.ProbeGenerator.ProbeGenerator;
 
 
 @Path("controller")
@@ -30,6 +31,9 @@ public class BrowserWebController {
 	private static final String DEFAULT_CLEAR_CACHE_URL_PATH = "/AsynchListener/api/responseHandler/clearCache";
 	private static final String DEFAULT_MULTICAST_GROUP_ADDR = "230.0.0.1";
 	private static final Integer DEFAULT_MULTICAST_PORT = 4446;
+	
+	protected CloseableHttpClient httpClient = null;
+
 	
 	@GET
 	@Path("/testService")
@@ -133,34 +137,34 @@ public class BrowserWebController {
 		
 		try {
 
-			DefaultHttpClient httpClient = new DefaultHttpClient();
-					
 			HttpGet getRequest = new HttpGet(url);
 
-			HttpResponse httpResponse = httpClient.execute(getRequest);
-
-			int statusCode = httpResponse.getStatusLine().getStatusCode();
-			if (statusCode > 300) {
-				throw new RuntimeException("Failed : HTTP error code : "
-						+ httpResponse.getStatusLine().getStatusCode());
-			}
-
-			if (statusCode != 204) {
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-					(httpResponse.getEntity().getContent())));
-				
-				StringBuffer buf = new StringBuffer();
-
-				String output;
-				//System.out.println("Output from Listener .... \n");
-				while ((output = br.readLine()) != null) {
-					buf.append(output);
+			CloseableHttpResponse httpResponse = getHttpClient().execute(getRequest);
+			
+			try {
+				int statusCode = httpResponse.getStatusLine().getStatusCode();
+				if (statusCode > 300) {
+					throw new RuntimeException("Failed : HTTP error code : "
+							+ httpResponse.getStatusLine().getStatusCode());
 				}
-				
-				response = buf.toString();
+	
+				if (statusCode != 204) {
+					BufferedReader br = new BufferedReader(new InputStreamReader(
+						(httpResponse.getEntity().getContent())));
+					
+					StringBuffer buf = new StringBuffer();
+	
+					String output;
+					//System.out.println("Output from Listener .... \n");
+					while ((output = br.readLine()) != null) {
+						buf.append(output);
+					}
+					
+					response = buf.toString();
+				}
+			} finally {
+				httpClient.close();
 			}
-
-			httpClient.getConnectionManager().shutdown();
 			
 //			System.out.println("Response payload sent successfully to respondTo address.");
 
@@ -176,6 +180,16 @@ public class BrowserWebController {
 		}
 		
 		return response;
+	}
+	
+	CloseableHttpClient getHttpClient() {
+		
+		if (httpClient == null) {
+			httpClient = HttpClients.createDefault();
+		}
+		
+		return httpClient;
+		
 	}
 
 	
