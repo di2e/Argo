@@ -1,4 +1,4 @@
-package net.di2e.rtsd.BrowserWeb;
+package ws.argo.BrowserWeb;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
