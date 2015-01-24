@@ -1,4 +1,4 @@
-package net.di2e.rtsd.AsynchListener.ResponseCache;
+package ws.argo.AsynchListener.ResponseCache;
 
 import java.util.Date;
 

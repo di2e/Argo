@@ -5,14 +5,14 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>rtsd</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
   </parent>
   <groupId>ws.argo.AsynchListener</groupId>
   <artifactId>AsynchListener</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.2.1-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>AsynchListener Maven Webapp</name>
-  <url>http://maven.apache.org</url>
+  <url>http://argo.ws</url>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>

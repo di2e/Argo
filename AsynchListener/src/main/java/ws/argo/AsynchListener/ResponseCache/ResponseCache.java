@@ -1,13 +1,12 @@
-package net.di2e.rtsd.AsynchListener.ResponseCache;
+package ws.argo.AsynchListener.ResponseCache;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import net.sf.json.JSONArray;
 
 public class ResponseCache {
 
@@ -65,7 +64,7 @@ public class ResponseCache {
 		
 		Iterator<Entry<String, ServiceInfoBean>> it = cache.entrySet().iterator();
 	    while (it.hasNext()) {
-	        Map.Entry pair = it.next();
+	        Entry<String, ServiceInfoBean> pair = it.next();
 	        System.out.println(pair.getKey() + " = " + pair.getValue());
 	        ServiceInfoBean infoBean = (ServiceInfoBean) pair.getValue();
 	        if (infoBean.isExpired()) it.remove(); // avoids a ConcurrentModificationException
