@@ -1,0 +1,43 @@
+RTSD Responder Agent installation and configuration
+
+1) download the Repsonder agent executable jar file
+  or
+1) download the source from Stash (https://jeff.simpson@stash.di2e.net/scm/di2e/runtime-service-discovery.git) and build with Maven (cd to download dir and execute "mvn install")
+
+2) Create a directory called "Repsonder" in the root of the C: drive.
+3) Copy the Responder-0.0.1-SNAPSHOT.jar from the <Stash repo dir>/Responder/target to the C:\Responder directory
+4) Copy the following files from <Stash repo dir>\Responder\src\resources to the C:\Responder directory
+
+	responderConfig.prop
+	configFileProbeHandlerConfig.prop
+	configFileProbeHandlerServiceList.xml
+
+Make sure you have Java 7 (at least Java "1.7.0_51") installed (you surely need this to execute a mvn build)
+
+5) Modify the responderConfig.prop file so that the first probeHandlerConfigFilename points to the prop file in C:/Responder
+
+	probeHandlerConfigFilename.1=c:/Responder/configFileProbeHandlerConfig.prop
+	
+6) Modify the configFileProbeHandlerConfig.prop so that the xmlConfigFilename points to the prop file in C:/Responder
+
+	xmlConfigFilename=c:/Responder/configFileProbeHandlerServiceList.xml
+	
+7) Modify the configFileProbeHandlerServiceList.xml to reflect the actual services that this responder will respond with.  The sample xml file comes with 2 examples.
+	NOTE: the service should provide information that is specified by as per the service contract.  For example, not all ipAddress and port tags need to be filled out, and perhaps they MUST report the URL.
+	NOTE: Any CDATA in the data tag is per service contract.
+	NOTE: The description tag should be infornative for human consumption.
+	NOTE: The consumability tag should ONLY have HUMAN_CONSUMABLE or MACHINE_CONSUMABLE.  The url tag in HUMAN_CONSUMABLE service SHOULD take the human user to a web page where they can access the discovered application.
+	
+8) Once all configuration files are modified, start the Responder daemon with the following java command line:
+	
+	java -cp Responder-0.0.1-SNAPSHOT.jar net.di2e.rtsd.Responder.Responder -pf c:\Responder\responderConfig.prop
+	
+	The -pf switch specified the properties file for the Responder.
+	
+A successful launch should show the following 2 lines in the standard out:
+
+	Responder registering shutdown hook.
+	Responder started on 230.0.0.1:4446
+
+A control-c will cleanly exit the Responder and is the preferred method for terminating the Responder.
+
