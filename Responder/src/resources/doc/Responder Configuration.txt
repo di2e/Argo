@@ -1,0 +1,32 @@
+Argo Responder Agent configuration
+
+By now you have expanded the zip or tar.gz file into the installation directory of your
+choosing.  Now comes time to configure Argo for operation.  This is not a complex task.
+
+Create an ARGO_HOME environment variable.  Point this to the installation directory of
+the Argo files (e.g. /opt/argo or C:\Argo).
+
+Make sure you have Java 7 (at least Java "1.7.0_51") installed
+
+There are some configuration files that need to be manually edited to point to the
+installation directory of Argo.  This includes the responderConfig.prop and the
+configFileProbeHandlerConfig.prop files.  In each file replace the <install dir> text
+with the path of the Argo install dir.
+
+Modify the configFileProbeHandlerServiceList.xml to reflect the actual services that this responder will respond with.  The sample xml file comes with 2 examples.
+	NOTE: the service should provide information that is specified by as per the service contract.  For example, not all ipAddress and port tags need to be filled out, and perhaps they MUST report the URL.
+	NOTE: Any CDATA in the data tag is per service contract.
+	NOTE: The description tag should be informative for human consumption.
+	NOTE: The consumeability tag should ONLY have HUMAN_CONSUMABLE or MACHINE_CONSUMABLE.  The url tag in HUMAN_CONSUMABLE service SHOULD take the human user to a web page where they can access the discovered application.
+	
+Once these changes are made you can start the Responder by using the OS appropriate
+startup command in the $ARGO_HOME/bin directory.
+
+	Responder started on 230.0.0.1:4003
+
+A control-c will cleanly exit the Responder and is the preferred method for terminating the Responder.
+
+The only errors you might see could be from errors reading the XML file for the services.
+
+Also, if the responder does not seem to be responding to probes, try rebooting the host.
+

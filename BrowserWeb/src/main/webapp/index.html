@@ -45,6 +45,7 @@
 	  $.ajax({
 		  url: "/BrowserWeb/api/controller/launchProbe",
 		  data: { },
+		  async: false,
 		  success: function( data ) {
 			  alert("Response: " + data);
 		  },
