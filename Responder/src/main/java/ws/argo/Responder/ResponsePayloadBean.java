@@ -1,6 +1,7 @@
 package ws.argo.Responder;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -8,11 +9,14 @@ import net.sf.json.JSONObject;
 public class ResponsePayloadBean {
 	
 	String probeID;
+	String responseID;
 	private ArrayList<ServiceInfoBean> responses = new ArrayList<ServiceInfoBean>();
 	
 	
 	public ResponsePayloadBean(String probeID) {
 		this.probeID = probeID;
+		UUID uuid = UUID.randomUUID();
+		this.responseID = "urn:uuid:"+uuid.toString();
 	}
 	
 
@@ -25,7 +29,7 @@ public class ResponsePayloadBean {
 		StringBuffer buf = new StringBuffer();
 		
 		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		buf.append("<responses probeID=\""+this.probeID+"\">\n");
+		buf.append("<responses responseID=\""+this.responseID+"\" probeID=\""+this.probeID+"\">\n");
 		
 		for (ServiceInfoBean infoBean : responses) {
 			 buf.append(infoBean.toXML());
@@ -48,6 +52,9 @@ public class ResponsePayloadBean {
 		for (ServiceInfoBean infoBean : responses) {
 			 array.add(infoBean.toJSONObject());
 		}	
+		
+		json.put("responseID", this.responseID);
+		json.put("probeID", this.probeID);
 		
 		json.put("responses", array);
 		

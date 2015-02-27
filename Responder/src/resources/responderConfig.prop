@@ -1,5 +1,0 @@
-multicastPort=4446
-datagramSocket=4003
-multicastAddress=230.0.0.1
-probeHandlerClassname.1=net.di2e.rtsd.Responder.plugin.ConfigFileProbeHandlerPluginImpl
-probeHandlerConfigFilename.1=/Users/jmsimpson/configFileProbeHandlerConfig.prop
