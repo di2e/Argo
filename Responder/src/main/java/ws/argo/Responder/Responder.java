@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,8 +45,11 @@ import org.xml.sax.SAXException;
 import ws.argo.Responder.plugin.ConfigFileProbeHandlerPluginImpl;
 import ws.argo.Responder.plugin.ProbeHandlerPluginIntf;
 
+
 public class Responder {
 	
+	private final static Logger LOGGER = Logger.getLogger(Responder.class.getName());
+
 	private static final String PROBE = "probe";
 	private static final String XML = "XML";
 	private static final String JSON = "JSON";
@@ -101,10 +106,10 @@ public class Responder {
 	    	try {
 				handler = (ProbeHandlerPluginIntf) handlerClass.newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
-				System.out.println("Could not create an instance of the configured handler class - "+appConfig.classname);
-				System.out.println("Using default handler");
-				System.out.println("The issue was:");
-				e.printStackTrace();
+				LOGGER.warning("Could not create an instance of the configured handler class - "+appConfig.classname);
+				LOGGER.warning("Using default handler");
+				LOGGER.fine("The issue was:");
+				LOGGER.fine(e.getMessage());
 				handler = new ConfigFileProbeHandlerPluginImpl();
 			}
 	    	
@@ -133,26 +138,30 @@ public class Responder {
 		DatagramPacket packet;
 		ResponsePayloadBean response = null;
 
-		System.out.println("Responder started on "+cliValues.config.multicastAddress+":"+cliValues.config.multicastPort);
+		LOGGER.info("Responder started on "+cliValues.config.multicastAddress+":"+cliValues.config.multicastPort);
 		
 		httpClient = HttpClients.createDefault();
 
-		
+		LOGGER.fine("Starting Responder loop - infinite until process terminated");
 		// infinite loop until the responder is terminated
 		while (true) {
 
+			
 			byte[] buf = new byte[1024];
 			packet = new DatagramPacket(buf, buf.length);
+			LOGGER.fine("Waiting to recieve packet...");
 			socket.receive(packet);
 
+			LOGGER.fine("Received packet");
+			LOGGER.fine("Packet contents:");
 			// Get the string
 			String probeStr = new String(packet.getData(), 0, packet.getLength());			
-//			System.out.println("Probe: \n" + probeStr);
+			LOGGER.fine("Probe: \n" + probeStr);
 
 			try {
 				ProbePayloadBean payload = parseProbePayload(probeStr);
 				
-				System.out.println("Received probe id: "+payload.probeID);
+				LOGGER.info("Received probe id: "+payload.probeID);
 				
 				// Only handle probes that we haven't handled before
 				// The Probe Generator needs to send a stream of identical UDP packets
@@ -165,11 +174,12 @@ public class Responder {
 					}
 					handledProbes.add(payload.probeID);
 				} else {
-					System.out.println("Discarding duplicate probe with id: "+payload.probeID);
+					LOGGER.info("Discarding duplicate probe with id: "+payload.probeID);
 				}
 
 			} catch (SAXException e) {
 				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
 			}
 					
@@ -200,8 +210,6 @@ public class Responder {
 		}
 	
 		try {
-
-			//DefaultHttpClient httpClient = new DefaultHttpClient();
 			
 			HttpPost postRequest = new HttpPost(respondToURL);
 
@@ -209,6 +217,9 @@ public class Responder {
 			input.setContentType(contentType);
 			postRequest.setEntity(input);
 
+			LOGGER.fine("Sending response");
+			LOGGER.fine("Response payload:");
+			LOGGER.fine(responseStr);
 			CloseableHttpResponse httpResponse = httpClient.execute(postRequest);
 			try {
 		
@@ -222,10 +233,11 @@ public class Responder {
 					BufferedReader br = new BufferedReader(new InputStreamReader(
 						(httpResponse.getEntity().getContent())));
 	
+					LOGGER.fine("Successful response from response target - "+respondToURL);
 					String output;
-					System.out.println("Output from Listener .... \n");
+					LOGGER.fine("Output from Listener .... \n");
 					while ((output = br.readLine()) != null) {
-						System.out.println(output);
+						LOGGER.fine(output);
 					}
 				}
 			} finally {
@@ -233,17 +245,17 @@ public class Responder {
 				httpResponse.close();
 			}
 			
-			System.out.println("Response payload sent successfully to respondTo address.");
+			LOGGER.fine("Response payload sent successfully to respondTo address.");
 
 		} catch (MalformedURLException e) {
-			System.out.println("MalformedURLException occured\nThe respondTo URL was a no good.  respondTo URL is: "+respondToURL);
+			LOGGER.fine("MalformedURLException occured\nThe respondTo URL was a no good.  respondTo URL is: "+respondToURL);
 //			e.printStackTrace();
 		} catch (IOException e) {
-			System.out.println("An IOException occured: the error message is - "+e.getMessage());
-//			e.printStackTrace();
+			LOGGER.fine("An IOException occured: the error message is - "+e.getMessage());
+			LOGGER.log(Level.SEVERE, e.getMessage());
 		} catch (Exception e) {
-			System.out.println("Some error occured: the error message is - "+e.getMessage());
-//			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, "Some other error occured. the error message is - "+e.getMessage());
+			LOGGER.log(Level.SEVERE, e.getMessage());
 		}
 		
 	}
@@ -293,6 +305,8 @@ public class Responder {
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 
+		LOGGER.info("Starting Argo Responder daemon process.");
+		
 		CommandLineParser parser = new BasicParser();
 		ResponderCLIValues cliValues = null;
 		
@@ -309,7 +323,7 @@ public class Responder {
 
 		Responder responder = new Responder(cliValues);
 
-		System.out.println("Responder registering shutdown hook.");
+		LOGGER.info("Responder registering shutdown hook.");
 		Runtime.getRuntime().addShutdownHook(new ResponderShutdown(responder));
 		
 		
@@ -326,7 +340,7 @@ public class Responder {
 			this.agent = agent;
 		}
 		public void run() {
-			System.out.println("Responder shutting down port "+agent.cliValues.config.multicastPort);
+			LOGGER.info("Responder shutting down port "+agent.cliValues.config.multicastPort);
 			if (agent.socket != null) {
 				try {
 					agent.socket.leaveGroup(agent.address);
@@ -341,6 +355,9 @@ public class Responder {
 	}
 	
 	private static ResponderCLIValues processCommandLine(CommandLine cl) throws ResponderConfigException {
+
+		LOGGER.config("Parsing command line values:");
+		
 		if (cl.hasOption("help")) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp( "Responder", getOptions() );
@@ -357,14 +374,16 @@ public class Responder {
 			try {
 				propsConfig = processPropertiesValue(propsFilename, propsConfig);
 			} catch (Exception e) {
-	    		System.out.println("Unable to read properties file named "+propsFilename+" due to "+e.toString()+" ");
+				LOGGER.warning("Unable to read properties file named "+propsFilename+" due to "+e.toString()+" ");
 			}
 		} else {
-			System.out.println("WARNING: no propoerties file specified.  Working off cli override arguments.");
+			LOGGER.warning("WARNING: no propoerties file specified.  Working off cli override arguments.");
 		}
 		
-		if (cl.hasOption("debug"))
+		if (cl.hasOption("debug")) {
 			propsConfig.debug = true;
+			LOGGER.setLevel(Level.FINE);
+		}
 
 		// The app handler plugin config needs to be configured via config file and not command line
 		
@@ -379,7 +398,7 @@ public class Responder {
 			try {
 				int portNum = Integer.parseInt(cl.getOptionValue("p"));
 				propsConfig.multicastPort = portNum;
-				System.out.println("Overriding multicast port with command line value");
+				LOGGER.info("Overriding multicast port with command line value");
 			} catch (NumberFormatException e) {
 				throw new ResponderConfigException("The multicast port number - "+cl.getOptionValue("p")+" - is not formattable as an integer", e);
 			}
@@ -388,7 +407,7 @@ public class Responder {
 		
 		if (cl.hasOption("a")) {
 			propsConfig.multicastAddress = cl.getOptionValue("a");
-			System.out.println("Overriding multicast address with command line value");
+			LOGGER.info("Overriding multicast address with command line value");
 		}    		
 		
 	
@@ -408,10 +427,10 @@ public class Responder {
 		}
 		 
 		try {
-			int port = Integer.parseInt(prop.getProperty("mulitcastPort","4446"));
+			int port = Integer.parseInt(prop.getProperty("multicastPort","4003"));
 			config.multicastPort = port;
 		} catch (NumberFormatException e) {
-			System.out.println("Error reading port numnber from properties file.  Using default port of 4446.");
+			LOGGER.warning("Error reading port numnber from properties file.  Using default port of 4003.");
 			config.multicastPort = 4446;
 		}
 		

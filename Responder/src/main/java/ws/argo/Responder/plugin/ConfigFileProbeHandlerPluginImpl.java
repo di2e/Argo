@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -18,6 +19,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import ws.argo.Responder.ProbePayloadBean;
+import ws.argo.Responder.Responder;
 import ws.argo.Responder.ResponsePayloadBean;
 import ws.argo.Responder.ServiceInfoBean;
 
@@ -28,6 +30,8 @@ import ws.argo.Responder.ServiceInfoBean;
 // This handler will read a config xml file which lists the services that it can respond with
 public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf {
 	
+	private final static Logger LOGGER = Logger.getLogger(ConfigFileProbeHandlerPluginImpl.class.getName());
+
 	private static final String SERVICE = "service";
 
 	Properties config = new Properties();
@@ -47,7 +51,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 
 		ResponsePayloadBean response = new ResponsePayloadBean(payload.probeID);
 		
-//		System.out.println("ConfigFileProbeHandlerPluginImpl handling probe: " + payload.toString());
+		LOGGER.fine("ConfigFileProbeHandlerPluginImpl handling probe: " + payload.toString());
 		
 		// do the actual lookup here
 		//  and create and return the ResponderPayload
@@ -55,13 +59,15 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 				
 		
 		if (payload.serviceContractIDs.isEmpty()) {
+			LOGGER.fine("Query all detected - no service contract IDs in probe");
 			for (ServiceInfoBean entry : serviceList) {			
 				// If the set of contract IDs is empty, get all of them
 				response.addResponse(entry);
 			}
 			
 		} else {
-			for (String serviceContractID : payload.serviceContractIDs) {			
+			for (String serviceContractID : payload.serviceContractIDs) {
+				LOGGER.fine("Looking to detect "+serviceContractID+" in entry list.");
 				for (ServiceInfoBean entry : serviceList) {			
 					if (entry.serviceContractID.equals(serviceContractID)) {
 						// Boom Baby - we got one!!!
@@ -85,8 +91,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 		try {
 			this.loadServiceConfigFile();
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.severe("Error loading configuation file: "+e.getMessage());
 		}
 	}
 
@@ -101,9 +106,10 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 		try {
 			builder = builderFactory.newDocumentBuilder();
 		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
+			LOGGER.severe("XML Parser error: "+e.getMessage());
 		}		
 		
+		LOGGER.info("Loading configuration from "+this.configFilename);
 		InputStream is = new FileInputStream(this.configFilename);
 		Document document = builder.parse(is);
 
@@ -145,8 +151,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 			try {
 				config.ttl = Integer.decode(((Element) n).getTextContent());
 			} catch (NumberFormatException e) {
-				// There is some number format problem
-				// default is that it never expires
+				LOGGER.warning("Attempting to read the TTL from serviceName \""+config.serviceName+"\" "+e.getMessage());
 			}
 			
 			serviceList.add(config);
