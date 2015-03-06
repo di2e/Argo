@@ -30,7 +30,7 @@ public class BrowserWebController {
 	private static final String DEFAULT_RESPONSES_URL_PATH = "/AsynchListener/api/responseHandler/responses";
 	private static final String DEFAULT_CLEAR_CACHE_URL_PATH = "/AsynchListener/api/responseHandler/clearCache";
 	private static final String DEFAULT_MULTICAST_GROUP_ADDR = "230.0.0.1";
-	private static final Integer DEFAULT_MULTICAST_PORT = 4446;
+	private static final Integer DEFAULT_MULTICAST_PORT = 4003;
 	
 	protected CloseableHttpClient httpClient = null;
 
@@ -65,7 +65,7 @@ public class BrowserWebController {
 		gen.sendProbe(probe);
 		gen.close();
 		
-		return "Probe launched successfully";
+		return "Probe launched successfully on "+multicastGroupAddr+":"+ multicastPort;
 
 	}
 	

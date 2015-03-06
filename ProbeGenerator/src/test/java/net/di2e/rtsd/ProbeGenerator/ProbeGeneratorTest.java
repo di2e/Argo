@@ -17,7 +17,7 @@ public class ProbeGeneratorTest {
 	
 	@Before
 	public void setupProbeGenerator() throws IOException {
-		gen = new ProbeGenerator("230.0.0.1", 4446);
+		gen = new ProbeGenerator("230.0.0.1", 4003);
 	}
 	
 	@Test
@@ -41,7 +41,7 @@ public class ProbeGeneratorTest {
 		
 		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");	
 		
-		gen.sendProbe(probe);
+		System.out.println(probe.asJSON());
 	}
 	
 	@Test
@@ -55,6 +55,16 @@ public class ProbeGeneratorTest {
 		gen.sendProbe(probe);
 	}
 	
+	@Test
+	public void testProbeGeneratorJSONProbeFormat() throws IOException {
+		String hostIPAddr = InetAddress.getLocalHost().getHostAddress();
+		Probe probe = new Probe("http://"+hostIPAddr+":8080/AsynchListener/api/responseHandler/probeResponse", Probe.JSON);
+		
+		// No specified service contract IDs implies "all"
+//		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");	
+		
+		gen.sendProbe(probe);
+	}
 	@After
 	public void closeProbeGenerator() {
 		gen.close();
