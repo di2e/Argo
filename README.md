@@ -21,3 +21,8 @@ Argo is meant to be a long-range or Wide Area protocol.  The existing protocols 
 
 Other mainstream protocols such as WS-Discovery and mDNS simply ignore security.  Argo allows a number of mutually allowable and strong security paradigms to be applied to the communcation packets.
 
+**Why is it called Argo?*
+
+Argo is the name of both the ship Jason and the Argonaughts used as well as the name of a Ben Afflac movie.  The Argo discovery protocol has nothing to do with either of those things.  The name Argo was chosen for the two most important reasons an open source name is chosen: it sounded like a cool, short and catchy name and, perhaps more importantly, the domain name argo.ws was available.
+
+The tagline, "to boldly go where hundreds have gone before", was added as an indicator that the technology underlying Argo was not new and was well founded to provide some assure that Argo was not some new voodoo, rocket science, deep magic.  And, it was a total rip off of a Neil deGrasse Tyson quote: "Boldly going where hundreds have gone before' does not make headlines."  However, a headline or two for Argo would be nice.
