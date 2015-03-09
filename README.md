@@ -5,7 +5,7 @@ Runtime service discovery
 
 ### **What is DI2E Runtime Service Discovery?**
 
-The Argo Runtime Service Discovery is a simple and robust protocol for the discovery and location of services on a wide-area network without the use of a central or federated registry.  The primary use-case is to communicate configuration information – such as IP Address and Port – to service consumers.  The technology and architecture behind Argo is not novel and has been in common use for decades (such as Bonjour and WS-Discovery).  Therefore, to go where hundreds have gone before.  There are just so many ways to do this.
+The Argo Runtime Service Discovery is a simple and robust protocol for the discovery and location of services on a wide-area network without the use of a central or federated registry.  The primary use-case is to communicate configuration information – such as IP Address and Port – to service consumers.  The technology and architecture behind Argo is not novel and has been in common use for decades (such as Bonjour and WS-Discovery).  Therefore, to go where hundreds have gone before.  There are only so many ways to do this.
 
 Argo is extremely easy to use.  To have services your participate in the discovery ecosystem, simply install the Argo Responder according to the instructions and start the Responder.  This takes about 5-6 minutes.  There are no changes required to any code to advertise services.
 
