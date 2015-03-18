@@ -2,8 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>ws.argo</groupId>
-  <artifactId>rtsd</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <artifactId>Argo</artifactId>
+  <version>0.2.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>Parent project for the Runtime Service Discovery components</description>
   <modules>
@@ -12,6 +12,11 @@
     <module>AsynchListener</module>
     <module>BrowserWeb</module>
   </modules>
+  <!--  The following repositories were used during early development at DI2E.
+        For usage in the open source mode, please feel free to change to whatever local repo
+        you like.
+        They will be removed when cleanup in Github is completed  -->
+  
   <repositories>
     <repository>
       <releases>
@@ -46,4 +51,5 @@
       <layout>default</layout>
     </repository>
   </distributionManagement>
+
 </project>
