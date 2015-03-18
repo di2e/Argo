@@ -1,5 +1,6 @@
 # Argo
 Runtime service discovery
+Open Source Released under MIT License
 
 *"To boldly go where hundreds have gone before!"*
 
