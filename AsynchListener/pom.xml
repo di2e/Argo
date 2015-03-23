@@ -38,7 +38,16 @@
     	<scope>provided</scope>
     </dependency>
   </dependencies>
-  <build>
-    <finalName>AsynchListener</finalName>
-  </build>
+	<build>
+		<finalName>AsynchListener</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
