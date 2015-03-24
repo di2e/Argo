@@ -11,7 +11,7 @@
   <artifactId>AsynchListener</artifactId>
   <version>0.2.2-SNAPSHOT</version>
   <packaging>war</packaging>
-  <name>AsynchListener Maven Webapp</name>
+  <name>AsynchListener Webapp</name>
   <url>http://argo.ws</url>
   <dependencies>
     <dependency>
