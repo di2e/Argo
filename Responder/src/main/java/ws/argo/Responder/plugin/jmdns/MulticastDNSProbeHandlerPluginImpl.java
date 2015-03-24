@@ -17,8 +17,11 @@ package ws.argo.Responder.plugin.jmdns;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -126,16 +129,22 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 
 
 	@Override
-	public void serviceRemoved(ServiceEvent arg0) {
+	public void serviceRemoved(ServiceEvent event) {
 		// TODO Auto-generated method stub
+		LOGGER.info("mDNS Service Removed: "+ event.getName());
+		
 		
 	}
 
 
 	@Override
 	public void serviceResolved(ServiceEvent event) {
-		// TODO Auto-generated method stub
 		LOGGER.info("mDNS Service RESOLVED: "+ event.toString());
+		
+		if (!event.getInfo().hasData()) {
+			LOGGER.warning("mDNS Service has no data - skipping: "+ event.toString());
+			return;
+		}
 		
 		String contractID = null;
 		String serviceID = null;
@@ -146,7 +155,7 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 		ServiceInfoBean config = new ServiceInfoBean(event.getInfo().getKey());
 		
 		config.serviceContractID = contractID;
-		config.serviceName = serviceID;
+		config.serviceName = event.getInfo().getName();
 
 		java.net.Inet4Address[] ipv4Addresses = event.getInfo().getInet4Addresses();
 		config.ipAddress = ipv4Addresses[0].getHostAddress();
@@ -154,14 +163,35 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 		config.port = Integer.toString(event.getInfo().getPort());
 		
 		java.lang.String[] urls = event.getInfo().getURLs();
+		StringBuffer buf = new StringBuffer();
+		for (String url : event.getInfo().getURLs()) {
+			buf.append(url+" ");
+		}
+		//config.url = buf.toString();
 		config.url = urls[0];
 		
-		config.description = event.getInfo().getNiceTextString();
-		config.data = String.valueOf(event.getInfo().getTextBytes());
-				
+		config.description = event.getInfo().getQualifiedName();
+		
+		config.data = event.getInfo().getNiceTextString();
+		
+//		String tempData = new String(config.data);
+//		
+//		List<String> allMatches = new ArrayList<String>();
+//		Matcher m = Pattern.compile("(\\\\[0-9]{3})").matcher(tempData);
+//		while (m.find()) {
+//			allMatches.add(m.group());
+//		}
+//		for (String octal: allMatches) {
+//			int charNum = Integer.parseInt(octal.substring(1));
+//			String replacementChar = Character.toString ((char) charNum);
+//			tempData = tempData.replace(octal, replacementChar);
+//		}
+//		
+//		config.data = tempData;
+	
 		config.contractDescription = event.getInfo().getApplication();
 		
-		config.consumability = ServiceInfoBean.HUMAN_CONSUMABLE;
+		config.consumability = ServiceInfoBean.MACHINE_CONSUMABLE;
 		
 		config.ttl = 0;
 		
