@@ -46,10 +46,12 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -147,7 +149,6 @@ public class Responder {
 		@SuppressWarnings("resource")
 		MulticastSocket socket = new MulticastSocket(cliValues.config.multicastPort);
 		address = InetAddress.getByName(cliValues.config.multicastAddress);
-		LOGGER.info("Starting Responder on "+address.toString()+":"+cliValues.config.multicastPort);
 		socket.joinGroup(address);
 
 		DatagramPacket packet;
@@ -446,7 +447,7 @@ public class Responder {
 			config.multicastPort = port;
 		} catch (NumberFormatException e) {
 			LOGGER.warning("Error reading port numnber from properties file.  Using default port of 4003.");
-			config.multicastPort = 4003;
+			config.multicastPort = 4446;
 		}
 		
 		config.multicastAddress = prop.getProperty("multicastAddress");
