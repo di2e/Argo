@@ -4,14 +4,14 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>ws.argo</groupId>
-    <artifactId>rtsd</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <artifactId>Argo</artifactId>
+    <version>0.2.2-SNAPSHOT</version>
   </parent>
   <groupId>ws.argo.Browser</groupId>
   <artifactId>BrowserWeb</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <version>0.2.2-SNAPSHOT</version>
   <packaging>war</packaging>
-  <name>BrowserWeb Maven Webapp</name>
+  <name>BrowserWeb Webapp</name>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,7 +33,7 @@
     </dependency>
 	<dependency>
 	  <groupId>ws.argo.ProbeGenerator</groupId>
-	  <version>0.2.1-SNAPSHOT</version>
+	  <version>0.2.2-SNAPSHOT</version>
 	  <artifactId>ProbeGenerator</artifactId>
     </dependency>
     <dependency>
