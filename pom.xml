@@ -1,82 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>ws.argo</groupId>
-  <artifactId>Argo</artifactId>
-  <version>0.2.2-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <description>Parent project for the Runtime Service Discovery components</description>
-  <modules>
-    <module>Responder</module>
-    <module>ProbeGenerator</module>
-    <module>AsynchListener</module>
-    <module>BrowserWeb</module>
-  </modules>
-  <!--  The following repositories were used during early development at DI2E.
-        For usage in the open source mode, please feel free to change to whatever local repo
-        you like.
-        They will be removed when cleanup in Github is completed  -->
-  
-  <repositories>
-    <repository>
-      <releases>
-        <enabled>false</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-      <id>DI2ENexus</id>
-      <name>DI2ENexus Snapshots</name>
-      <url>https://nexus.di2e.net/nexus/content/repositories/snapshots/</url>
-      <layout>default</layout>
-    </repository>
-  </repositories>  
-  <distributionManagement>
-    <snapshotRepository>
-      <uniqueVersion>false</uniqueVersion>
-      <id>DI2ENexus</id>
-      <name>DI2ENexus Snapshots</name>
-      <url>https://nexus.di2e.net/nexus/content/repositories/snapshots/</url>
-      <layout>default</layout>
-    </snapshotRepository>
-    <repository>
-	  <uniqueVersion>false</uniqueVersion>
-      <id>DI2ENexus</id>
-      <name>DI2ENexus Release</name>
-      <url>https://nexus.di2e.net/nexus/content/repositories/releases/</url>
-      <layout>default</layout>
-    </repository>
-  </distributionManagement>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.1</version>
-                <configuration>
-                    <findbugsXmlOutput>true</findbugsXmlOutput>
-                    <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
-                    <xmlOutput>true</xmlOutput>
-                    <!-- Optional directory to put findbugs xdoc xml report -->
-                    <xmlOutputDirectory>target/site</xmlOutputDirectory>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.15</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>checkstyle</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>ws.argo</groupId>
+	<artifactId>Argo</artifactId>
+	<version>0.2.2-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<description>Parent project for the Runtime Service Discovery components</description>
+	<modules>
+		<module>Responder</module>
+		<module>ProbeGenerator</module>
+		<module>AsynchListener</module>
+		<module>BrowserWeb</module>
+	</modules>
+	<!-- The following repositories were used during early development at DI2E. 
+		For usage in the open source mode, please feel free to change to whatever 
+		local repo you like. They will be removed when cleanup in Github is completed -->
+
+	<repositories>
+		<repository>
+			<releases>
+				<enabled>false</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+			<id>DI2ENexus</id>
+			<name>DI2ENexus Snapshots</name>
+			<url>https://nexus.di2e.net/nexus/content/repositories/snapshots/</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+	<distributionManagement>
+		<snapshotRepository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>DI2ENexus</id>
+			<name>DI2ENexus Snapshots</name>
+			<url>https://nexus.di2e.net/nexus/content/repositories/snapshots/</url>
+			<layout>default</layout>
+		</snapshotRepository>
+		<repository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>DI2ENexus</id>
+			<name>DI2ENexus Release</name>
+			<url>https://nexus.di2e.net/nexus/content/repositories/releases/</url>
+			<layout>default</layout>
+		</repository>
+	</distributionManagement>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.1</version>
+				<configuration>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+					<xmlOutput>true</xmlOutput>
+					<!-- Optional directory to put findbugs xdoc xml report -->
+					<xmlOutputDirectory>target/site</xmlOutputDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.15</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>checkstyle</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>
