@@ -4,12 +4,12 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>ws.argo</groupId>
-    <artifactId>rtsd</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <artifactId>Argo</artifactId>
+    <version>0.2.2-SNAPSHOT</version>
   </parent>
   <groupId>ws.argo.responder</groupId>
   <artifactId>Responder</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <version>0.2.2-SNAPSHOT</version>
   <name>Responder</name>
   <url>http://maven.apache.org</url>
   <properties>
@@ -45,6 +45,11 @@
     	<artifactId>commons-io</artifactId>
     	<version>2.4</version>
     </dependency>
+    <dependency>
+    	<groupId>javax.jmdns</groupId>
+    	<artifactId>jmdns</artifactId>
+    	<version>3.4.1</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -70,6 +75,38 @@
           </execution>
         </executions>
       </plugin>
-    </plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <!-- 
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+           -->
+          <descriptors>
+            <descriptor>src/assembly/assembly.xml</descriptor>
+          </descriptors>
+
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id> <!-- this is used for inheritance merges -->
+            <phase>package</phase> <!-- bind to the packaging phase -->
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Do not put distribution in a maven repo -->
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <configuration> 
+              <skip>true</skip>
+          </configuration>
+      </plugin>
+     </plugins>
   </build>
 </project>

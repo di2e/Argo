@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Jeff Simpson.
+ *
+ * Licensed under the MIT License, (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ws.argo.BrowserWeb;
 
 import java.io.BufferedReader;
@@ -6,7 +22,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 import java.util.Properties;
 
 import javax.ws.rs.GET;
@@ -33,6 +52,7 @@ public class BrowserWebController {
 	private static final Integer DEFAULT_MULTICAST_PORT = 4003;
 	
 	protected CloseableHttpClient httpClient = null;
+	protected static Properties pgProps = null;
 
 	
 	@GET
@@ -101,10 +121,13 @@ public class BrowserWebController {
 	
 	private Properties getPropeGeneratorProps() throws UnknownHostException {
 		
+		if (pgProps != null)
+			return pgProps;
+		
 		InputStream in = this.getClass().getClassLoader()
                 .getResourceAsStream(PROBE_GENERATOR_PROPERTIES_FILE);
 		
-		Properties pgProps = new Properties();
+		pgProps = new Properties();
 		
 		if (in != null) {
 			try {
@@ -117,8 +140,34 @@ public class BrowserWebController {
 			
 		} 
 		
+		
+		
 		if (pgProps.getProperty("listenerIPAddress","").equals("")) {
-			String hostIPAddr = InetAddress.getLocalHost().getHostAddress();
+			// If the listenerIPAddress is blank, then try to get the ip address of the interface
+			
+			String hostIPAddr = null;
+			
+			try {
+				NetworkInterface n = NetworkInterface.getByName(pgProps.getProperty("listenerInterfaceName","en0"));
+
+				if (!n.isLoopback()) {
+				    
+				    Enumeration ee = n.getInetAddresses();
+				    while (ee.hasMoreElements())
+				    {
+				        InetAddress i = (InetAddress) ee.nextElement();
+				        hostIPAddr = i.getHostName();
+				        System.out.println(hostIPAddr);
+				    }
+				}
+			} catch (SocketException e) {
+				System.out.println("A socket exception occurred.");
+			}
+			
+			if (hostIPAddr == null) {
+				hostIPAddr = InetAddress.getLocalHost().getHostName();
+				System.out.println("Defaulting to local address: "+hostIPAddr);
+			}
 			pgProps.put("listenerIPAddress", hostIPAddr);
 		}
 		

@@ -1,5 +1,31 @@
+# 
+#  Copyright 2015 Jeff Simpson.
+#
+#  Licensed under the MIT License, (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+# 
+#      http://opensource.org/licenses/MIT
+# 
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+# 
+
 multicastPort=4003
 datagramSocket=4018
 multicastAddress=230.0.0.1
 probeHandlerClassname.1=ws.argo.Responder.plugin.ConfigFileProbeHandlerPluginImpl
 probeHandlerConfigFilename.1=<install dir>/config/configFileProbeHandlerConfig.prop
+#
+# Uncomment to enable Argo to discovery mDNS services as well
+# You only really need on one mDNS enables Responder for a local network
+# If you enable more than one Argo Responder with this plugin, you'll get redundancy at the price of
+# multiple answers for a probe.  This is the trade-off with a multicast-unicast (Argo) protocol and a
+# multicast-multicast (mDNS) protocol.  Perhaps we can do some link-local leader election in a later
+# release.
+#
+#probeHandlerClassname.2=ws.argo.Responder.plugin.jmdns.MulticastDNSProbeHandlerPluginImpl
+#probeHandlerConfigFilename.2=
