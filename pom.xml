@@ -14,16 +14,24 @@
 		<module>BrowserWeb</module>
 		<module>build-tools</module>
 	</modules>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>2.15</version>
-                <configuration>
-                    <configLocation>Argo/quick_checks.xml</configLocation>
-                </configuration>
+				<configuration>
+					<configLocation>Argo/my_sun_checks.xml</configLocation>
+				</configuration>
 				<dependencies>
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>6.4.1</version>
+					</dependency>
 					<dependency>
 						<groupId>ws.argo</groupId>
 						<artifactId>build-tools</artifactId>
@@ -31,24 +39,24 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.1</version>
-                <configuration>
-                    <findbugsXmlOutput>true</findbugsXmlOutput>
-                    <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
-                    <xmlOutput>true</xmlOutput>
-                    <!-- Optional directory to put findbugs xdoc xml report -->
-                    <xmlOutputDirectory>target/site</xmlOutputDirectory>
-                </configuration>
-            </plugin>
-        </plugins>
-   	</build>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.1</version>
+				<configuration>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+					<xmlOutput>true</xmlOutput>
+					<!-- Optional directory to put findbugs xdoc xml report -->
+					<xmlOutputDirectory>target/site</xmlOutputDirectory>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
-    <!-- The following repositories were used during early development at DI2E. 
-        For usage in the open source mode, please feel free to change to whatever 
-        local repo you like. They will be removed when cleanup in Github is completed -->
+	<!-- The following repositories were used during early development at DI2E. 
+		For usage in the open source mode, please feel free to change to whatever 
+		local repo you like. They will be removed when cleanup in Github is completed -->
 
 	<repositories>
 		<repository>
@@ -84,8 +92,6 @@
 			<layout>default</layout>
 		</repository>
 	</distributionManagement>
-	
-	<reporting>
 
-	</reporting>
+
 </project>
