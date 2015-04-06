@@ -17,6 +17,9 @@
 package ws.argo.BrowserWeb;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,6 +53,8 @@ public class BrowserWebController {
 	private static final String DEFAULT_CLEAR_CACHE_URL_PATH = "/AsynchListener/api/responseHandler/clearCache";
 	private static final String DEFAULT_MULTICAST_GROUP_ADDR = "230.0.0.1";
 	private static final Integer DEFAULT_MULTICAST_PORT = 4003;
+	private static final String ARGO_HOME_ENV_NAME = "ARGO_HOME";
+	private static final String ARGO_HOME_PROPS_PATH = "/config/";
 	
 	protected CloseableHttpClient httpClient = null;
 	protected static Properties pgProps = null;
@@ -119,13 +124,32 @@ public class BrowserWebController {
 		return response;
 	}
 	
+	
+	private InputStream getPropertiesFileInputStream() {
+		InputStream is = null;
+		
+		String ARGO_HOME = System.getenv(ARGO_HOME_ENV_NAME);
+		String externPropsFilename = ARGO_HOME+ARGO_HOME_PROPS_PATH+PROBE_GENERATOR_PROPERTIES_FILE;
+		
+		File file = new File(externPropsFilename);
+		try {
+			is = new FileInputStream(file);
+			
+		} catch (FileNotFoundException e) {
+			System.out.println("External config file "+externPropsFilename+" not found.");
+			System.out.println("Using defaults located in classpath embedded in war file.");
+			is = this.getClass().getClassLoader().getResourceAsStream(PROBE_GENERATOR_PROPERTIES_FILE);
+		}
+		
+		return is;
+	}
+	
 	private Properties getPropeGeneratorProps() throws UnknownHostException {
 		
 		if (pgProps != null)
 			return pgProps;
 		
-		InputStream in = this.getClass().getClassLoader()
-                .getResourceAsStream(PROBE_GENERATOR_PROPERTIES_FILE);
+		InputStream in = getPropertiesFileInputStream();
 		
 		pgProps = new Properties();
 		
