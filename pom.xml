@@ -11,6 +11,7 @@
 		<module>Responder</module>
 		<module>ProbeGenerator</module>
 		<module>AsynchListener</module>
+        <module>VPNMulticastGateway</module>
 		<module>BrowserWeb</module>
 		<module>build-tools</module>
 	</modules>
