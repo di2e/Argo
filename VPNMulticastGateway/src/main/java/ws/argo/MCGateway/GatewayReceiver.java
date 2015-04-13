@@ -1,4 +1,4 @@
-package ws.argo.VPNMulticastGateway;
+package ws.argo.MCGateway;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -7,7 +7,9 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.BasicParser;
@@ -40,37 +42,76 @@ public class GatewayReceiver {
 		this.unicastPort = (Integer) p.get("up");
 		this.multicastAddress = p.getProperty("ma");
 		this.multicastPort = (Integer) p.get("mp");
-		this.repeat = (Boolean) p.get("r");
-		if (this.repeat == null) this.repeat = true;
+		this.repeat = (Boolean) p.get("dnr");
 		this.niName = p.getProperty("ni");
 	}	
 	
-	
+	boolean joinGroup() {
+		boolean success = true;
+		InetSocketAddress socketAddress = new InetSocketAddress(multicastAddress, multicastPort);
+		try {
+			//Setup for incoming multicast requests		
+			maddress = InetAddress.getByName(multicastAddress);
+			
+			if (niName != null)
+				ni = NetworkInterface.getByName(niName);
+			if (ni == null) {
+				LOGGER.fine("Network Interface name not specified.  Using the NI for "+maddress);
+				ni = NetworkInterface.getByInetAddress(maddress);			
+			}
+					
+			this.outboundSocket = new MulticastSocket(multicastPort);
+			this.outboundSocket.joinGroup(socketAddress, ni);
+			LOGGER.info(this.ni.getName()+" joined group "+socketAddress.toString());
+		} catch (IOException e) {
+			StringBuffer buf = new StringBuffer();
+			try {
+				buf.append("(lb:"+this.ni.isLoopback()+" ");
+			} catch (SocketException e2) {
+				buf.append("(lb:err ");
+			}
+			try {
+				buf.append("m:"+this.ni.supportsMulticast()+" ");
+			} catch (SocketException e3) {
+				buf.append("(m:err ");
+			}
+			try {
+				buf.append("p2p:"+this.ni.isPointToPoint()+" ");
+			} catch (SocketException e1) {
+				buf.append("p2p:err ");
+			}
+			try {
+				buf.append("up:"+this.ni.isUp()+" ");
+			} catch (SocketException e1) {
+				buf.append("up:err ");
+			}
+			buf.append("v:"+this.ni.isVirtual()+") ");
+			
+			System.out.println(this.ni.getName()+" "+buf.toString()+": could not join group "+socketAddress.toString()+" --> "+e.toString());
+
+			success = false;
+		}
+		return success;
+	}
 	
 	public void run() throws Exception {
 
-		//Setup for outbound multicast 		
-		maddress = InetAddress.getByName(multicastAddress);
-		InetSocketAddress socketAddress = new InetSocketAddress(maddress, multicastPort);
-		outboundSocket = new MulticastSocket(multicastPort.intValue());
+		if (!this.joinGroup())
+			return;  //If we can't join the group, end the process
 
-		ni = NetworkInterface.getByName(niName);
-		if (ni == null) {
-			ni = NetworkInterface.getByInetAddress(maddress);			
-		}
-		
 		LOGGER.info("Starting GatewayReceiver:  Receiving unicast @ "+unicastPort+" -- Sending mulitcast @ "+multicastAddress+":"+multicastPort);
-		outboundSocket.joinGroup(socketAddress, ni);
 
 		//Setup for inbound unicast
 		//Connect to the remote gateway
 		inboundSocket = new ServerSocket(unicastPort.intValue());
 		
 		LOGGER.fine("Starting Gateway loop - infinite until process terminated");
+		if (!repeat)
+			LOGGER.info("*** Receiver WILL NOT REPEAT inbound packets - I hope you know what you are doing ***");
 		// infinite loop until the responder is terminated
 		while (true) {
 			
-			System.out.println("Listening for message ...");
+			LOGGER.info("Listening for message ...");
 			Socket s = inboundSocket.accept();
 			
 			new GRHandlerThread(s, repeat, outboundSocket, maddress, multicastPort).start();
@@ -88,8 +129,8 @@ public class GatewayReceiver {
 			cliValues = processCommandLine(cl);
 			if (cliValues == null) return; //exit the program - usually from -help
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.severe("EXITING --> "+e.getMessage());
+			return;
 		}
 		
 		GatewayReceiver gateway = new GatewayReceiver(cliValues);
@@ -114,12 +155,11 @@ public class GatewayReceiver {
 	    	options = new Options();
 	    	
 	    	options.addOption(new Option( "help", "print this message" ));
-//	    	options.addOption(OptionBuilder.withArgName("properties").hasArg().withType(new String()).withDescription("fully qualified properties filename").create("pf"));
-	    	options.addOption(OptionBuilder.withArgName("ni").hasArg().withType(new Integer(0)).withDescription("network interface name to listen on").create("ni"));
-	    	options.addOption(OptionBuilder.withArgName("repeat").hasArg().withType(new Integer(0)).withDescription("should receiver repeat message").create("r"));
-	    	options.addOption(OptionBuilder.withArgName("multicastPort").hasArg().withType(new Integer(0)).withDescription("the multicast port to listen on").create("mp"));
-	    	options.addOption(OptionBuilder.withArgName("multicastAddr").hasArg().withDescription("the multicast group address to listen on").create("ma"));
-	    	options.addOption(OptionBuilder.withArgName("unicastPort").hasArg().withDescription("the target unicast port to send to").create("up"));
+	    	options.addOption(OptionBuilder.withArgName("dnr").withDescription("if this switch is set, then do not repeat the traffic. Usually for testing.").create("dnr"));
+	    	options.addOption(OptionBuilder.withArgName("ni").isRequired().hasArg().withType(new Integer(0)).withDescription("network interface name to listen on").create("ni"));
+	    	options.addOption(OptionBuilder.withArgName("multicastPort").isRequired().hasArg().withType(new Integer(0)).withDescription("the multicast port to listen on").create("mp"));
+	    	options.addOption(OptionBuilder.withArgName("multicastAddr").isRequired().hasArg().withDescription("the multicast group address to listen on").create("ma"));
+	    	options.addOption(OptionBuilder.withArgName("unicastPort").isRequired().hasArg().withDescription("the target unicast port to send to").create("up"));
 		}
 		
 		return options;
@@ -144,10 +184,10 @@ public class GatewayReceiver {
 		}
 		
 		//Message Repeat
-		if (cl.hasOption("r")) {
-			String rs = cl.getOptionValue("r");
-			Boolean r = Boolean.valueOf(rs);
-			values.put("r", r);
+		values.put("dnr", true);
+		if (cl.hasOption("dnr")) {
+			values.put("dnr", false);
+			LOGGER.info("*** WARNING - will NOT send on inbound messages to multicast group.  This is usually for testing.  I hope you are testing.");
 		}
 		
 		//MulticastAddress

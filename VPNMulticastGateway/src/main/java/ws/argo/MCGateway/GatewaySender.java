@@ -1,4 +1,4 @@
-package ws.argo.VPNMulticastGateway;
+package ws.argo.MCGateway;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -46,12 +46,22 @@ public class GatewaySender {
 
 	boolean joinGroup() {
 		boolean success = true;
-		InetSocketAddress socketAddress = new InetSocketAddress(maddress, multicastPort);
+		InetSocketAddress socketAddress = new InetSocketAddress(multicastAddress, multicastPort);
 		try {
-//			System.out.println(this.ni.getName()+" joining group "+socketAddress.toString());
+			//Setup for incoming multicast requests		
+			maddress = InetAddress.getByName(multicastAddress);
+			
+			if (niName != null)
+				ni = NetworkInterface.getByName(niName);
+			if (ni == null) {
+				LOGGER.fine("Network Interface name not specified.  Using the NI for "+maddress);
+				ni = NetworkInterface.getByInetAddress(maddress);			
+			}
+					
+			LOGGER.info("Starting GatewaySender:  Receiving mulitcast @ "+multicastAddress+":"+multicastPort+" -- Sending unicast @ "+unicastAddress+":"+unicastPort);
 			this.inboundSocket = new MulticastSocket(multicastPort);
-			inboundSocket.joinGroup(socketAddress, ni);
-			System.out.println(this.ni.getName()+" joined group "+socketAddress.toString());
+			this.inboundSocket.joinGroup(socketAddress, ni);
+			LOGGER.info(this.ni.getName()+" joined group "+socketAddress.toString());
 		} catch (IOException e) {
 			StringBuffer buf = new StringBuffer();
 			try {
@@ -77,41 +87,35 @@ public class GatewaySender {
 			buf.append("v:"+this.ni.isVirtual()+") ");
 			
 			System.out.println(this.ni.getName()+" "+buf.toString()+": could not join group "+socketAddress.toString()+" --> "+e.toString());
-//			
-//			e.printStackTrace();
+
 			success = false;
 		}
 		return success;
 	}
 
 	
-	public void run() throws Exception {
+	public void run() {
 				
-		//Setup for incoming multicast requests		
-		maddress = InetAddress.getByName(multicastAddress);
-		InetSocketAddress socketAddress = new InetSocketAddress(maddress, multicastPort);
-		inboundSocket = new MulticastSocket(multicastPort.intValue());
-
-		ni = NetworkInterface.getByName(niName);
-		if (ni == null) {
-			ni = NetworkInterface.getByInetAddress(maddress);			
-		}
-		
-		LOGGER.info("Starting GatewaySender:  Receiving mulitcast @ "+multicastAddress+":"+multicastPort+" -- Sending unicast @ "+unicastAddress+":"+unicastPort);
-		inboundSocket.joinGroup(socketAddress, ni);
+		if (!this.joinGroup())
+			return;  //If we can't join the group, end the process
 
 		DatagramPacket packet;
 		
-		LOGGER.info("Starting Gateway loop - infinite until process terminated");
+		LOGGER.fine("Starting Gateway loop - infinite until process terminated");
 		// infinite loop until the responder is terminated
 		while (true) {
 	
 			byte[] buf = new byte[2048];
 			packet = new DatagramPacket(buf, buf.length);
-			LOGGER.info("Waiting to recieve packet on "+maddress+":"+multicastPort);
-			inboundSocket.receive(packet);
+			LOGGER.fine("Waiting to recieve packet on "+maddress+":"+multicastPort);
+			try {
+				inboundSocket.receive(packet);
+				new GSHandlerThread(packet, unicastAddress, unicastPort).start();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
-			new GSHandlerThread(packet, unicastAddress, unicastPort).start();
 		}
 		
 		
@@ -128,15 +132,14 @@ public class GatewaySender {
 			cliValues = processCommandLine(cl);
 			if (cliValues == null) return; //exit the program - usually from -help
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.severe("EXITING --> "+e.getMessage());
+			return;
 		}
 		
 		GatewaySender gateway = new GatewaySender(cliValues);
 
-		LOGGER.info("GatewaySender registering shutdown hook.");
+		LOGGER.fine("GatewaySender registering shutdown hook.");
 		Runtime.getRuntime().addShutdownHook(new GatewaySenderShutdown(gateway));
-		
 		
 		try {
 			gateway.run();
@@ -154,7 +157,7 @@ public class GatewaySender {
 			this.agent = agent;
 		}
 		public void run() {
-			LOGGER.info("Gateway shutting inbound socket on "+agent.multicastPort);
+			LOGGER.fine("Gateway shutting inbound socket on "+agent.multicastPort);
 			if (agent.inboundSocket != null) {
 				try {
 					agent.inboundSocket.leaveGroup(agent.maddress);
@@ -175,11 +178,11 @@ public class GatewaySender {
 	    	options = new Options();
 	    	
 	    	options.addOption(new Option( "help", "print this message" ));
-	    	options.addOption(OptionBuilder.withArgName("ni").hasArg().withType(new Integer(0)).withDescription("network interface name to listen on").create("ni"));
-	    	options.addOption(OptionBuilder.withArgName("multicastPort").hasArg().withType(new Integer(0)).withDescription("the multicast port to listen on").create("mp"));
-	    	options.addOption(OptionBuilder.withArgName("multicastAddr").hasArg().withDescription("the multicast group address to listen on").create("ma"));
-	    	options.addOption(OptionBuilder.withArgName("unicastPort").hasArg().withDescription("the target unicast port to send to").create("up"));
-	    	options.addOption(OptionBuilder.withArgName("unicastAddr").hasArg().withDescription("the unicast address to send to").create("ua"));
+	    	options.addOption(OptionBuilder.withArgName("ni").hasArg().withDescription("network interface name to listen on").create("ni"));
+	    	options.addOption(OptionBuilder.withArgName("multicastPort").isRequired().hasArg().withType(new Integer(0)).withDescription("the multicast port to listen on").create("mp"));
+	    	options.addOption(OptionBuilder.withArgName("multicastAddr").isRequired().hasArg().withDescription("the multicast group address to listen on").create("ma"));
+	    	options.addOption(OptionBuilder.withArgName("unicastPort").isRequired().hasArg().withType(new Integer(0)).withDescription("the target unicast port to send to").create("up"));
+	    	options.addOption(OptionBuilder.withArgName("unicastAddr").isRequired().hasArg().withDescription("the unicast address to send to").create("ua"));
 		}
 		
 		return options;

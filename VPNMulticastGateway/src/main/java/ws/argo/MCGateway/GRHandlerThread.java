@@ -1,12 +1,14 @@
-package ws.argo.VPNMulticastGateway;
+package ws.argo.MCGateway;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
+import java.util.logging.Logger;
 
 public class GRHandlerThread extends Thread {
+	private final static Logger LOGGER = Logger.getLogger(GRHandlerThread.class.getName());
 
 	Socket s;
 	Boolean repeat;
@@ -34,13 +36,13 @@ public class GRHandlerThread extends Thread {
 		int length = 0;
 		
 		//Read in whatever message is sent on the socket.
-		System.out.println("Reading message ...");
+		LOGGER.fine("Reading message ...");
 			
 		try {
 			do {
 				length = s.getInputStream().read(buffer);
 
-				System.out.println("Read " + length + " bytes: ");
+				LOGGER.fine("Read " + length + " bytes: ");
 						
 
 				if (length > 0) {
@@ -49,7 +51,7 @@ public class GRHandlerThread extends Thread {
 					System.arraycopy(fullMessage, 0, destination, 0, fullMessage.length);
 					System.arraycopy(buffer, 0, destination, fullMessage.length, length);
 
-					System.out.println("New appended message: " + new String(destination));
+					LOGGER.fine("New appended message: " + new String(destination));
 
 					fullMessage = destination;
 				}
@@ -63,14 +65,14 @@ public class GRHandlerThread extends Thread {
 		}
 			
 			
-		System.out.println("Received message of size "+fullMessage.length);
+		LOGGER.info("Received message of size "+fullMessage.length);
 		if (fullMessage.length >0) {
-			System.out.println("Sending message of size "+fullMessage.length+":");
-			System.out.println("MESSAGE -->> "+new String(fullMessage));
+			LOGGER.fine("Sending message of size "+fullMessage.length+":");
+			LOGGER.fine("MESSAGE -->> "+new String(fullMessage));
 			//Send out message on group address
 			
 			if (this.repeat) {
-				System.out.println("Repeating message @ "+outboundSocket.getLocalAddress()+":"+multicastPort);
+				LOGGER.fine("Repeating message @ "+outboundSocket.getLocalAddress()+":"+multicastPort);
 
 				DatagramPacket packet = new DatagramPacket(fullMessage, fullMessage.length, maddress, multicastPort);
 				try {
@@ -81,7 +83,7 @@ public class GRHandlerThread extends Thread {
 					e.printStackTrace();
 				}
 
-				System.out.println("Message successfully repeated");
+				LOGGER.fine("Message successfully repeated");
 				
 			}
 		}
