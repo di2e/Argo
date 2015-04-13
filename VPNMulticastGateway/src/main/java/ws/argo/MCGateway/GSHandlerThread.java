@@ -1,4 +1,4 @@
-package ws.argo.VPNMulticastGateway;
+package ws.argo.MCGateway;
 
 import java.net.*;
 import java.util.logging.Logger;
