@@ -11,6 +11,7 @@
 		<module>Responder</module>
 		<module>ProbeGenerator</module>
 		<module>AsynchListener</module>
+		<module>VPNMulticastGateway</module>
 		<module>BrowserWeb</module>
 		<module>build-tools</module>
 	</modules>
@@ -51,8 +52,32 @@
 					<xmlOutputDirectory>target/site</xmlOutputDirectory>
 				</configuration>
 			</plugin>
+			
 		</plugins>
 	</build>
+	
+	<reporting>
+	   <plugins>
+	   <!-- OWASP Dependency Check -->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>1.2.9</version>
+                <configuration>
+                    <skipProvidedScope>false</skipProvidedScope>
+                    <skipRuntimeScope>false</skipRuntimeScope>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+	   </plugins>
+	
+	</reporting>
 
 	<!-- The following repositories were used during early development at DI2E. 
 		For usage in the open source mode, please feel free to change to whatever 
