@@ -19,8 +19,8 @@
 # -mp -> (required) The multicast port associated with the group.  The standard Argo port is 4003
 # -ua -> (required) The unicast IP address of the gateway receiver on the other side of the VPN 
 # -up -> (required) The unicast port of the gateway receiver on the other side of the VPN 
-# -ni -> (required) The name of the network interface to listen and send on.  e.g. eth0, en0, utun1 or wherever network NIC you like (see ifconfig in unix and ipconfig in Windows)
+# -ni-list -> list of the names of the network interfaces to listen for multicast packages. Not including this will listen on ALL network interfaces. 
 #
 # to change the logging level please edit logging.properties
 
-java -cp $GW_HOME/lib/${project.artifactId}-${project.version}.jar -Djava.util.logging.config.file="logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.MCGateway.GatewaySender "$@" 
+java -cp $GW_HOME/lib/${project.artifactId}-${project.version}.jar -Djava.util.logging.config.file="logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.MCGateway.comms.MCastMultihomeSender "$@"

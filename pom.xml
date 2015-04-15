@@ -11,7 +11,7 @@
 		<module>Responder</module>
 		<module>ProbeGenerator</module>
 		<module>AsynchListener</module>
-        <module>VPNMulticastGateway</module>
+		<module>VPNMulticastGateway</module>
 		<module>BrowserWeb</module>
 		<module>build-tools</module>
 	</modules>
@@ -51,6 +51,23 @@
 					<!-- Optional directory to put findbugs xdoc xml report -->
 					<xmlOutputDirectory>target/site</xmlOutputDirectory>
 				</configuration>
+			</plugin>
+			<!-- OWASP Dependency Check -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>1.2.9</version>
+				<configuration>
+					<skipProvidedScope>false</skipProvidedScope>
+					<skipRuntimeScope>false</skipRuntimeScope>
+				</configuration>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>aggregate</report>
+						</reports>
+					</reportSet>
+				</reportSets>
 			</plugin>
 		</plugins>
 	</build>
