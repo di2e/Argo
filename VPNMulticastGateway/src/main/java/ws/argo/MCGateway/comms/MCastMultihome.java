@@ -96,9 +96,6 @@ public abstract class MCastMultihome {
 				if (isNetworkInterfaceSuitable(xface)) {
 
 					launchOnNetowrkInterface(xface);
-					// System.out.println("Launching Responder for "+name);
-					// new MCastMultihomeResponderThread(xface,
-					// MULTICAST_IPV4_GROUP, MULTICAST_PORT).start();
 				}
 
 			}
@@ -127,7 +124,7 @@ public abstract class MCastMultihome {
 		Options stdOptions = new Options();
 	    	
 		stdOptions.addOption(new Option( "help", "print this message" ));
-		stdOptions.addOption(OptionBuilder.withArgName("networkIntfs").hasArg().withDescription("comma separated list of network interface names (from ifconfig)").create("ni-list"));
+		stdOptions.addOption(OptionBuilder.withArgName("networkIntfs").hasArg().withDescription("comma separated list of network interface names (from ifconfig)").create("nilist"));
 		stdOptions.addOption(OptionBuilder.withArgName("multicastPort").hasArg().withType(new Integer(0)).withDescription("the multicast port to send/listen on").create("mp"));
 		stdOptions.addOption(OptionBuilder.withArgName("multicastAddr").hasArg().withDescription("the multicast group address to send/listen on").create("ma"));
 		
@@ -164,7 +161,7 @@ public abstract class MCastMultihome {
 		
 		//Interface List
 		if (cl.hasOption("il")) {
-			String il = cl.getOptionValue("ni-list");
+			String il = cl.getOptionValue("nilist");
 			String[] intfs = il.split("[,]");
 			List<String> list = Arrays.asList(intfs);
 			values.put("il", list);
