@@ -6,10 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,7 +20,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -211,12 +207,10 @@ public class ProbeHandlerThread extends Thread {
 				LOGGER.fine("Discarding duplicate/handled probe with id: "+payload.probeID);
 			}
 
-		} catch (SAXException | IOException e) {
-			// TODO Auto-generated catch block
-			
-			e.printStackTrace();
-		}		
-		
-		
+		} catch (SAXException e) {
+			LOGGER.warning("Error occured while parsing probe: "+e.getLocalizedMessage());
+		} catch (IOException ioex) {
+			LOGGER.warning("Error occured while sending response: "+ioex.getLocalizedMessage());
+		}
 	}
 }

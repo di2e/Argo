@@ -54,7 +54,6 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 	ArrayList<ServiceInfoBean> serviceList = new ArrayList<ServiceInfoBean>();
 	
 	private String configFilename;
-	private boolean debug = false;
 	
 
 	public ResponsePayloadBean probeEvent(ProbePayloadBean payload) {
@@ -100,7 +99,6 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 		config.load(new FileInputStream(filename));
 		
 		this.configFilename = config.getProperty("xmlConfigFilename");
-		this.debug = Boolean.parseBoolean(config.getProperty("debug", "false"));
 		
 		try {
 			this.loadServiceConfigFile();
