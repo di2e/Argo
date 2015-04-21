@@ -173,31 +173,8 @@ public class Responder {
 			String probeStr = new String(packet.getData(), 0, packet.getLength());			
 			LOGGER.fine("Probe: \n" + probeStr);
 
-			try {
-				ProbePayloadBean payload = parseProbePayload(probeStr);
-				
-				LOGGER.info("Received probe id: "+payload.probeID);
-				
-				// Only handle probes that we haven't handled before
-				// The Probe Generator needs to send a stream of identical UDP packets
-				// to compensate for UDP reliability issues.  Therefore, the Responder
-				// will likely get more than 1 identical probe.  We should ignore duplicates.
-				if (!handledProbes.contains(payload.probeID)) {		
-					for (ProbeHandlerPluginIntf handler : handlers) {
-						response = handler.probeEvent(payload);
-						sendResponse(payload.respondToURL, payload.respondToPayloadType, response);
-					}
-					handledProbes.add(payload.probeID);
-				} else {
-					LOGGER.info("Discarding duplicate probe with id: "+payload.probeID);
-				}
-
-			} catch (SAXException e) {
-				// TODO Auto-generated catch block
-				
-				e.printStackTrace();
-			}
-					
+			//reuses the handlers and the httpClient.  Both should be threadSafe
+			new ProbeHandlerThread(handlers, probeStr, httpClient).start();
 		}
     	
     }
