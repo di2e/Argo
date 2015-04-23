@@ -31,20 +31,6 @@ public class ProbeGeneratorTest {
 	}
 	
 	@Test
-	public void testProbeGeneratorJSON() throws IOException {
-		
-//		10.12.128.136
-		
-		String hostIPAddr = InetAddress.getLocalHost().getHostAddress();
-		
-		Probe probe = new Probe("http://"+hostIPAddr+":8080/AsynchListener/api/responseHandler/probeResponse", Probe.JSON);
-		
-		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");	
-		
-		System.out.println(probe.asJSON());
-	}
-	
-	@Test
 	public void testProbeGeneratorAllService() throws IOException {
 		String hostIPAddr = InetAddress.getLocalHost().getHostAddress();
 		Probe probe = new Probe("http://"+hostIPAddr+":8080/AsynchListener/api/responseHandler/probeResponse", Probe.JSON);
