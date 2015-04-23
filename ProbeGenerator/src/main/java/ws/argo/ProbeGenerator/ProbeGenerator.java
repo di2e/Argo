@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.nio.charset.StandardCharsets;
 
 public class ProbeGenerator {
 
@@ -51,7 +52,7 @@ public class ProbeGenerator {
 			System.out.println("Ready to send probe: \n"+msg);
 
 			byte[] msgBytes;
-			msgBytes = msg.getBytes();
+			msgBytes = msg.getBytes(StandardCharsets.UTF_8);
 			
 			//send discovery string
 			InetAddress group = InetAddress.getByName(multicastAddress);
