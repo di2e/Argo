@@ -17,9 +17,8 @@
 # Expected arguments on the command line include:
 # -ma -> (required) The multicast group to send to.  The standard Argo group is 230.0.0.1 
 # -mp -> (required) The multicast port associated with the group.  The standard Argo port is 4003
-# -ua -> (required) The unicast IP address of the gateway receiver on the other side of the VPN 
-# -up -> (required) The unicast port of the gateway receiver on the other side of the VPN 
-# -ni-list -> list of the names of the network interfaces to listen for multicast packages. Not including this will listen on ALL network interfaces. 
+# -nm ->The number of messages to send.  If not specified it will send infinite number.
+# -nilist -> list of the names of the network interfaces to listen for multicast packages. Not including this will listen on ALL network interfaces. 
 #
 # to change the logging level please edit logging.properties
 
