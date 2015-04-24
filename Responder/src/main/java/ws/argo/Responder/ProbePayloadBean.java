@@ -40,7 +40,7 @@ public class ProbePayloadBean {
 		buf.append("\tService Contract IDs: \n");
 
 		for (String serviceContractID : serviceContractIDs) {
-			buf.append(serviceContractIDs+"\n");
+			buf.append(serviceContractID+"\n");
 		}
 			
 		buf.append("****** Probe Payload End ******\n");

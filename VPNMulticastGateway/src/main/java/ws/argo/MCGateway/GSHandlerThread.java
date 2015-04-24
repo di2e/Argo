@@ -11,13 +11,15 @@ public class GSHandlerThread extends Thread {
     private Socket outboundSocket = null;
 	String unicastAddress;
 	Integer unicastPort;
+	boolean allowLoopback;
 
     
-    public GSHandlerThread(DatagramPacket packet, String ua, Integer up) {
+    public GSHandlerThread(DatagramPacket packet, String ua, Integer up, boolean allowLoopback) {
         super("GSMulticastSenderHandlerThread");
         this.packet = packet;
         this.unicastAddress = ua;
         this.unicastPort = up;
+        this.allowLoopback = allowLoopback;
     }
 
 
@@ -33,11 +35,13 @@ public class GSHandlerThread extends Thread {
 			// if this packet is sourced locally, then don't send it.  This avoids loopbacks with a 2-way gateway.
 			// The downside of this is that a 2-way gateway cannot have a probe generator (Argo client) on it.
 			boolean isFromLocalhost = source.equals(localhostIP);
-			if (isFromLocalhost) {
-				LOGGER.info("Ignoring packed sourced from localhost");
+			if (!allowLoopback & isFromLocalhost) {
+				LOGGER.info("Ignoring packet sourced from localhost");
 				return;  
 			}
 			
+			if (allowLoopback & isFromLocalhost) LOGGER.info("Loopback disabled. Sending packet sourced from localhost.  I hope you know what you are doing.");
+
 			//Setup for outbound unicast
 			//Connect to the remote gateway
 			outboundSocket = new Socket(unicastAddress, unicastPort.intValue());
