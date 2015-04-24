@@ -34,6 +34,7 @@ public class GatewaySender {
 	String multicastAddress;
 	Integer multicastPort;
 	String niName;
+	boolean allowLoopback;
 	
 	public GatewaySender(Properties p) {
 		this.unicastAddress = p.getProperty("ua");
@@ -41,6 +42,7 @@ public class GatewaySender {
 		this.multicastAddress = p.getProperty("ma");
 		this.multicastPort = (Integer) p.get("mp");
 		this.niName = p.getProperty("ni");
+		this.allowLoopback = (boolean) p.get("l");
 	}
 	
 
@@ -110,7 +112,7 @@ public class GatewaySender {
 			LOGGER.fine("Waiting to recieve packet on "+maddress+":"+multicastPort);
 			try {
 				inboundSocket.receive(packet);
-				new GSHandlerThread(packet, unicastAddress, unicastPort).start();
+				new GSHandlerThread(packet, unicastAddress, unicastPort, allowLoopback).start();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -179,6 +181,7 @@ public class GatewaySender {
 	    	
 	    	options.addOption(new Option( "help", "print this message" ));
 	    	options.addOption(OptionBuilder.withArgName("ni").hasArg().withDescription("network interface name to listen on").create("ni"));
+	    	options.addOption(OptionBuilder.withArgName("loopback").withDescription("allow loopback packets - USE WITH CAUTION").create("l"));
 	    	options.addOption(OptionBuilder.withArgName("multicastPort").isRequired().hasArg().withType(new Integer(0)).withDescription("the multicast port to listen on").create("mp"));
 	    	options.addOption(OptionBuilder.withArgName("multicastAddr").isRequired().hasArg().withDescription("the multicast group address to listen on").create("ma"));
 	    	options.addOption(OptionBuilder.withArgName("unicastPort").isRequired().hasArg().withType(new Integer(0)).withDescription("the target unicast port to send to").create("up"));
@@ -198,6 +201,11 @@ public class GatewaySender {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp( "GatewaySender", getOptions() );
 			return null;
+		}
+		
+		values.put("l", false);
+		if (cl.hasOption("l")) {
+			values.put("l", true);
 		}
 		
 		//Network Interface
