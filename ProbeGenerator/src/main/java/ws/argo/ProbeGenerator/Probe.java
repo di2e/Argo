@@ -19,9 +19,6 @@ package ws.argo.ProbeGenerator;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
 public class Probe {
 
 	public static final String PROBE_GENERTOR_CONTRACT_ID= "urn:uuid:55f1fecc-bfed-4be0-926b-b36a138a9943";
@@ -75,32 +72,6 @@ public class Probe {
 		buf.append("</probe>\n\n");
 		
 		return buf.toString();
-	}
-	
-	// Do we need to cook this up as JSON?
-	// The multicast responder doens't care and XML is easy enough to gin up as text from anywhere
-	public JSONObject asJSONObject() {
-		JSONObject json = new JSONObject();
-		
-		json.put("probeID", probeID);
-		json.put("contractID", PROBE_GENERTOR_CONTRACT_ID);
-		json.put("respondTo", respondToURL);
-		json.put("respondToPayloadType", respondToPayloadType);
-		
-		JSONArray contractIDs = new JSONArray();
-		
-		for (String contractID : serviceContractIDs ) {
-			contractIDs.add(contractID);
-		}
-		
-		json.put("serviceContractIDs", contractIDs);
-		
-		return json;
-	}
-	
-	public String asJSON() {
-		JSONObject json = asJSONObject();
-		return json.toString(4);
 	}
 	
 }
