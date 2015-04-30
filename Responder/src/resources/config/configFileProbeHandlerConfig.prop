@@ -14,4 +14,4 @@
 #  limitations under the License.
 # 
 xmlConfigFilename=<install dir>/config/configFileProbeHandlerServiceList.xml
-debug=false
+
