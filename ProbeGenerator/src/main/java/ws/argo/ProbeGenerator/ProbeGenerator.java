@@ -19,37 +19,105 @@ package ws.argo.ProbeGenerator;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Logger;
 
 public class ProbeGenerator {
 
+	private final static Logger LOGGER = Logger.getLogger(ProbeGenerator.class.getName());
+	
 	public String multicastAddress;
 	public int multicastPort;
-    protected MulticastSocket socket = null;
+    protected MulticastSocket outboundSocket = null;
+    private boolean readyToSend = false;
 	
+    public ProbeGenerator(String multicastAddress, int multicastPort, String niName) {
+		this.multicastAddress = multicastAddress;
+		this.multicastPort = multicastPort;
+		
+		this.readyToSend = joinGroup(niName);
+		if (this.readyToSend) {
+			LOGGER.info("ProbeGenerator ready to send on "+this.outboundSocket.getInetAddress().toString());
+		}
+    }
+    
 	public ProbeGenerator(String multicastAddress, int multicastPort) throws IOException {
 		this.multicastAddress = multicastAddress;
 		this.multicastPort = multicastPort;
-		this.socket = new MulticastSocket(4003);
 		
-		
-	    System.out.println("Started multicast socket on port 4003");
-	    System.out.println("Multicast socket default TTL is "+this.socket.getTimeToLive());
-	    
+		this.readyToSend = joinGroup("");
+		if (this.readyToSend) {
+			LOGGER.info("ProbeGenerator ready to send on "+multicastAddress);
+		}
 	}
+	
+	boolean joinGroup(String niName) {
+		boolean success = true;
+		InetSocketAddress socketAddress = new InetSocketAddress(multicastAddress, multicastPort);
+		NetworkInterface ni = null;
+		try {
+			//Setup for incoming multicast requests		
+			InetAddress maddress = InetAddress.getByName(multicastAddress);
+			
+			if (niName != null)
+				ni = NetworkInterface.getByName(niName);
+			if (ni == null) {
+				LOGGER.fine("Network Interface name not specified.  Using the NI for "+maddress);
+				ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());			
+			}
+					
+			this.outboundSocket = new MulticastSocket(multicastPort);
+			this.outboundSocket.joinGroup(socketAddress, ni);
+			LOGGER.info(ni.getName()+" joined group "+socketAddress.toString());
+		} catch (IOException e) {
+			StringBuffer buf = new StringBuffer();
+			try {
+				buf.append("(lb:"+ni.isLoopback()+" ");
+			} catch (SocketException e2) {
+				buf.append("(lb:err ");
+			}
+			try {
+				buf.append("m:"+ni.supportsMulticast()+" ");
+			} catch (SocketException e3) {
+				buf.append("(m:err ");
+			}
+			try {
+				buf.append("p2p:"+ni.isPointToPoint()+" ");
+			} catch (SocketException e1) {
+				buf.append("p2p:err ");
+			}
+			try {
+				buf.append("up:"+ni.isUp()+" ");
+			} catch (SocketException e1) {
+				buf.append("up:err ");
+			}
+			buf.append("v:"+ni.isVirtual()+") ");
+			
+			System.out.println(ni.getName()+" "+buf.toString()+": could not join group "+socketAddress.toString()+" --> "+e.toString());
+
+			success = false;
+		}
+		return success;
+	}
+
 
 	public void sendProbe(Probe probe) throws IOException {
 		
 		
-		System.out.println("Sending probe on port "+multicastAddress+":"+multicastPort);
-		System.out.println("Probe requesting TTL of "+probe.ttl);
+		LOGGER.info("Sending probe on port "+multicastAddress+":"+multicastPort);
+		LOGGER.info("Probe requesting TTL of "+probe.ttl);
+		
+		if (!readyToSend)
+			throw new IOException("ProbeGenerator not ready to send. Did not join group "+multicastAddress);
 		
 		try {
 			String msg = probe.asXML();
 			
-			System.out.println("Probe payload type is "+probe.respondToPayloadType);		
-			System.out.println("Ready to send probe: \n"+msg);
+			LOGGER.info("Probe payload (always XML): \n"+msg);
 
 			byte[] msgBytes;
 			msgBytes = msg.getBytes(StandardCharsets.UTF_8);
@@ -57,10 +125,10 @@ public class ProbeGenerator {
 			//send discovery string
 			InetAddress group = InetAddress.getByName(multicastAddress);
 			DatagramPacket packet = new DatagramPacket(msgBytes, msgBytes.length, group, multicastPort);
-			socket.setTimeToLive(probe.ttl);
-			socket.send(packet);
+			outboundSocket.setTimeToLive(probe.ttl);
+			outboundSocket.send(packet);
 			
-			System.out.println("Probe sent on port "+multicastAddress+":"+multicastPort);
+			LOGGER.info("Probe sent on port "+multicastAddress+":"+multicastPort);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -70,7 +138,7 @@ public class ProbeGenerator {
 	}
 	
 	public void close() {
-		this.socket.close();
+		this.outboundSocket.close();
 	}
 	
 }
