@@ -56,8 +56,8 @@ public class GatewaySender {
 			if (niName != null)
 				ni = NetworkInterface.getByName(niName);
 			if (ni == null) {
-				LOGGER.fine("Network Interface name not specified.  Using the NI for "+maddress);
-				ni = NetworkInterface.getByInetAddress(maddress);			
+				LOGGER.fine("Network Interface name not specified or incorrect.  Using the NI for localhost");
+				ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());			
 			}
 					
 			LOGGER.info("Starting GatewaySender:  Receiving mulitcast @ "+multicastAddress+":"+multicastPort+" -- Sending unicast @ "+unicastAddress+":"+unicastPort);

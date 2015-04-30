@@ -3,10 +3,10 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.2.3-SNAPSHOT</version>
   </parent>
   <groupId>ws.argo.ProbeGenerator</groupId>
-  <version>0.2.2-SNAPSHOT</version>
+  <version>0.2.3-SNAPSHOT</version>
   <artifactId>ProbeGenerator</artifactId>
   <dependencies>
   	<dependency>
