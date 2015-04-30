@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ws.argo</groupId>
 	<artifactId>Argo</artifactId>
-	<version>0.2.2-SNAPSHOT</version>
+	<version>0.2.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<description>Parent project for the Runtime Service Discovery components</description>
 	<modules>
@@ -17,6 +17,8 @@
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
 	</properties>
 	<build>
 		<plugins>
@@ -36,7 +38,7 @@
 					<dependency>
 						<groupId>ws.argo</groupId>
 						<artifactId>build-tools</artifactId>
-						<version>0.2.2-SNAPSHOT</version>
+						<version>0.2.3-SNAPSHOT</version>
 					</dependency>
 				</dependencies>
 			</plugin>
@@ -52,31 +54,31 @@
 					<xmlOutputDirectory>target/site</xmlOutputDirectory>
 				</configuration>
 			</plugin>
-			
+
 		</plugins>
 	</build>
-	
+
 	<reporting>
-	   <plugins>
-	   <!-- OWASP Dependency Check -->
-            <plugin>
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>1.2.9</version>
-                <configuration>
-                    <skipProvidedScope>false</skipProvidedScope>
-                    <skipRuntimeScope>false</skipRuntimeScope>
-                </configuration>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>aggregate</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-	   </plugins>
-	
+		<plugins>
+			<!-- OWASP Dependency Check -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>1.2.9</version>
+				<configuration>
+					<skipProvidedScope>false</skipProvidedScope>
+					<skipRuntimeScope>false</skipRuntimeScope>
+				</configuration>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>aggregate</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+
 	</reporting>
 
 	<!-- The following repositories were used during early development at DI2E. 
