@@ -21,7 +21,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -46,8 +49,9 @@ public class Responder {
 	
 	private final static Logger LOGGER = Logger.getLogger(Responder.class.getName());
 
-	protected MulticastSocket socket = null;
-	protected InetAddress address;
+	NetworkInterface ni = null;
+	protected MulticastSocket inboundSocket = null;
+	protected InetAddress maddress;
 	private static Options options = null;	
 	
 	protected CloseableHttpClient httpClient;
@@ -63,7 +67,9 @@ public class Responder {
 
 		public int multicastPort;
 		public String multicastAddress;
+		public boolean noBrowser = false;
 		public ArrayList<AppHandlerConfig> appHandlerConfigs = new ArrayList<AppHandlerConfig>();
+		public String networkInterface;
 		
 	}
 	
@@ -80,35 +86,56 @@ public class Responder {
 	}
     
     
-    private ArrayList<ProbeHandlerPluginIntf> loadHandlerPlugins(ArrayList<AppHandlerConfig> configs) throws IOException, ClassNotFoundException {
-    	
-    	ClassLoader cl = ClassLoader.getSystemClassLoader();
-
-    	ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
-    	
-    	for (AppHandlerConfig appConfig : configs) {
-        	
-	    	Class<?> handlerClass = cl.loadClass(appConfig.classname);
-	    	ProbeHandlerPluginIntf handler;
-	    	
-	    	try {
-				handler = (ProbeHandlerPluginIntf) handlerClass.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
-				LOGGER.warning("Could not create an instance of the configured handler class - "+appConfig.classname);
-				LOGGER.warning("Using default handler");
-				LOGGER.fine("The issue was:");
-				LOGGER.fine(e.getMessage());
-				handler = new ConfigFileProbeHandlerPluginImpl();
+    boolean joinGroup() {
+		boolean success = true;
+		InetSocketAddress socketAddress = new InetSocketAddress(cliValues.config.multicastAddress, cliValues.config.multicastPort);
+		try {
+			//Setup for incoming multicast requests		
+			maddress = InetAddress.getByName(cliValues.config.multicastAddress);
+			
+			if (cliValues.config.networkInterface != null)
+				ni = NetworkInterface.getByName(cliValues.config.networkInterface);
+			if (ni == null) {
+				LOGGER.warning("Network Interface name not specified or incorrect.  Using the NI for localhost");
+				ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());			
 			}
-	    	
-	    	handler.setPropertiesFilename(appConfig.configFilename);
-	    	
-	    	handlers.add(handler);
-    	}
-    	
-    	return handlers;
-    	
-    }
+					
+			LOGGER.info("Starting Responder:  Receiving mulitcast @ "+cliValues.config.multicastAddress+":"+cliValues.config.multicastPort);
+			this.inboundSocket = new MulticastSocket(cliValues.config.multicastPort);
+			this.inboundSocket.joinGroup(socketAddress, ni);
+			LOGGER.info(this.ni.getName()+" joined group "+socketAddress.toString());
+		} catch (IOException e) {
+			StringBuffer buf = new StringBuffer();
+			try {
+				buf.append("(lb:"+this.ni.isLoopback()+" ");
+			} catch (SocketException e2) {
+				buf.append("(lb:err ");
+			}
+			try {
+				buf.append("m:"+this.ni.supportsMulticast()+" ");
+			} catch (SocketException e3) {
+				buf.append("(m:err ");
+			}
+			try {
+				buf.append("p2p:"+this.ni.isPointToPoint()+" ");
+			} catch (SocketException e1) {
+				buf.append("p2p:err ");
+			}
+			try {
+				buf.append("up:"+this.ni.isUp()+" ");
+			} catch (SocketException e1) {
+				buf.append("up:err ");
+			}
+			buf.append("v:"+this.ni.isVirtual()+") ");
+			
+			System.out.println(this.ni.getName()+" "+buf.toString()+": could not join group "+socketAddress.toString()+" --> "+e.toString());
+
+			success = false;
+		}
+		return success;
+	}
+
+    
     
     public void run() throws IOException, ClassNotFoundException {
     	
@@ -118,11 +145,9 @@ public class Responder {
     	// I hope the hander classes are in a jar file on the classpath
     	handlers = loadHandlerPlugins(cliValues.config.appHandlerConfigs);
     	
-		@SuppressWarnings("resource")
-		MulticastSocket socket = new MulticastSocket(cliValues.config.multicastPort);
-		address = InetAddress.getByName(cliValues.config.multicastAddress);
-		LOGGER.info("Starting Responder on "+address.toString()+":"+cliValues.config.multicastPort);
-		socket.joinGroup(address);
+		if (!joinGroup()) {
+			LOGGER.severe("Responder shutting down: unable to join multicast group");
+		}
 
 		DatagramPacket packet;
 		LOGGER.info("Responder started on "+cliValues.config.multicastAddress+":"+cliValues.config.multicastPort);
@@ -132,21 +157,20 @@ public class Responder {
 		LOGGER.fine("Starting Responder loop - infinite until process terminated");
 		// infinite loop until the responder is terminated
 		while (true) {
-
 			
 			byte[] buf = new byte[1024];
 			packet = new DatagramPacket(buf, buf.length);
 			LOGGER.fine("Waiting to recieve packet...");
-			socket.receive(packet);
+			inboundSocket.receive(packet);
 
 			LOGGER.fine("Received packet");
 			LOGGER.fine("Packet contents:");
 			// Get the string
 			String probeStr = new String(packet.getData(), 0, packet.getLength());			
-			LOGGER.fine("Probe: \n" + probeStr);
+			LOGGER.fine(probeStr);
 
 			//reuses the handlers and the httpClient.  Both should be threadSafe
-			new ProbeHandlerThread(handlers, probeStr, httpClient).start();
+			new ProbeHandlerThread(handlers, probeStr, httpClient, cliValues.config.noBrowser).start();
 		}
     	
     }
@@ -189,14 +213,13 @@ public class Responder {
 		}
 		public void run() {
 			LOGGER.info("Responder shutting down port "+agent.cliValues.config.multicastPort);
-			if (agent.socket != null) {
+			if (agent.inboundSocket != null) {
 				try {
-					agent.socket.leaveGroup(agent.address);
+					agent.inboundSocket.leaveGroup(agent.maddress);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, "Error leaving multicast group", e);
 				}
-				agent.socket.close();
+				agent.inboundSocket.close();
 				
 			}
 		}
@@ -215,6 +238,17 @@ public class Responder {
 		ResponderConfigurationBean propsConfig = new ResponderConfigurationBean();
 		ResponderCLIValues cliValues = new ResponderCLIValues(propsConfig);
 		
+		if (cl.hasOption("nb")) {
+			propsConfig.noBrowser = true;
+			LOGGER.info("Responder started in no browser mode.");
+		}
+		
+		//Network Interface
+		if (cl.hasOption("ni")) {
+			String ni = cl.getOptionValue("ni");
+			propsConfig.networkInterface = ni;
+		}
+		
 		if (cl.hasOption("pf")) {
 			String propsFilename = cl.getOptionValue("pf");
 			try {
@@ -229,29 +263,20 @@ public class Responder {
 		if (cl.hasOption("debug")) {
 			LOGGER.setLevel(Level.FINE);
 		}
-
-		// The app handler plugin config needs to be configured via config file and not command line
 		
-//		if (cl.hasOption("handler"))
-//			propsConfig.pluginClassname = cl.getOptionValue("handler");
-//
-//		if (cl.hasOption("hcfn"))
-//			propsConfig.pluginConfigFilename = cl.getOptionValue("hcfn");
-
-		
-		if (cl.hasOption("p")) {
+		if (cl.hasOption("mp")) {
 			try {
-				int portNum = Integer.parseInt(cl.getOptionValue("p"));
+				int portNum = Integer.parseInt(cl.getOptionValue("mp"));
 				propsConfig.multicastPort = portNum;
 				LOGGER.info("Overriding multicast port with command line value");
 			} catch (NumberFormatException e) {
-				throw new ResponderConfigException("The multicast port number - "+cl.getOptionValue("p")+" - is not formattable as an integer", e);
+				throw new ResponderConfigException("The multicast port number - "+cl.getOptionValue("mp")+" - is not formattable as an integer", e);
 			}
 			
 		}
 		
-		if (cl.hasOption("a")) {
-			propsConfig.multicastAddress = cl.getOptionValue("a");
+		if (cl.hasOption("ma")) {
+			propsConfig.multicastAddress = cl.getOptionValue("ma");
 			LOGGER.info("Overriding multicast address with command line value");
 		}    		
 		
@@ -259,6 +284,37 @@ public class Responder {
 		return cliValues;
 		
 	}
+
+	private ArrayList<ProbeHandlerPluginIntf> loadHandlerPlugins(ArrayList<AppHandlerConfig> configs) throws IOException, ClassNotFoundException {
+		
+		ClassLoader cl = ClassLoader.getSystemClassLoader();
+	
+		ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
+		
+		for (AppHandlerConfig appConfig : configs) {
+	    	
+	    	Class<?> handlerClass = cl.loadClass(appConfig.classname);
+	    	ProbeHandlerPluginIntf handler;
+	    	
+	    	try {
+				handler = (ProbeHandlerPluginIntf) handlerClass.newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				LOGGER.warning("Could not create an instance of the configured handler class - "+appConfig.classname);
+				LOGGER.warning("Using default handler");
+				LOGGER.fine("The issue was:");
+				LOGGER.fine(e.getMessage());
+				handler = new ConfigFileProbeHandlerPluginImpl();
+			}
+	    	
+	    	handler.setPropertiesFilename(appConfig.configFilename);
+	    	
+	    	handlers.add(handler);
+		}
+		
+		return handlers;
+		
+	}
+
 
 	private static ResponderConfigurationBean processPropertiesValue(String propertiesFilename, ResponderConfigurationBean config) throws ResponderConfigException {
 		Properties prop = new Properties();
@@ -275,7 +331,7 @@ public class Responder {
 			int port = Integer.parseInt(prop.getProperty("multicastPort","4003"));
 			config.multicastPort = port;
 		} catch (NumberFormatException e) {
-			LOGGER.warning("Error reading port numnber from properties file.  Using default port of 4003.");
+			LOGGER.warning("Error reading port number from properties file.  Using default port of 4003.");
 			config.multicastPort = 4003;
 		}
 		
@@ -315,13 +371,11 @@ public class Responder {
 	    	options = new Options();
 	    	
 	    	options.addOption(new Option( "help", "print this message" ));
-	    	options.addOption(new Option( "version", "print the version information and exit" ));
-	    	options.addOption(new Option( "debug", "print debugging information" )); 
+	    	options.addOption(OptionBuilder.withArgName("ni").hasArg().withDescription("network interface name to listen on").create("ni"));
 	    	options.addOption(OptionBuilder.withArgName("properties").hasArg().withType(new String()).withDescription("fully qualified properties filename").create("pf"));
-	    	options.addOption(OptionBuilder.withArgName("multicastPort").hasArg().withType(new Integer(0)).withDescription("the multicast port to broadcast on").create("p"));
-	    	options.addOption(OptionBuilder.withArgName("multicastAddr").hasArg().withDescription("the multicast group address to broadcast on").create("a"));
-	    	options.addOption(OptionBuilder.withArgName("handler").hasArg().withDescription("the classname of the DiscoveryEventHandlerPluginIntf class").create("handler"));
-	    	options.addOption(OptionBuilder.withArgName("handlerConfig").hasArg().withDescription("the filename for the configuration of the plugin").create("hcfn"));
+	    	options.addOption(OptionBuilder.withArgName("multicastPort").hasArg().withType(new Integer(0)).withDescription("the multicast port to broadcast on").create("mp"));
+	    	options.addOption(OptionBuilder.withArgName("multicastAddr").hasArg().withDescription("the multicast group address to broadcast on").create("ma"));
+	    	options.addOption(OptionBuilder.withArgName("noBrowser").withDescription("setting this switch will disable the responder from returnin all services to a naked probe").create("nb"));
 		}
 		
 		return options;

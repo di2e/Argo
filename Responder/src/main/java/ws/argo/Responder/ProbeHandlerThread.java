@@ -41,11 +41,13 @@ public class ProbeHandlerThread extends Thread {
 	
 	ArrayList<ProbeHandlerPluginIntf> handlers;
 	String probeStr;
+	boolean noBrowser;
 	
-	public ProbeHandlerThread(ArrayList<ProbeHandlerPluginIntf> handlers, String probeStr, CloseableHttpClient httpClient) {
+	public ProbeHandlerThread(ArrayList<ProbeHandlerPluginIntf> handlers, String probeStr, CloseableHttpClient httpClient, boolean noBrowser) {
 		this.handlers = handlers;
 		this.probeStr = probeStr;
 		this.httpClient = httpClient;
+		this.noBrowser = noBrowser;
 	}
 	
 	private ProbePayloadBean parseProbePayload(String payload) throws SAXException, IOException  {
@@ -192,19 +194,28 @@ public class ProbeHandlerThread extends Thread {
 			
 			LOGGER.info("Received probe id: "+payload.probeID);
 			
+			
 			// Only handle probes that we haven't handled before
 			// The Probe Generator needs to send a stream of identical UDP packets
 			// to compensate for UDP reliability issues.  Therefore, the Responder
 			// will likely get more than 1 identical probe.  We should ignore duplicates.
-			if (!isProbeHandled(payload.probeID)) {		
-				for (ProbeHandlerPluginIntf handler : handlers) {
-					response = handler.probeEvent(payload);
-					sendResponse(payload.respondToURL, payload.respondToPayloadType, response);
-					//new ResponseSenderThread(payload.respondToURL, payload.respondToPayloadType, response, httpClient).start();
+			if (!isProbeHandled(payload.probeID)) {	
+				
+				if (this.noBrowser & payload.isNaked()) {
+					LOGGER.warning("Responder set to noBrowser mode. Discarding naked probe with id: "+payload.probeID);
+				} else {
+					
+					for (ProbeHandlerPluginIntf handler : handlers) {
+						response = handler.probeEvent(payload);
+						sendResponse(payload.respondToURL, payload.respondToPayloadType, response);
+						//new ResponseSenderThread(payload.respondToURL, payload.respondToPayloadType, response, httpClient).start();
+					}
+					
 				}
+
 				markProbeAsHandled(payload.probeID);
 			} else {
-				LOGGER.fine("Discarding duplicate/handled probe with id: "+payload.probeID);
+				LOGGER.info("Discarding duplicate/handled probe with id: "+payload.probeID);
 			}
 
 		} catch (SAXException e) {

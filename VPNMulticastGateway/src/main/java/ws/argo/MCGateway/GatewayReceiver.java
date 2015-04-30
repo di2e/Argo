@@ -56,8 +56,8 @@ public class GatewayReceiver {
 			if (niName != null)
 				ni = NetworkInterface.getByName(niName);
 			if (ni == null) {
-				LOGGER.fine("Network Interface name not specified.  Using the NI for "+maddress);
-				ni = NetworkInterface.getByInetAddress(maddress);			
+				LOGGER.fine("Network Interface name not specified or incorrect.  Using the NI for localhost");
+				ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());			
 			}
 					
 			this.outboundSocket = new MulticastSocket(multicastPort);
@@ -136,8 +136,7 @@ public class GatewayReceiver {
 		GatewayReceiver gateway = new GatewayReceiver(cliValues);
 
 		LOGGER.info("GatewaySender registering shutdown hook.");
-		Runtime.getRuntime().addShutdownHook(new GatewaySenderShutdown(gateway));
-		
+		Runtime.getRuntime().addShutdownHook(new GatewaySenderShutdown(gateway));		
 		
 		try {
 			gateway.run();

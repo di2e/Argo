@@ -15,7 +15,6 @@
 # 
 
 multicastPort=4003
-datagramSocket=4018
 multicastAddress=230.0.0.1
 probeHandlerClassname.1=ws.argo.Responder.plugin.ConfigFileProbeHandlerPluginImpl
 probeHandlerConfigFilename.1=<install dir>/config/configFileProbeHandlerConfig.prop

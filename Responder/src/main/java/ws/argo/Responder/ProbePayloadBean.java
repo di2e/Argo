@@ -28,6 +28,10 @@ public class ProbePayloadBean {
 	public ProbePayloadBean() {
 	}
 	
+	public boolean isNaked() {
+		return serviceContractIDs.isEmpty();
+	}
+	
 	public String toString() {
 		StringBuffer buf = new StringBuffer();
 		

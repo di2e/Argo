@@ -5,7 +5,11 @@
 #listenerClearCacheURLPath=/AsynchListener/api/responseHandler/clearCache
 
 #No value for listenerIPAddress means that the ProbeGenerator should use the localhost address
-listenerInterfaceName=en0
+networkInterfaceName=en0
 listenerIPAddress=
 listenerPort=8080
+respondToIPAddress.1=
+respondToPort.1=8080
+#respondToIPAddress.2=
+#respondToPort.2=8080
 
