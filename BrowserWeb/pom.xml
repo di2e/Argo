@@ -5,11 +5,11 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.2.3-SNAPSHOT</version>
+    <version>0.2.3-CR2</version>
   </parent>
   <groupId>ws.argo.Browser</groupId>
   <artifactId>BrowserWeb</artifactId>
-  <version>0.2.3-SNAPSHOT</version>
+  <version>0.2.3-CR2</version>
   <packaging>war</packaging>
   <name>BrowserWeb Webapp</name>
   <url>http://maven.apache.org</url>
@@ -33,7 +33,7 @@
     </dependency>
 	<dependency>
 	  <groupId>ws.argo.ProbeGenerator</groupId>
-	  <version>0.2.3-SNAPSHOT</version>
+	  <version>0.2.3-CR2</version>
 	  <artifactId>ProbeGenerator</artifactId>
     </dependency>
     <dependency>

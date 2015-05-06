@@ -150,16 +150,14 @@ public class ProbeHandlerThread extends Thread {
 				httpResponse.close();
 			}
 			
-			LOGGER.fine("Response payload sent successfully to respondTo address.");
+			LOGGER.info("Successfully handled probeID: "+payload.probeID+" sending response to: "+respondToURL);
 
 		} catch (MalformedURLException e) {
-			LOGGER.fine("MalformedURLException occured\nThe respondTo URL was a no good.  respondTo URL is: "+respondToURL);
+			LOGGER.log(Level.SEVERE, "MalformedURLException occured  for probeID "+payload.getProbeID()+"\nThe respondTo URL was a no good.  respondTo URL is: "+respondToURL);
 		} catch (IOException e) {
-			LOGGER.fine("An IOException occured: the error message is - "+e.getMessage());
-			LOGGER.log(Level.SEVERE, e.getMessage());
+			LOGGER.log(Level.SEVERE,"An IOException occured for probeID "+payload.getProbeID(), e);
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Some other error occured. the error message is - "+e.getMessage());
-			LOGGER.log(Level.SEVERE, e.getMessage());
+			LOGGER.log(Level.SEVERE, "Some other error occured for probeID "+payload.getProbeID()+".  respondTo URL is: "+respondToURL, e);
 		}
 		
 	}
@@ -178,7 +176,7 @@ public class ProbeHandlerThread extends Thread {
 		if (lastTime != null) {
 			long delta = now - lastTime.longValue();
 			if (delta < probeCacheTimeout)
-				isProbeHandled = true;  // yup, I have handles this before.  If past timeout, then it's like I never saw it before
+				isProbeHandled = true;  // yup, I have handled this before.  If past timeout, then it's like I never saw it before
 		}
 		
 		return isProbeHandled;
@@ -207,21 +205,26 @@ public class ProbeHandlerThread extends Thread {
 					
 					for (ProbeHandlerPluginIntf handler : handlers) {
 						response = handler.probeEvent(payload);
-						sendResponse(payload.respondToURL, payload.respondToPayloadType, response);
-						//new ResponseSenderThread(payload.respondToURL, payload.respondToPayloadType, response, httpClient).start();
+						if (!response.isEmpty()) {
+							LOGGER.fine("Response includes "+response.numberOfServices());
+							sendResponse(payload.respondToURL, payload.respondToPayloadType, response);
+						} else {
+							LOGGER.fine("Response is empty.  Not sending empty response.");
+						}
 					}
 					
 				}
 
 				markProbeAsHandled(payload.probeID);
+				
 			} else {
 				LOGGER.info("Discarding duplicate/handled probe with id: "+payload.probeID);
 			}
 
 		} catch (SAXException e) {
-			LOGGER.warning("Error occured while parsing probe: "+e.getLocalizedMessage());
+			LOGGER.severe("Error occured while parsing probe: "+e.getLocalizedMessage());
 		} catch (IOException ioex) {
-			LOGGER.warning("Error occured while sending response: "+ioex.getLocalizedMessage());
+			LOGGER.severe("Error occured while sending response: "+ioex.getLocalizedMessage());
 		}
 	}
 }

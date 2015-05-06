@@ -48,14 +48,29 @@
     initTree();
 
     $("#refreshButton").button().click(function(event) { refresh(); });
-    $("#probeButton").button().click(function(event) { launchProbe(); });
+    $("#probeButton").button().click(function(event) { launchProbe(); refresh(); });
     $( "#tabs" ).tabs();
-    $("#clearButton").button().click(function(event) { clearCache(); });
+    $("#clearButton").button().click(function(event) { clearCache(); refresh(); });
 
+    getIPAddressInformation();
     getServices();
     
   });
 
+
+  function getIPAddressInformation() {
+	  $.ajax({
+          url: "/BrowserWeb/api/controller/ipAddrInfo",
+          data: { },
+          async: false,
+          success: function( data ) {
+        	  $("#ipAddrInfo").html(data);
+          },
+          error: function ( data ) { alert("failed"); }
+        });
+
+
+	  }
 
   function launchProbe() {
 	  $.ajax({
@@ -293,6 +308,7 @@
 		</div>
 		
 		<!-- The name attribute is used by tree.serializeArray()  -->
+		</div>
 		<div>
 			<button id="refreshButton">Refresh List</button>
 			<button id="probeButton">Launch Probe</button>
@@ -323,7 +339,9 @@
 			</div>
 		</div>
 
-	</div>
+        <div id="ipAddrInfo" style="font-family: 'Karla', sans-serif; font-weight 200; font-size: 12pt">
+ 	</div>
+       
 
 
 

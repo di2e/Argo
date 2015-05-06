@@ -78,6 +78,45 @@ public class BrowserWebController {
 	public String testService() {
 		return "this is a test service for the controller.  yea.";
 	}
+	
+	
+	@GET
+	@Path("/ipAddrInfo")
+	public String getIPAddrInfo() throws UnknownHostException {
+		
+		Properties clientProps = getPropeGeneratorProps();
+
+		StringBuffer buf = new StringBuffer();
+		
+		InetAddress localhost = null;
+		NetworkInterface ni = null;
+		try {
+			localhost = InetAddress.getLocalHost();
+			LOGGER.fine("Network Interface name not specified.  Using the NI for localhost "+localhost.getHostAddress());
+			ni = NetworkInterface.getByInetAddress(localhost);			
+		} catch (UnknownHostException | SocketException e) {
+			LOGGER.log(Level.SEVERE, "Error occured dealing with network interface name lookup ", e);
+
+		}
+		
+		buf.append("<p>").append("<span style='color: red'> IP Address: </span>").append(localhost.getHostAddress());
+		buf.append("<span style='color: red'> Host name: </span>").append(localhost.getCanonicalHostName());
+		if (ni == null) {
+			buf.append("<span style='color: red'> Network Interface is NULL </span>");
+		} else {
+			buf.append("<span style='color: red'> Network Interface name: </span>").append(ni.getDisplayName());
+		}
+		buf.append("</p><p>");
+		buf.append("Sending probes to "+respondToAddresses.size()+" addresses -  ");
+		for (ProbeRespondToAddress rta : respondToAddresses) {
+			buf.append("<span style='color: red'> Probe to: </span>").append(rta.respondToAddress+":"+rta.respondToPort);
+		}
+		buf.append("</p>");
+		
+		
+		return buf.toString();
+	}
+	
 
 	@GET
 	@Path("/launchProbe")

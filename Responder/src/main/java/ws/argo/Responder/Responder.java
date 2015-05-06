@@ -38,6 +38,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
@@ -52,9 +53,10 @@ public class Responder {
 	NetworkInterface ni = null;
 	protected MulticastSocket inboundSocket = null;
 	protected InetAddress maddress;
-	private static Options options = null;	
 	
 	protected CloseableHttpClient httpClient;
+
+	private ResponderCLIValues cliValues;
 
 	private static class ResponderCLIValues {
     	public ResponderCLIValues(ResponderConfigurationBean propsConfig) {
@@ -79,9 +81,27 @@ public class Responder {
 		public String configFilename;
 	}
 
-	private ResponderCLIValues cliValues;
-    	
-    public Responder(ResponderCLIValues cliValues) {
+	public static class ResponderShutdown extends Thread {
+		Responder agent;
+		
+		public ResponderShutdown(Responder agent) {
+			this.agent = agent;
+		}
+		public void run() {
+			LOGGER.info("Responder shutting down port "+agent.cliValues.config.multicastPort);
+			if (agent.inboundSocket != null) {
+				try {
+					agent.inboundSocket.leaveGroup(agent.maddress);
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, "Error leaving multicast group", e);
+				}
+				agent.inboundSocket.close();
+				
+			}
+		}
+	}
+
+	public Responder(ResponderCLIValues cliValues) {
 		this.cliValues = cliValues;
 	}
     
@@ -96,14 +116,22 @@ public class Responder {
 			if (cliValues.config.networkInterface != null)
 				ni = NetworkInterface.getByName(cliValues.config.networkInterface);
 			if (ni == null) {
-				LOGGER.warning("Network Interface name not specified or incorrect.  Using the NI for localhost");
-				ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());			
+				InetAddress localhost = InetAddress.getLocalHost();
+				LOGGER.fine("Network Interface name not specified.  Using the NI for localhost "+localhost.getHostAddress());
+				ni = NetworkInterface.getByInetAddress(localhost);			
 			}
-					
+			
 			LOGGER.info("Starting Responder:  Receiving mulitcast @ "+cliValues.config.multicastAddress+":"+cliValues.config.multicastPort);
 			this.inboundSocket = new MulticastSocket(cliValues.config.multicastPort);
-			this.inboundSocket.joinGroup(socketAddress, ni);
-			LOGGER.info(this.ni.getName()+" joined group "+socketAddress.toString());
+
+			if (ni == null) { // for some reason NI is still NULL.  Not sure why this happens.
+				this.inboundSocket.joinGroup(maddress);
+				LOGGER.warning("Unable to determine the network interface for the localhost address.  Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
+				LOGGER.info("Unknown network interface joined group "+socketAddress.toString());
+			} else {
+				this.inboundSocket.joinGroup(socketAddress, ni);
+				LOGGER.info(ni.getName()+" joined group "+socketAddress.toString());
+			}
 		} catch (IOException e) {
 			StringBuffer buf = new StringBuffer();
 			try {
@@ -175,23 +203,13 @@ public class Responder {
     	
     }
     
-	public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
 
 		LOGGER.info("Starting Argo Responder daemon process.");
 		
-		CommandLineParser parser = new BasicParser();
-		ResponderCLIValues cliValues = null;
-		
-		try {
-			CommandLine cl = parser.parse(getOptions(), args);
-			cliValues = processCommandLine(cl);
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ResponderConfigException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ResponderCLIValues cliValues = parseCommandLine(args);
+			
+		if (cliValues == null) return;
 
 		Responder responder = new Responder(cliValues);
 
@@ -205,49 +223,43 @@ public class Responder {
 	
 	
 	
-	public static class ResponderShutdown extends Thread {
-		Responder agent;
+	private static ResponderCLIValues parseCommandLine(String[] args) {
+		Options helpOptionGroup = new Options();
 		
-		public ResponderShutdown(Responder agent) {
-			this.agent = agent;
-		}
-		public void run() {
-			LOGGER.info("Responder shutting down port "+agent.cliValues.config.multicastPort);
-			if (agent.inboundSocket != null) {
-				try {
-					agent.inboundSocket.leaveGroup(agent.maddress);
-				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE, "Error leaving multicast group", e);
-				}
-				agent.inboundSocket.close();
-				
+		CommandLineParser parser = new BasicParser();
+		ResponderCLIValues cliValues = null;
+		
+		// Process the help option
+		try {
+			CommandLine cl = parser.parse(getOptions(), args);
+			
+			if (cl.hasOption("h")) {
+				HelpFormatter formatter = new HelpFormatter();
+				formatter.printHelp( "Responder", getOptions() );
+				return null;
 			}
+			
+			cliValues = processCommandLine(cl);
+			
+			
+		} catch (UnrecognizedOptionException e) {
+			//Ignore this
+		} catch (ParseException e) {
+			LOGGER.log(Level.SEVERE, "Error parsing help option.", e);
+		} catch (ResponderConfigException e) {
+			LOGGER.log(Level.SEVERE, "Error parsing help option.", e);
 		}
+		
+		return cliValues;
 	}
-	
+
+
 	private static ResponderCLIValues processCommandLine(CommandLine cl) throws ResponderConfigException {
 
 		LOGGER.config("Parsing command line values:");
 		
-		if (cl.hasOption("help")) {
-			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp( "Responder", getOptions() );
-			return null;
-		}
-		
 		ResponderConfigurationBean propsConfig = new ResponderConfigurationBean();
 		ResponderCLIValues cliValues = new ResponderCLIValues(propsConfig);
-		
-		if (cl.hasOption("nb")) {
-			propsConfig.noBrowser = true;
-			LOGGER.info("Responder started in no browser mode.");
-		}
-		
-		//Network Interface
-		if (cl.hasOption("ni")) {
-			String ni = cl.getOptionValue("ni");
-			propsConfig.networkInterface = ni;
-		}
 		
 		if (cl.hasOption("pf")) {
 			String propsFilename = cl.getOptionValue("pf");
@@ -260,8 +272,16 @@ public class Responder {
 			LOGGER.warning("WARNING: no propoerties file specified.  Working off cli override arguments.");
 		}
 		
-		if (cl.hasOption("debug")) {
-			LOGGER.setLevel(Level.FINE);
+		//No browser option - if set then do not process naked probes
+		if (cl.hasOption("nb")) {
+			propsConfig.noBrowser = true;
+			LOGGER.info("Responder started in no browser mode.");
+		}
+		
+		//Network Interface
+		if (cl.hasOption("ni")) {
+			String ni = cl.getOptionValue("ni");
+			propsConfig.networkInterface = ni;
 		}
 		
 		if (cl.hasOption("mp")) {
@@ -365,18 +385,15 @@ public class Responder {
 	}
 
 	@SuppressWarnings("static-access")
-	private static Options getOptions() {
-		
-		if (options == null) {
-	    	options = new Options();
-	    	
-	    	options.addOption(new Option( "help", "print this message" ));
-	    	options.addOption(OptionBuilder.withArgName("ni").hasArg().withDescription("network interface name to listen on").create("ni"));
-	    	options.addOption(OptionBuilder.withArgName("properties").hasArg().withType(new String()).withDescription("fully qualified properties filename").create("pf"));
-	    	options.addOption(OptionBuilder.withArgName("multicastPort").hasArg().withType(new Integer(0)).withDescription("the multicast port to broadcast on").create("mp"));
-	    	options.addOption(OptionBuilder.withArgName("multicastAddr").hasArg().withDescription("the multicast group address to broadcast on").create("ma"));
-	    	options.addOption(OptionBuilder.withArgName("noBrowser").withDescription("setting this switch will disable the responder from returnin all services to a naked probe").create("nb"));
-		}
+	private static Options getOptions() {		
+    	Options options = new Options();
+    	
+    	options.addOption("h", false, "display help for the Responder daemon");
+    	options.addOption(OptionBuilder.withArgName("networkInterface name").hasArg().withDescription("network interface name to listen on").create("ni"));
+    	options.addOption(OptionBuilder.withArgName("properties filename").hasArg().withType(new String()).withDescription("fully qualified properties filename").create("pf"));
+    	options.addOption(OptionBuilder.withArgName("multicastPort").hasArg().withType(new Integer(0)).withDescription("the multicast port to broadcast on").create("mp"));
+    	options.addOption(OptionBuilder.withArgName("multicastAddr").hasArg().withDescription("the multicast group address to broadcast on").create("ma"));
+    	options.addOption(OptionBuilder.withDescription("setting this switch will disable the responder from returnin all services to a naked probe").create("nb"));
 		
 		return options;
 	}

@@ -2,11 +2,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>VPNMulticastGateway</artifactId>
-	<version>0.2.3-SNAPSHOT</version>
+	<version>0.2.3-CR2</version>
 	<parent>
 		<groupId>ws.argo</groupId>
 		<artifactId>Argo</artifactId>
-		<version>0.2.3-SNAPSHOT</version>
+		<version>0.2.3-CR2</version>
 	</parent>
 	<dependencies>
 		<dependency>
@@ -17,7 +17,7 @@
 		<dependency>
 			<groupId>ws.argo.ProbeGenerator</groupId>
 			<artifactId>ProbeGenerator</artifactId>
-			<version>0.2.3-SNAPSHOT</version>
+			<version>0.2.3-CR2</version>
 		</dependency>
 	</dependencies>
 	<build>

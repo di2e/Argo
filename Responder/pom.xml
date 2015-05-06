@@ -5,11 +5,11 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.2.3-SNAPSHOT</version>
+    <version>0.2.3-CR2</version>
   </parent>
   <groupId>ws.argo.responder</groupId>
   <artifactId>Responder</artifactId>
-  <version>0.2.3-SNAPSHOT</version>
+  <version>0.2.3-CR2</version>
   <name>Responder</name>
   <url>http://maven.apache.org</url>
   <properties>
