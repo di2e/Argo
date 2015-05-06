@@ -66,13 +66,20 @@ public class ProbeGenerator {
 			if (niName != null)
 				ni = NetworkInterface.getByName(niName);
 			if (ni == null) {
-				LOGGER.fine("Network Interface name not specified.  Using the NI for "+maddress);
-				ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());			
+				InetAddress localhost = InetAddress.getLocalHost();
+				LOGGER.fine("Network Interface name not specified.  Using the NI for localhost "+localhost.getHostAddress());
+				ni = NetworkInterface.getByInetAddress(localhost);			
 			}
 					
 			this.outboundSocket = new MulticastSocket(multicastPort);
-			this.outboundSocket.joinGroup(socketAddress, ni);
-			LOGGER.info(ni.getName()+" joined group "+socketAddress.toString());
+			if (ni == null) { // for some reason NI is still NULL.  Not sure why this happens.
+				this.outboundSocket.joinGroup(maddress);
+				LOGGER.warning("Unable to determine the network interface for the localhost address. Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
+				LOGGER.info("Unknown network interface joined group "+socketAddress.toString());
+			} else {
+				this.outboundSocket.joinGroup(socketAddress, ni);
+				LOGGER.info(ni.getName()+" joined group "+socketAddress.toString());
+			}
 		} catch (IOException e) {
 			StringBuffer buf = new StringBuffer();
 			try {
