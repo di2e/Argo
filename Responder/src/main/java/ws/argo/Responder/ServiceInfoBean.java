@@ -52,7 +52,7 @@ public class ServiceInfoBean {
 		if (url != null)
 			buf.append("\t\t<url>"+url+"</url>\n");
 		if (data != null)
-			buf.append("\t\t<data>"+data+"</data>\n");
+			buf.append("\t\t<data><![CDATA["+data+"]]></data>\n");
 		if (ttl != null)
 			buf.append("\t\t<ttl>"+ttl+"</ttl>\n");
 		if (description != null)

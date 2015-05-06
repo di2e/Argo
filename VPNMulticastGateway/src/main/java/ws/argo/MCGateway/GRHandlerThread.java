@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class GRHandlerThread extends Thread {
@@ -60,8 +61,7 @@ public class GRHandlerThread extends Thread {
 
 			s.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, "Error reading the message coming in on the TCP socket", e);
 		}
 			
 			
@@ -78,13 +78,10 @@ public class GRHandlerThread extends Thread {
 				try {
 					outboundSocket.setTimeToLive(200);
 					outboundSocket.send(packet);
+					LOGGER.fine("Message successfully repeated");
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				LOGGER.fine("Message successfully repeated");
-				
+					LOGGER.log(Level.SEVERE, "Error sending outbound multicast message", e);
+				}			
 			}
 		}
 					

@@ -16,6 +16,7 @@ import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
@@ -56,13 +57,20 @@ public class GatewayReceiver {
 			if (niName != null)
 				ni = NetworkInterface.getByName(niName);
 			if (ni == null) {
-				LOGGER.fine("Network Interface name not specified or incorrect.  Using the NI for localhost");
-				ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());			
+				InetAddress localhost = InetAddress.getLocalHost();
+				LOGGER.fine("Network Interface name not specified.  Using the NI for localhost "+localhost.getHostAddress());
+				ni = NetworkInterface.getByInetAddress(localhost);			
 			}
 					
 			this.outboundSocket = new MulticastSocket(multicastPort);
-			this.outboundSocket.joinGroup(socketAddress, ni);
-			LOGGER.info(this.ni.getName()+" joined group "+socketAddress.toString());
+			if (ni == null) { // for some reason NI is still NULL.  Check /etc/hosts for wierd.
+				this.outboundSocket.joinGroup(maddress);
+				LOGGER.warning("Unable to determine the network interface for the localhost address.  Check /etc/hosts for wierd entry like 127.0.1.1 mapped to DNS name.");
+				LOGGER.info("Unknown network interface joined group "+socketAddress.toString());
+			} else {
+				this.outboundSocket.joinGroup(socketAddress, ni);
+				LOGGER.info(ni.getName()+" joined group "+socketAddress.toString());
+			}
 		} catch (IOException e) {
 			StringBuffer buf = new StringBuffer();
 			try {
@@ -129,20 +137,19 @@ public class GatewayReceiver {
 			cliValues = processCommandLine(cl);
 			if (cliValues == null) return; //exit the program - usually from -help
 		} catch (ParseException e) {
-			LOGGER.severe("EXITING --> "+e.getMessage());
+			LOGGER.log(Level.SEVERE, "EXITING --> Parse exception on command line", e);
 			return;
 		}
 		
 		GatewayReceiver gateway = new GatewayReceiver(cliValues);
 
 		LOGGER.info("GatewaySender registering shutdown hook.");
-		Runtime.getRuntime().addShutdownHook(new GatewaySenderShutdown(gateway));		
+		Runtime.getRuntime().addShutdownHook(new GatewayReceiverShutdown(gateway));		
 		
 		try {
 			gateway.run();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, "Generel Error occured while running gateway daemon", e);
 		}	
 	}	
 
@@ -153,26 +160,26 @@ public class GatewayReceiver {
 		if (options == null) {
 	    	options = new Options();
 	    	
-	    	options.addOption(new Option( "help", "print this message" ));
-	    	options.addOption(OptionBuilder.withArgName("dnr").withDescription("if this switch is set, then do not repeat the traffic. Usually for testing.").create("dnr"));
-	    	options.addOption(OptionBuilder.withArgName("ni").isRequired().hasArg().withType(new Integer(0)).withDescription("network interface name to listen on").create("ni"));
-	    	options.addOption(OptionBuilder.withArgName("multicastPort").isRequired().hasArg().withType(new Integer(0)).withDescription("the multicast port to listen on").create("mp"));
-	    	options.addOption(OptionBuilder.withArgName("multicastAddr").isRequired().hasArg().withDescription("the multicast group address to listen on").create("ma"));
-	    	options.addOption(OptionBuilder.withArgName("unicastPort").isRequired().hasArg().withDescription("the target unicast port to send to").create("up"));
+	    	options.addOption("h", false, "display help for the GatewayReceiver daemon");
+	    	options.addOption(OptionBuilder.withDescription("if this switch is set, then do not repeat the traffic. Usually for testing.").create("dnr"));
+	    	options.addOption(OptionBuilder.withArgName("networkInterface").hasArg().withType(new Integer(0)).withDescription("network interface name to listen on. If not set, then the NI of localhost will be used").create("ni"));
+	    	options.addOption(OptionBuilder.withArgName("multicastPort").hasArg().withType(new Integer(0)).withDescription("the multicast port to listen on <required>").create("mp"));
+	    	options.addOption(OptionBuilder.withArgName("multicastAddr").hasArg().withDescription("the multicast group address to listen on <required>").create("ma"));
+	    	options.addOption(OptionBuilder.withArgName("unicastPort").hasArg().withDescription("the target unicast port to send to <required>").create("up"));
 		}
 		
 		return options;
 	}
 	
-	private static Properties processCommandLine(CommandLine cl) throws RuntimeException {
+	private static Properties processCommandLine(CommandLine cl) throws RuntimeException, MissingArgumentException {
 
 		LOGGER.config("Parsing command line values:");
 		
 		Properties values = new Properties();
 		
-		if (cl.hasOption("help")) {
+		if (cl.hasOption("h")) {
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp( "GatewaySender", getOptions() );
+			formatter.printHelp( "GatewayReceiver", getOptions() );
 			return null;
 		}
 		
@@ -193,6 +200,8 @@ public class GatewayReceiver {
 		if (cl.hasOption("ma")) {
 			String ma = cl.getOptionValue("ma");
 			values.put("ma", ma);
+		} else {
+			throw new MissingArgumentException("Missing multicast address option");
 		}
 		
 		//MulticastPort
@@ -203,6 +212,8 @@ public class GatewayReceiver {
 			} catch (NumberFormatException e) {
 				throw new RuntimeException("The multicast port number - "+cl.getOptionValue("mp")+" - is not formattable as an integer", e);
 			}
+		} else {
+			throw new MissingArgumentException("Missing multicast port option");
 		}
 		
 		
@@ -214,6 +225,8 @@ public class GatewayReceiver {
 			} catch (NumberFormatException e) {
 				throw new RuntimeException("The unicast port number - "+cl.getOptionValue("up")+" - is not formattable as an integer", e);
 			}
+		} else {
+			throw new MissingArgumentException("Missing unicast port option");
 		}
 		  		
 		
@@ -222,10 +235,10 @@ public class GatewayReceiver {
 		
 	}	
 	
-	public static class GatewaySenderShutdown extends Thread {
+	public static class GatewayReceiverShutdown extends Thread {
 		GatewayReceiver agent;
 		
-		public GatewaySenderShutdown(GatewayReceiver agent) {
+		public GatewayReceiverShutdown(GatewayReceiver agent) {
 			this.agent = agent;
 		}
 		public void run() {
@@ -234,8 +247,7 @@ public class GatewayReceiver {
 				try {
 					agent.outboundSocket.leaveGroup(agent.maddress);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, "Error leaving group during shutdown process", e);
 				}
 				agent.outboundSocket.close();
 				
@@ -245,8 +257,7 @@ public class GatewayReceiver {
 				try {
 					agent.inboundSocket.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, "Error shutting down inbound socket during shutdown process", e);
 				}
 			}
 		}

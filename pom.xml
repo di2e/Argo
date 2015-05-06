@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ws.argo</groupId>
 	<artifactId>Argo</artifactId>
-	<version>0.2.3-SNAPSHOT</version>
+	<version>0.2.3-CR2</version>
 	<packaging>pom</packaging>
 	<description>Parent project for the Runtime Service Discovery components</description>
 	<modules>
@@ -38,7 +38,7 @@
 					<dependency>
 						<groupId>ws.argo</groupId>
 						<artifactId>build-tools</artifactId>
-						<version>0.2.3-SNAPSHOT</version>
+						<version>0.2.3-CR2</version>
 					</dependency>
 				</dependencies>
 			</plugin>

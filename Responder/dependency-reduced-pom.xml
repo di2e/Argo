@@ -3,13 +3,13 @@
   <parent>
     <artifactId>Argo</artifactId>
     <groupId>ws.argo</groupId>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.2.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>ws.argo.responder</groupId>
   <artifactId>Responder</artifactId>
   <name>Responder</name>
-  <version>0.2.2-SNAPSHOT</version>
+  <version>0.2.3-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
   <build>
     <plugins>

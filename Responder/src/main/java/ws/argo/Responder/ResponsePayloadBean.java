@@ -35,7 +35,21 @@ public class ResponsePayloadBean {
 		this.responseID = "urn:uuid:"+uuid.toString();
 	}
 	
+	public boolean isEmpty() {
+		return responses.isEmpty();
+	}
+	
+	public int numberOfServices() {
+		return responses.size();
+	}
 
+	public String getProbeID() {
+		return probeID;
+	}
+
+	public String getResponseID() {
+		return responseID;
+	}
 
 	public void addResponse(ServiceInfoBean entry) {
 		responses.add(entry);
@@ -45,13 +59,13 @@ public class ResponsePayloadBean {
 		StringBuffer buf = new StringBuffer();
 		
 		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		buf.append("<responses responseID=\""+this.responseID+"\" probeID=\""+this.probeID+"\">\n");
+		buf.append("<services responseID=\""+this.responseID+"\" probeID=\""+this.probeID+"\">\n");
 		
 		for (ServiceInfoBean infoBean : responses) {
 			 buf.append(infoBean.toXML());
 		}
 		
-		buf.append("</responses>\n");
+		buf.append("</services>\n");
 		return buf.toString();
 	}
 	
