@@ -21,26 +21,34 @@ import java.util.UUID;
 
 public class Probe {
 
-	public static final String PROBE_GENERTOR_CONTRACT_ID= "urn:uuid:55f1fecc-bfed-4be0-926b-b36a138a9943";
+	public static final String PROBE_GENERTOR_CONTRACT_ID= "urn:uuid:918b5b45-1496-459e-8a6b-633dbc465380";
 
 	public static final String XML = "XML";
 	public static final String JSON = "JSON";
 
 	public String probeID;
-	public String respondToURL;
 	public String respondToPayloadType; // Should be XML or JSON
 	public int ttl = 255; // the default TTL for a probe is the max TTL of 255 - or the entire network
 	public ArrayList<String> serviceContractIDs = new ArrayList<String>();
+	public ArrayList<String> respondToURLs = new ArrayList<String>();
+	public ArrayList<String> serviceInstanceIDs = new ArrayList<String>();
 	
-	public Probe(String respondToURL, String respondToPayloadType) {
+	public Probe(String respondToPayloadType) {
 		UUID uuid = UUID.randomUUID();
 		probeID = "urn:uuid:"+uuid.toString();	
-		this.respondToURL = respondToURL;
 		this.respondToPayloadType = respondToPayloadType;
+	}
+	
+	public void addRespondToURL(String respondToURL) {
+		respondToURLs.add(respondToURL);
 	}
 	
 	public void addServiceContractID(String serviceContractID) {
 		serviceContractIDs.add(serviceContractID);
+	}
+	
+	public void addServiceInstanceID(String serviceInstanceID) {
+		serviceInstanceIDs.add(serviceInstanceID);
 	}
 	
 	public String asXML() {
@@ -49,25 +57,35 @@ public class Probe {
 		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		buf.append("<probe id=\"")
 			.append(probeID)
-			.append("\" contractID=\"")
+			.append("\" DESVersion=\"")
 			.append(PROBE_GENERTOR_CONTRACT_ID)
 			.append("\" >")
 			.append("\n");
-		
-		buf.append("\t<respondTo>")
-			.append(this.respondToURL)
-			.append("</respondTo>\n");
 
 		buf.append("\t<respondToPayloadType>")
-			.append(this.respondToPayloadType)
-			.append("</respondToPayloadType>\n");
+		.append(this.respondToPayloadType)
+		.append("</respondToPayloadType>\n");
 		
-		for (String contractID : serviceContractIDs ) {
-			buf.append("\t<serviceContractID>")
-				.append(contractID)
-				.append("</serviceContractID>\n");
+		//Add in the respondTo addresses
+		buf.append("\t<ra>\n");
+		for (String ra : serviceContractIDs ) {
+			buf.append("\t\t<respondTo>").append(ra).append("</respondTo>\n");		
 		}
+		buf.append("\t</ra>\n");
+
+		//Add in the service contract IDs
+		buf.append("\t<scids>\n");
+		for (String contractID : serviceContractIDs ) {
+			buf.append("\t\t<serviceContractID>").append(contractID).append("</serviceContractID>\n");
+		}
+		buf.append("\t</scids>\n");
 		
+		//Add in the service instance IDs
+		buf.append("\t<siids>\n");
+		for (String instanceID : serviceInstanceIDs ) {
+			buf.append("\t\t<serviceInstanceID>").append(instanceID).append("</serviceInstanceID>\n");
+		}
+		buf.append("\t</siids>\n");
 		
 		buf.append("</probe>\n\n");
 		
