@@ -23,7 +23,9 @@ public class ProbeGeneratorTest {
 	@Test
 	public void testProbeGeneratorXML() throws IOException {
 		String hostIPAddr = InetAddress.getLocalHost().getHostAddress();
-		Probe probe = new Probe("http://"+hostIPAddr+":8080/AsynchListener/api/responseHandler/probeResponse", Probe.XML);
+		Probe probe = new Probe(Probe.XML);
+		
+		probe.addRespondToURL("http://"+hostIPAddr+":8080/AsynchListener/api/responseHandler/probeResponse");
 		
 		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");
 		
@@ -33,10 +35,10 @@ public class ProbeGeneratorTest {
 	@Test
 	public void testProbeGeneratorAllService() throws IOException {
 		String hostIPAddr = InetAddress.getLocalHost().getHostAddress();
-		Probe probe = new Probe("http://"+hostIPAddr+":8080/AsynchListener/api/responseHandler/probeResponse", Probe.JSON);
+		Probe probe = new Probe(Probe.JSON);
 		
+		probe.addRespondToURL("http://"+hostIPAddr+":8080/AsynchListener/api/responseHandler/probeResponse");
 		// No specified service contract IDs implies "all"
-//		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");	
 		
 		gen.sendProbe(probe);
 	}
@@ -44,10 +46,16 @@ public class ProbeGeneratorTest {
 	@Test
 	public void testProbeGeneratorJSONProbeFormat() throws IOException {
 		String hostIPAddr = InetAddress.getLocalHost().getHostAddress();
-		Probe probe = new Probe("http://"+hostIPAddr+":8080/AsynchListener/api/responseHandler/probeResponse", Probe.JSON);
+		Probe probe = new Probe(Probe.JSON);
 		
+		probe.addRespondToURL("http://"+hostIPAddr+":8080/AsynchListener/api/responseHandler/probeResponse");
+		probe.addRespondToURL("http://"+hostIPAddr+":80/AsynchListener/api/responseHandler/probeResponse");
 		// No specified service contract IDs implies "all"
-//		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");	
+		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");	
+		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");
+		
+		probe.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
+		probe.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
 		
 		gen.sendProbe(probe);
 	}
