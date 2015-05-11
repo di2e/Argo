@@ -26,6 +26,8 @@ import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
+import javax.xml.bind.JAXBException;
+
 public class ProbeGenerator {
 
 	private final static Logger LOGGER = Logger.getLogger(ProbeGenerator.class.getName());
@@ -138,6 +140,9 @@ public class ProbeGenerator {
 			LOGGER.info("Probe sent on port "+multicastAddress+":"+multicastPort);
 			
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
