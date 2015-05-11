@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<probe id="--ID--" DESVersion="urn:uuid:918b5b45-1496-459e-8a6b-633dbc465380" client="yomama">
+    <respondToPayloadType>XML</respondToPayloadType>
+    <ra>
+        <respondTo label="internal">http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse</respondTo>
+        <respondTo label="external">http://1.1.1.1:80/AsynchListener/api/responseHandler/probeResponse</respondTo>
+    </ra>
+    <scids>
+        <serviceContractID>uuid:03d55093-a954-4667-b682-8116c417925d</serviceContractID>
+        <serviceContractID>uuid:03d55093-a954-4667-b682-8116c417925d</serviceContractID>
+    </scids>
+    <siids>
+        <serviceInstanceID>uuid:03d55093-a954-4667-b682-8116c417925d</serviceInstanceID>
+        <serviceInstanceID>uuid:03d55093-a954-4667-b682-8116c417925d</serviceInstanceID>
+    </siids>
+</probe>
