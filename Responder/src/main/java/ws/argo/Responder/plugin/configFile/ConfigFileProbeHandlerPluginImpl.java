@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package ws.argo.Responder.plugin;
+package ws.argo.Responder.plugin.configFile;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 import ws.argo.Responder.ProbePayloadBean;
 import ws.argo.Responder.ResponsePayloadBean;
 import ws.argo.Responder.ServiceInfoBean;
+import ws.argo.Responder.plugin.configFile.xml.ServicesConfiguration;
+import ws.argo.Responder.plugin.configFile.xml.ServicesConfiguration.Service;
+import ws.argo.Responder.plugin.configFile.xml.ServicesConfiguration.Service.AccessPoints.AccessPoint;
+import ws.argo.Responder.plugin.configFile.xml.ServicesConfiguration.Service.AccessPoints.AccessPoint.Data;
 
 
 // This default probe handler will load up a list of IP addresses and port number associates
@@ -50,6 +51,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 
 	Properties config = new Properties();
 	
+	
 	// This really needs to be better than an O(n^2) lookup - like an O(n log n) with a HashMap with a list value.  But I'm lazy at the moment
 	ArrayList<ServiceInfoBean> serviceList = new ArrayList<ServiceInfoBean>();
 	
@@ -62,7 +64,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 	
 	public ResponsePayloadBean handleProbeEvent(ProbePayloadBean payload) {
 
-		ResponsePayloadBean response = new ResponsePayloadBean(payload.probeID);
+		ResponsePayloadBean response = new ResponsePayloadBean(payload.probe.getId());
 		
 		LOGGER.fine("ConfigFileProbeHandlerPluginImpl handling probe: " + payload.toString());
 		
@@ -70,8 +72,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 		//  and create and return the ResponderPayload
 		// Can you say O(n^2) lookup?  Very bad - we can fix later
 				
-		
-		if (payload.serviceContractIDs.isEmpty()) {
+		if (payload.isNaked()) {
 			LOGGER.fine("Query all detected - no service contract IDs in probe");
 			for (ServiceInfoBean entry : serviceList) {			
 				// If the set of contract IDs is empty, get all of them
@@ -79,10 +80,19 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 			}
 			
 		} else {
-			for (String serviceContractID : payload.serviceContractIDs) {
+			for (String serviceContractID : payload.probe.getScids().getServiceContractID()) {
 				LOGGER.fine("Looking to detect "+serviceContractID+" in entry list.");
 				for (ServiceInfoBean entry : serviceList) {			
-					if (entry.serviceContractID.equals(serviceContractID)) {
+					if (entry.getServiceContractID().equals(serviceContractID)) {
+						// Boom Baby - we got one!!!
+						response.addResponse(entry);
+					}				
+				}
+			}
+			for (String serviceInstanceID : payload.probe.getSiids().getServiceInstanceID()) {
+				LOGGER.fine("Looking to detect "+serviceInstanceID+" in entry list.");
+				for (ServiceInfoBean entry : serviceList) {			
+					if (entry.getId().equals(serviceInstanceID)) {
 						// Boom Baby - we got one!!!
 						response.addResponse(entry);
 					}				
@@ -102,73 +112,46 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 		
 		try {
 			this.loadServiceConfigFile();
-		} catch (SAXException e) {
-			LOGGER.severe("Error loading configuation file: "+e.getMessage());
+		} catch (JAXBException e) {
+			LOGGER.log(Level.SEVERE, "Error loading configuation file: ", e);
 		}
 	}
 
 	// This entire method is likely better done with JAXB.  This manual reading DOM process is
 	// sooooooo prone to issues, it's not funny.  But, this is a prototype
 	// TODO: make this method more solid
-	private void loadServiceConfigFile() throws SAXException, IOException {
-		DocumentBuilderFactory builderFactory = DocumentBuilderFactory
-				.newInstance();
-		builderFactory.setCoalescing(true);
-		DocumentBuilder builder = null;
-		try {
-			builder = builderFactory.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			LOGGER.severe("XML Parser error: "+e.getMessage());
-		}		
+	private void loadServiceConfigFile() throws JAXBException, FileNotFoundException {
 		
+		
+		JAXBContext jaxbContext = JAXBContext.newInstance(ServicesConfiguration.class);
 		LOGGER.info("Loading configuration from "+this.configFilename);
 		InputStream is = new FileInputStream(this.configFilename);
-		Document document = builder.parse(is);
-
-		NodeList list = document.getElementsByTagName(SERVICE);
-
-		for (int i = 0; i < list.getLength(); i++) {
-			Element service = (Element) list.item(i);
-			String contractID = null;
-			String serviceID = null;
-
-			contractID = service.getAttribute("contractID");
-			serviceID = service.getAttribute("id");
-
-			ServiceInfoBean config = new ServiceInfoBean(serviceID);
+		
+		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+		ServicesConfiguration services = (ServicesConfiguration) jaxbUnmarshaller.unmarshal(is);
+				
+		
+		for (Service service : services.getService()) {
 			
-			config.serviceContractID = contractID;
+			ServiceInfoBean serviceBean = new ServiceInfoBean(service.getId());
 			
-			// Need some better error handling here.  The config file MUST have all 4 config items in it 
-			// or bad things happen.
-			Node n;
-			n = service.getElementsByTagName("ipAddress").item(0);
-			config.ipAddress = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("port").item(0);
-			config.port = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("url").item(0);
-			config.url = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("data").item(0);
-			config.data = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("description").item(0);
-			config.description = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("contractDescription").item(0);
-			config.contractDescription = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("serviceName").item(0);
-			config.serviceName = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("consumability").item(0);
-			config.consumability = ((Element) n).getTextContent();
+			serviceBean.setServiceName(service.getServiceName());
+			serviceBean.setDescription(service.getDescription());
+			serviceBean.setContractDescription(service.getContractDescription());
+			serviceBean.setConsumability(service.getConsumability());
+			serviceBean.setServiceContractID(service.getContractID());
+			serviceBean.setTtl(service.getTtl());
 			
-			n = service.getElementsByTagName("ttl").item(0);
-			try {
-				config.ttl = Integer.decode(((Element) n).getTextContent());
-			} catch (NumberFormatException e) {
-				LOGGER.warning("Attempting to read the TTL from serviceName \""+config.serviceName+"\" "+e.getMessage());
+			List<AccessPoint> apList = service.getAccessPoints().getAccessPoint();
+			
+			for (AccessPoint ap : apList) {
+				Data xmlData = ap.getData();
+				serviceBean.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), xmlData.getType(), xmlData.getValue());
 			}
 			
-			serviceList.add(config);
-			
+			serviceList.add(serviceBean);
 		}
+
 
 	}	
 

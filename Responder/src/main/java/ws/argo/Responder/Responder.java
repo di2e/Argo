@@ -42,8 +42,8 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import ws.argo.Responder.plugin.ConfigFileProbeHandlerPluginImpl;
-import ws.argo.Responder.plugin.ProbeHandlerPluginIntf;
+import ws.argo.Responder.plugin.configFile.ConfigFileProbeHandlerPluginImpl;
+import ws.argo.Responder.plugin.configFile.ProbeHandlerPluginIntf;
 
 
 public class Responder {

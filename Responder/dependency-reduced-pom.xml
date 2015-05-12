@@ -3,13 +3,13 @@
   <parent>
     <artifactId>Argo</artifactId>
     <groupId>ws.argo</groupId>
-    <version>0.2.3-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>ws.argo.responder</groupId>
   <artifactId>Responder</artifactId>
   <name>Responder</name>
-  <version>0.2.3-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
   <build>
     <plugins>
@@ -35,6 +35,25 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>xjc</id>
+            <goals>
+              <goal>xjc</goal>
+            </goals>
+            <configuration>
+              <schemaDirectory>${basedir}/src/main/resources</schemaDirectory>
+              <packageName>ws.argo.Responder.response.xml</packageName>
+              <outputDirectory>${basedir}/src/main/java</outputDirectory>
+              <clearOutputDir>false</clearOutputDir>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.5.3</version>
         <executions>
@@ -54,6 +73,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.2</version>
         <configuration>
           <skip>true</skip>
         </configuration>
@@ -64,8 +84,14 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.12</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>hamcrest-core</artifactId>
+          <groupId>org.hamcrest</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
   <properties>

@@ -16,72 +16,195 @@
 
 package ws.argo.Responder;
 
+import java.io.StringWriter;
+import java.util.List;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.PropertyException;
+
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import org.apache.commons.codec.binary.Base64;
+
+import ws.argo.ProbeGenerator.xml.Probe;
+import ws.argo.Responder.response.xml.ObjectFactory;
+import ws.argo.Responder.response.xml.Services.Service;
+import ws.argo.Responder.response.xml.Services.Service.AccessPoints;
+import ws.argo.Responder.response.xml.Services.Service.AccessPoints.AccessPoint;
+import ws.argo.Responder.response.xml.Services.Service.AccessPoints.AccessPoint.Data;
+
 public class ServiceInfoBean {
-	
+
 	public static final String HUMAN_CONSUMABLE = "HUMAN_CONSUMABLE";
 	public static final String MACHINE_CONSUMABLE = "MACHINE_CONSUMABLE";
-	
-	public String id;
-	public String serviceContractID;
-	public String ipAddress;
-	public String port;
-	public String url;
-	public String data;
-	public Integer ttl = 0;
-	public String description;
-	public String contractDescription;
-	public String serviceName;
-	public String consumability = MACHINE_CONSUMABLE; // default to machine consumable
 
+	public Service xmlService;
 
 	public ServiceInfoBean(String id) {
-		this.id = id;
+		ObjectFactory of = new ObjectFactory();
+		xmlService = of.createServicesService();
+		this.setId(id);
 	}
-	
+
+	public Service getXmlService() {
+		return xmlService;
+	}
+
+	public List<AccessPoint> getAccessPoints() {
+		return xmlService.getAccessPoints().getAccessPoint();
+	}
+
+	public void addAccessPoint(String label, String ip, String port,
+			String url, String dataType, String data) {
+
+		ObjectFactory of = new ObjectFactory();
+		AccessPoint ap = of.createServicesServiceAccessPointsAccessPoint();
+		Data xmlData = of.createServicesServiceAccessPointsAccessPointData();
+		ap.setLabel(label);
+		ap.setIpAddress(ip);
+		ap.setPort(port);
+		ap.setUrl(url);
+		xmlData.setType(dataType);
+		xmlData.setValue(data);
+		ap.setData(xmlData);
+
+		AccessPoints aps = xmlService.getAccessPoints();
+		if (aps == null) {
+			aps = of.createServicesServiceAccessPoints();
+			xmlService.setAccessPoints(aps);
+		}
+
+		xmlService.getAccessPoints().getAccessPoint().add(ap);
+
+	}
+
+	public String getId() {
+		return xmlService.getId();
+	}
+
+	public void setId(String id) {
+		xmlService.setId(id);
+	}
+
+	public String getServiceContractID() {
+		return xmlService.getContractID();
+	}
+
+	public void setServiceContractID(String serviceContractID) {
+		xmlService.setContractID(serviceContractID);
+	}
+
+	public String getServiceName() {
+		return xmlService.getServiceName();
+	}
+
+	public void setServiceName(String serviceName) {
+		xmlService.setServiceName(serviceName);
+	}
+
+	public String getDescription() {
+		return xmlService.getDescription();
+	}
+
+	public void setDescription(String description) {
+		xmlService.setDescription(description);
+	}
+
+	public String getContractDescription() {
+		return xmlService.getContractDescription();
+	}
+
+	public void setContractDescription(String contractDescription) {
+		xmlService.setContractDescription(contractDescription);
+	}
+
+	public String getConsumability() {
+		return xmlService.getConsumability();
+	}
+
+	public void setConsumability(String consumability) {
+		xmlService.setConsumability(consumability);
+	}
+
+	public Integer getTtl() {
+		Integer ttl = 0;
+		try {
+			ttl = Integer.valueOf(xmlService.getTtl());
+		} catch (NumberFormatException e) {
+			// TODO: Put LOGGER heer
+		}
+		return ttl;
+	}
+
+	public void setTtl(Integer ttl) {
+		xmlService.setTtl(Integer.toString(ttl.intValue()));
+	}
+
+	public void setTtl(String ttlString) {
+		xmlService.setTtl(ttlString);
+	}
+
 	public String toXML() {
-		StringBuffer buf = new StringBuffer();
-		buf.append("\t<service id=\""+id+"\" contractID=\""+serviceContractID+"\">\n");
-//		buf.append("\t\t<id>"+id+"</id>\n");		
-//		buf.append("\t\t<serviceContractID>"+serviceContractID+"</serviceContractID>\n");
-		if (ipAddress != null)
-			buf.append("\t\t<ipAddress>"+ipAddress+"</ipAddress>\n");
-		if (port != null)
-			buf.append("\t\t<port>"+port+"</port>\n");
-		if (url != null)
-			buf.append("\t\t<url>"+url+"</url>\n");
-		if (data != null)
-			buf.append("\t\t<data><![CDATA["+data+"]]></data>\n");
-		if (ttl != null)
-			buf.append("\t\t<ttl>"+ttl+"</ttl>\n");
-		if (description != null)
-			buf.append("\t\t<description>"+description+"</description>\n");
-		if (contractDescription != null)
-			buf.append("\t\t<contractDescription>"+contractDescription+"</contractDescription>\n");
-		if (serviceName != null)
-			buf.append("\t\t<serviceName>"+serviceName+"</serviceName>\n");
-		if (consumability != null)
-			buf.append("\t\t<consumability>"+consumability+"</consumability>\n");
-		buf.append("\t</service>\n");
-		
-		return buf.toString();
+		StringWriter sw = new StringWriter();
+		try {
+			JAXBContext jaxbContext = JAXBContext.newInstance(Probe.class);
+			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+			// output pretty printed
+			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+			jaxbMarshaller.marshal(xmlService, sw);
+		} catch (PropertyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return sw.toString();
 	}
-	
+
 	public JSONObject toJSONObject() {
 		JSONObject json = new JSONObject();
-		json.put("id", id);
-		json.put("serviceContractID", serviceContractID);
-		json.put("ipAddress", ipAddress);
-		json.put("port", port);
-		json.put("url", url);
-		json.put("data", data);
-		json.put("ttl", ttl);
-		json.put("contractDescription", contractDescription);
-		json.put("serviceName", serviceName);
-		json.put("description", description);
-		json.put("consumability", consumability);
-	
-		return json;		
+
+		json.put("id", this.getId());
+		json.put("serviceContractID", this.getServiceContractID());
+		json.put("serviceName", this.getServiceName());
+		json.put("description", this.getDescription());
+		json.put("contractDescription", this.getContractDescription());
+		json.put("consumability", this.getConsumability());
+		json.put("ttl", this.getTtl().toString());
+
+		JSONArray array = new JSONArray();
+
+		for (AccessPoint ap : xmlService.getAccessPoints().getAccessPoint()) {
+			JSONObject jsonAP = new JSONObject();
+
+			jsonAP.put("label", ap.getLabel());
+			jsonAP.put("ipAddress", ap.getIpAddress());
+			jsonAP.put("port", ap.getPort());
+			jsonAP.put("url", ap.getUrl());
+
+			if (ap.getData() != null) {
+				Data xmlData = ap.getData();
+				jsonAP.put("dataType", xmlData.getType());
+				byte[] bytesEncoded = Base64.encodeBase64(xmlData.getValue()
+						.getBytes());
+				String encodedString = new String(bytesEncoded);
+				jsonAP.put("data", encodedString);
+			} else {
+				jsonAP.put("dataType", "");
+				jsonAP.put("data", "");
+			}
+
+			array.add(jsonAP);
+		}
+
+		json.put("accessPoints", array);
+
+		return json;
 	}
 }

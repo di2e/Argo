@@ -16,38 +16,62 @@
 
 package ws.argo.Responder;
 
-import java.util.ArrayList;
+import java.io.StringReader;
+import java.io.StringWriter;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.PropertyException;
+import javax.xml.bind.Unmarshaller;
+
+import ws.argo.ProbeGenerator.xml.Probe;
+
 
 public class ProbePayloadBean {
-	public String contractID;
-	public String probeID;
-	public String respondToURL;
-	public String respondToPayloadType;
-	public ArrayList<String> serviceContractIDs;
+	public Probe probe;
 
-	public ProbePayloadBean() {
+	public ProbePayloadBean(String payload) throws JAXBException {
+		probe = this.parseProbePayload(payload);
 	}
 	
 	public boolean isNaked() {
-		return serviceContractIDs.isEmpty();
+		boolean emptyScids = probe.getScids() == null || probe.getScids().getServiceContractID().isEmpty();
+		boolean emptySiids = probe.getSiids() == null || probe.getSiids().getServiceInstanceID().isEmpty();
+
+		return emptyScids && emptySiids;
 	}
 	
-	public String toString() {
-		StringBuffer buf = new StringBuffer();
-		
-		buf.append("****** Probe Payload Start ******\n")
-			.append("\tID: ").append(probeID).append("\n")
-			.append("\tcontractID: ").append(contractID).append("\n")
-			.append("\trespondTo URL: ").append(respondToURL).append("\n")
-			.append("\trespondTo payload type: ").append(respondToPayloadType).append("\n");
-		
-		buf.append("\tService Contract IDs: \n");
 
-		for (String serviceContractID : serviceContractIDs) {
-			buf.append(serviceContractID+"\n");
+	private Probe parseProbePayload(String payload) throws JAXBException {
+		JAXBContext jaxbContext = JAXBContext.newInstance(Probe.class);
+		 
+		StringReader sr = new StringReader(payload);
+		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+		Probe probe = (Probe) jaxbUnmarshaller.unmarshal(sr);
+				
+		return probe;
+	}
+	
+	public String toString() {	
+		StringWriter sw = new StringWriter();
+		try {
+			JAXBContext jaxbContext = JAXBContext.newInstance(Probe.class);
+			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+ 
+			// output pretty printed
+			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+ 
+			jaxbMarshaller.marshal(probe, sw);
+		} catch (PropertyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-			
-		buf.append("****** Probe Payload End ******\n");
-		return buf.toString();
+
+		return sw.toString();	
+
 	}
 }

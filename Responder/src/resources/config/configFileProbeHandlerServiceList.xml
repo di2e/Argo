@@ -44,25 +44,25 @@
 	consumption.
 	
 	ipAddress, port and url are not mandated.  I'd imagine you'd use at least one
-	or two of these field to provide the configuation coodinate for the service, but
+	or two of these field to provide the configuration coordinate for the service, but
 	the exact usage of the fields is defined by the service contract and not the 
 	protocol.  You could forego the usage of all these fields and put the configuration
 	information in the data block if you wish.
 	
-	data usage:  This is uninterperted bytes that will be sent back to the respondTo
+	data usage:  This is uninterpereted bytes that will be sent back to the respondTo
 	address of the probe.  There is no limitation on what goes in this field.  It could
 	be complex configuration information, a picture, some HTML for descriptive purposes.
 	Pointers to other stuff.  Whatever.  But I wouldn't make it too big.
 	
 	TTL usage:  The TTL is an indicator to the requestor that they should only trust
-	the configuraiton infomration in the service record for the number of minutes
+	the configuration information in the service record for the number of minutes
 	specified.  A TTL of 0 is indefinite.  Basically, a client should re-probe after
-	the TTL has expired to make sure it has the latest connection informration, but it's
+	the TTL has expired to make sure it has the latest connection information, but it's
 	not required.
 	
 	consumability usage: This field has 2 options.  HUMAN_CONSUMABLE or MACHINE_CONSUMABLE
 	It's just a hint to the consumer regarding what type of service you're advertising.
-	MACHINE_CONSUMABLE connotes that the configuraiton information in the service
+	MACHINE_CONSUMABLE connotes that the configuration information in the service
 	record is for some client software to use.  HUMAN_CONSUMABLE connotes that this
 	service record is meant to display in a browser for human consumption.  Records
 	of this type will likely only have a url set.
@@ -70,27 +70,58 @@
 	you'll like it.
 	
 -->
-<services>
+
+<servicesConfiguration>
 	<service id="YOUR SERVICE ID HERE" contractID="YOUR CONTRACT ID HERE">
-		<ipAddress></ipAddress>
-		<port></port>
-		<url>http://192.168.0.51:8080/MyAwesomeService/index.jsp</url>
-		<description>This is an awesome service.  The scope of its awesomeness is hard to describe</description>
-		<data><![CDATA[This is some CDATA text]]></data>
-		<ttl></ttl>
-		<contractDescription>A short description of the contract</contractDescription>
-		<serviceName>A very short name for the service instance</serviceName>
+	
+	    <!— description block crap —>
+        <serviceName>A very short name for the Service Instace 1</serviceName>
+        <description>This is an awesome service.  The scope of its awesomeness is hard to describe</description>
+		<contractDescription>A short description of Contract 1</contractDescription>
 		<consumability>HUMAN_CONSUMABLE</consumability>
+		<ttl></ttl>
+
+        <!— access points —>
+        <accessPoints>
+            <accessPoint label="good address">
+				<ipAddress></ipAddress>
+				<port></port>
+				<url>http://192.168.0.51:8080/MyAwesomeService/index.jsp</url>
+				<data><![CDATA[This is some CDATA text]]></data>
+            </accessPoint>	   
+            <accessPoint label="bad address">
+                <ipAddress></ipAddress>
+                <port></port>
+                <url>http://1.1.1.1:8080/MyAwesomeService/index.jsp</url>
+                <data><![CDATA[This is some CDATA text]]></data>
+            </accessPoint>     
+		</accessPoints>
 	</service>
+
 	<service id="YOUR SERVICE ID HERE" contractID="YOUR CONTRACT ID HERE">
-		<ipAddress></ipAddress>
-		<port></port>
-		<url>http://192.168.0.51:8080/AnotherAwesomeService/operation</url>
+
+        <!— description block crap —>
+		<serviceName>A very short name for the Service Instance 2</serviceName>
 		<description>This is another awesome service.  The scope of its awesomeness is eclipsed only by the other awesome service</description>
-		<data><![CDATA[This is some CDATA text]]></data>
-		<ttl>10</ttl>
-		<contractDescription>A short description of the contract</contractDescription>
-		<serviceName>A very short name for the service instance</serviceName>
+		<contractDescription>A short description of Contract 2</contractDescription>
 		<consumability>MACHINE_CONSUMABLE</consumability>
+		<ttl>10</ttl>
+
+        <!— access points —>
+        <accessPoints>
+            <accessPoint label="good address">
+                <ipAddress>192.168.0.51</ipAddress>
+                <port>8080</port>
+                <url>http://192.168.0.51:8080/AnotherAwesomeService/operation</url>
+                <data><![CDATA[This is some CDATA text]]></data>
+            </accessPoint>
+            <accessPoint label="bad address">
+                <ipAddress></ipAddress>
+                <port></port>
+                <url>http://1.1.1.1:8080/AnotherAwesomeService/operation</url>
+                <data><![CDATA[This is some CDATA text]]></data>
+            </accessPoint>
+            
+        </accessPoints>
 	</service>
-</services>
+</servicesConfiguration>

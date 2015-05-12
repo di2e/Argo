@@ -16,7 +16,7 @@
 
 package ws.argo.Responder;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.UUID;
 
 import net.sf.json.JSONArray;
@@ -26,7 +26,7 @@ public class ResponsePayloadBean {
 	
 	String probeID;
 	String responseID;
-	private ArrayList<ServiceInfoBean> responses = new ArrayList<ServiceInfoBean>();
+	private HashSet<ServiceInfoBean> responses = new HashSet<ServiceInfoBean>();
 	
 	
 	public ResponsePayloadBean(String probeID) {
@@ -86,7 +86,7 @@ public class ResponsePayloadBean {
 		json.put("responseID", this.responseID);
 		json.put("probeID", this.probeID);
 		
-		json.put("responses", array);
+		json.put("services", array);
 		
 		return json;
 		
