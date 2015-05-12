@@ -99,38 +99,27 @@ public class AsynchListener {
 	public String handleXMLProbeResponse(String probeResponseXML) throws SAXException, IOException {
 		System.out.println("handling XML probe response: "+probeResponseXML);
 		
-		ArrayList<ServiceInfoBean> serviceList = parseProbeResponseXML(probeResponseXML);
+//		ArrayList<ServiceInfoBean> serviceList = parseProbeResponseXML(probeResponseXML);
+//		
+//		cache.cacheAll(serviceList);
 		
-		cache.cacheAll(serviceList);
-		
-		return "Asynch Listener Cached "+serviceList.size()+" services from probe response\n";
+		return "Asynch Listener currently does not handle XML probe responses\n";
 	}
 	
+	@SuppressWarnings("unchecked")
 	private ArrayList<ServiceInfoBean> parseProbeResponseJSON(String jsonString) throws SAXException, IOException {
 		ArrayList<ServiceInfoBean> serviceList = new ArrayList<ServiceInfoBean>();
 		
 		JSONObject repsonseJSON = JSONObject.fromObject(jsonString);
 		
-		JSONArray responses = (JSONArray) repsonseJSON.get("responses");
+		JSONArray responses = (JSONArray) repsonseJSON.get("services");
 		
 		Iterator<Object> it = responses.iterator();
 		
 		while (it.hasNext()) {
 			JSONObject serviceInfo = (JSONObject) it.next();
-			String serviceID = serviceInfo.optString("id");
 			
-			ServiceInfoBean config = new ServiceInfoBean(serviceID);
-			
-			config.serviceContractID = serviceInfo.optString("serviceContractID");
-			config.ipAddress = serviceInfo.optString("ipAddress");
-			config.port = serviceInfo.optString("port");
-			config.url = serviceInfo.optString("url");
-			config.data = serviceInfo.optString("data");
-			config.description = serviceInfo.optString("description");
-			config.contractDescription = serviceInfo.optString("contractDescription");
-			config.serviceName = serviceInfo.optString("serviceName");
-			config.ttl = serviceInfo.optInt("ttl", 0);
-			config.consumability = serviceInfo.optString("consumability");
+			ServiceInfoBean config = new ServiceInfoBean(serviceInfo);
 			
 			serviceList.add(config);
 		}
@@ -139,67 +128,6 @@ public class AsynchListener {
 		return serviceList;
 	}
 	
-	
-	// This entire method is likely better done with JAXB.  This manual reading DOM process is
-	// sooooooo prone to issues, it's not funny.  But, this is a prototype
-	// TODO: make this method more solid
-	private ArrayList<ServiceInfoBean> parseProbeResponseXML(String xmlString) throws SAXException, IOException {
-		ArrayList<ServiceInfoBean> serviceList = new ArrayList<ServiceInfoBean>();
-		
-		DocumentBuilderFactory builderFactory = DocumentBuilderFactory .newInstance();
-		builderFactory.setCoalescing(true);
-		DocumentBuilder builder = null;
-		try {
-			builder = builderFactory.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		}		
-		
-		InputStream is = IOUtils.toInputStream(xmlString);
-		Document document = builder.parse(is);
-
-		NodeList list = document.getElementsByTagName("service");
-
-		for (int i = 0; i < list.getLength(); i++) {
-			Element service = (Element) list.item(i);
-			String contractID = null;
-			String serviceID = null;
-
-			contractID = service.getAttribute("contractID");
-			serviceID = service.getAttribute("id");
-
-			ServiceInfoBean config = new ServiceInfoBean(serviceID);
-			
-			config.serviceContractID = contractID;
-			
-			// Need some better error handling here.  The xml MUST have all config items in it 
-			// or bad things happen.
-			Node n;
-			n = service.getElementsByTagName("ipAddress").item(0);
-			config.ipAddress = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("port").item(0);
-			config.port = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("url").item(0);
-			config.url = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("data").item(0);
-			config.data = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("description").item(0);
-			config.description = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("contractDescription").item(0);
-			config.contractDescription = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("serviceName").item(0);
-			config.serviceName = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("consumability").item(0);
-			config.consumability = ((Element) n).getTextContent();
-			n = service.getElementsByTagName("ttl").item(0);
-			config.ttl = Integer.decode(((Element) n).getTextContent());
-			
-			serviceList.add(config);
-			
-		}
-		return serviceList;
-
-	}	
 
 	
 }

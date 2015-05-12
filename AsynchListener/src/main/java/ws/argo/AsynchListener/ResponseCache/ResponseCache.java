@@ -31,34 +31,20 @@ public class ResponseCache {
 	public synchronized void cacheAll(ArrayList<ServiceInfoBean> list) {
 		
 		for (ServiceInfoBean service : list) {
-			cache.put(service.id, service);
+			cache.put(service.getId(), service);
 		}
 		
 	}
 	
 	public synchronized void cache(ServiceInfoBean service) {
-		cache.put(service.id, service);
+		cache.put(service.getId(), service);
 	}
 	
-	public String toXML() {
-		StringBuffer buf = new StringBuffer();
-		
-		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		buf.append("<cache>\n");
-		
-		clearExpired();
-		for (ServiceInfoBean infoBean : cache.values()) {
-			 buf.append(infoBean.toXML());
-		}
-		
-		buf.append("</cache>/n/n");
-		return buf.toString();
-	}
 	
 	public String toJSON() {
 		JSONObject response = this.toJSONObject();
 		
-		return response.toString(4);
+		return response.toString(0);
 	}
 	
 	public JSONObject toJSONObject() {
@@ -96,8 +82,8 @@ public class ResponseCache {
 		clearExpired();
 		for (ServiceInfoBean infoBean : cache.values()) {
 			JSONObject contract = new JSONObject();
-			contract.put("contractID", infoBean.serviceContractID);
-			contract.put("contractDescription", infoBean.contractDescription);
+			contract.put("contractID", infoBean.getServiceContractID());
+			contract.put("contractDescription", infoBean.getContractDescription());
 			array.add(contract);
 		}	
 		
