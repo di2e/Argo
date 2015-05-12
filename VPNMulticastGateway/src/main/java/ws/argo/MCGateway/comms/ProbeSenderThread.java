@@ -7,8 +7,11 @@ import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.util.Date;
 
+import javax.xml.bind.JAXBException;
+
 import ws.argo.ProbeGenerator.Probe;
 import ws.argo.ProbeGenerator.ProbeGenerator;
+import ws.argo.ProbeGenerator.UnsupportedPayloadType;
 
 public class ProbeSenderThread implements Runnable {
 
@@ -25,7 +28,9 @@ public class ProbeSenderThread implements Runnable {
 	        try {
 	            
 	    		ProbeGenerator gen = new ProbeGenerator(multicastGroup, 4003);
-	    		Probe probe = new Probe("http://localhost:8080/AsynchListener/api/responseHandler/probeResponse", Probe.XML);
+	    		Probe probe = new Probe(Probe.XML);
+	    		
+	    		probe.addRespondToURL("test", "http://localhost:8080/AsynchListener/api/responseHandler/probeResponse");
 	    		
 	    		probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925d");
 	    		
@@ -47,7 +52,7 @@ public class ProbeSenderThread implements Runnable {
 	                Thread.sleep(5000);
 	            } catch (InterruptedException e) { }
 	        }
-	        catch (IOException e) {
+	        catch (IOException | UnsupportedPayloadType | JAXBException e) {
 	            e.printStackTrace();
 	        }
 	    }

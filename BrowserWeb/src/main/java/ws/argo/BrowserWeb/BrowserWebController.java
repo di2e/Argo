@@ -46,6 +46,7 @@ import org.apache.http.impl.client.HttpClients;
 
 import ws.argo.ProbeGenerator.Probe;
 import ws.argo.ProbeGenerator.ProbeGenerator;
+import ws.argo.ProbeGenerator.UnsupportedPayloadType;
 
 
 /*
@@ -121,7 +122,7 @@ public class BrowserWebController {
 	@GET
 	@Path("/launchProbe")
 	@Produces("application/txt")
-	public String launchProbe() throws IOException {
+	public String launchProbe() throws IOException, UnsupportedPayloadType {
 		
 		Properties clientProps = getPropeGeneratorProps();
 		
@@ -137,15 +138,24 @@ public class BrowserWebController {
 		ProbeGenerator gen = new ProbeGenerator(multicastGroupAddr, multicastPort);
 
 		// loop over the "respond to addresses" specified in the properties file.
-		for (ProbeRespondToAddress rta : respondToAddresses) {
-			
-			Probe probe = new Probe("http://"+rta.respondToAddress+":"+rta.respondToPort+listenerURLPath, Probe.JSON);
-			// The following is a "naked" probe - no service contract IDs, etc.
-			// No specified service contract IDs implies "all"
-			// This will evoke responses from all reachable responders except those configured to "noBrowser"
-			gen.sendProbe(probe);
-		}
-		
+		//TODO: Clean out the commented out code.
+//		for (ProbeRespondToAddress rta : respondToAddresses) {
+//			
+//			Probe probe = new Probe(Probe.JSON);
+//			probe.addRespondToURL("http://"+rta.respondToAddress+":"+rta.respondToPort+listenerURLPath);
+//			// The following is a "naked" probe - no service contract IDs, etc.
+//			// No specified service contract IDs implies "all"
+//			// This will evoke responses from all reachable responders except those configured to "noBrowser"
+//			gen.sendProbe(probe);
+//		}
+		Probe probe = new Probe(Probe.JSON);
+		for (ProbeRespondToAddress rta : respondToAddresses) {			
+			probe.addRespondToURL("browser", "http://"+rta.respondToAddress+":"+rta.respondToPort+listenerURLPath);
+		}		
+		// The following is a "naked" probe - no service contract IDs, etc.
+		// No specified service contract IDs implies "all"
+		// This will evoke responses from all reachable responders except those configured to "noBrowser"
+		gen.sendProbe(probe);
 		gen.close();
 		
 		return "Launched "+respondToAddresses.size()+" probe(s) successfully on "+multicastGroupAddr+":"+ multicastPort;
@@ -250,7 +260,6 @@ public class BrowserWebController {
 			} catch (SocketException e) {
 				LOGGER.warning("A socket exception occurred.");
 			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
 				LOGGER.log(Level.WARNING, "Error finding Network Interface", e);
 			}
 			
@@ -272,7 +281,6 @@ public class BrowserWebController {
 			try {
 				clientProps.load(in);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				// Should log the props file issue
 				setDefaultProbeGeneratorProperties(clientProps);
 			}
