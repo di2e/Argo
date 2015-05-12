@@ -1,0 +1,51 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	attributeFormDefault="unqualified" elementFormDefault="qualified">
+	<xs:element name="servicesConfiguration">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="service" maxOccurs="unbounded"
+					minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element type="xs:string" name="serviceName" />
+							<xs:element type="xs:string" name="description" />
+							<xs:element type="xs:string" name="contractDescription" />
+							<xs:element type="xs:string" name="consumability" />
+							<xs:element type="xs:string" name="ttl" />
+							<xs:element name="accessPoints">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="accessPoint" maxOccurs="unbounded"
+											minOccurs="1">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element type="xs:string" name="ipAddress" />
+													<xs:element type="xs:string" name="port" />
+													<xs:element type="xs:anyURI" name="url" />
+													<xs:element name="data">
+														<xs:complexType>
+															<xs:simpleContent>
+																<xs:extension base="xs:string">
+																	<xs:attribute type="xs:string" name="type"
+																		use="optional" />
+																</xs:extension>
+															</xs:simpleContent>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute type="xs:string" name="label"
+													use="optional" />
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute type="xs:string" name="id" />
+						<xs:attribute type="xs:string" name="contractID" />
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema> 
