@@ -16,9 +16,20 @@
 
 package ws.argo.Responder;
 
-import java.util.ArrayList;
+import java.io.StringWriter;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.PropertyException;
+
+import ws.argo.Responder.response.xml.ObjectFactory;
+import ws.argo.Responder.response.xml.Services;
+import ws.argo.Responder.response.xml.Services.Service;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -26,7 +37,7 @@ public class ResponsePayloadBean {
 	
 	String probeID;
 	String responseID;
-	private ArrayList<ServiceInfoBean> responses = new ArrayList<ServiceInfoBean>();
+	private HashSet<ServiceInfoBean> responses = new HashSet<ServiceInfoBean>();
 	
 	
 	public ResponsePayloadBean(String probeID) {
@@ -56,17 +67,33 @@ public class ResponsePayloadBean {
 	}
 
 	public String toXML() {
-		StringBuffer buf = new StringBuffer();
+		ObjectFactory of = new ObjectFactory();
+		Services xmlServices = of.createServices();
 		
-		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		buf.append("<services responseID=\""+this.responseID+"\" probeID=\""+this.probeID+"\">\n");
+		List<Service> serviceList = xmlServices.getService();
 		
 		for (ServiceInfoBean infoBean : responses) {
-			 buf.append(infoBean.toXML());
+			 serviceList.add(infoBean.xmlService);
 		}
 		
-		buf.append("</services>\n");
-		return buf.toString();
+				
+		StringWriter sw = new StringWriter();
+		try {
+			JAXBContext jaxbContext = JAXBContext.newInstance(Services.class);
+			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+			// output pretty printed
+			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+			jaxbMarshaller.marshal(xmlServices, sw);
+		} catch (PropertyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return sw.toString();
 	}
 	
 	public String toJSON() {
@@ -86,7 +113,7 @@ public class ResponsePayloadBean {
 		json.put("responseID", this.responseID);
 		json.put("probeID", this.probeID);
 		
-		json.put("responses", array);
+		json.put("services", array);
 		
 		return json;
 		

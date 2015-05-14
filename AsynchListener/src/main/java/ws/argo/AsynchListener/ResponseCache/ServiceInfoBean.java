@@ -16,91 +16,136 @@
 
 package ws.argo.AsynchListener.ResponseCache;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
+
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 public class ServiceInfoBean {
 
-	public static final String HUMAN_CONSUMABLE = "HUMAN_CONSUMABLE";
-	public static final String MACHINE_CONSUMABLE = "MACHINE_CONSUMABLE";
 	static final long ONE_MINUTE_IN_MILLIS=60000;
 
+	JSONObject jsonService;
+	String data;
 	
-	public String id;
-	public String serviceContractID;
-	public String ipAddress;
-	public String port;
-	public String url;
-	public String data;
-	public Integer ttl = 0; //0 means that is never expires
-	public String description;
-	public String contractDescription;
-	public String serviceName;
-	public String consumability = MACHINE_CONSUMABLE; // default to machine consumable
-
+	List<AccessPoint> accessPoints = null;
+	
 	public Date cacheStartTime = new Date();
 
-
-	public ServiceInfoBean(String id) {
-		this.id = id;
-	}
-	
-	public String toXML() {
-		StringBuffer buf = new StringBuffer();
-		buf.append("\t<service id=\""+id+"\" contractID=\""+serviceContractID+"\">\n");
-//		buf.append("\t\t<id>"+id+"</id>\n");		
-//		buf.append("\t\t<serviceContractID>"+serviceContractID+"</serviceContractID>\n");
-		if (ipAddress != null)
-			buf.append("\t\t<ipAddress>"+ipAddress+"</ipAddress>\n");
-		if (port != null)
-			buf.append("\t\t<port>"+port+"</port>\n");
-		if (url != null)
-			buf.append("\t\t<url>"+url+"</url>\n");
-		if (data != null)
-			buf.append("\t\t<data>"+data+"</data>\n");
-		if (ttl != null)
-			buf.append("\t\t<ttl>"+ttl+"</ttl>\n");
-		if (description != null)
-			buf.append("\t\t<description>"+description+"</description>\n");
-		if (contractDescription != null)
-			buf.append("\t\t<contractDescription>"+contractDescription+"</contractDescription>\n");
-		if (serviceName != null)
-			buf.append("\t\t<serviceName>"+serviceName+"</serviceName>\n");
-		if (consumability != null)
-			buf.append("\t\t<consumability>"+consumability+"</consumability>\n");
-		buf.append("\t</service>\n");
+	public class AccessPoint {
+		JSONObject jsonAP;
 		
-		return buf.toString();
+		public AccessPoint(JSONObject jsonAP) {
+			this.jsonAP = jsonAP;
+		}
+		
+		public String getLabel() {
+			return this.jsonAP.optString("label", "");
+		}
+		
+		public String getIPAddress() {
+			return this.jsonAP.optString("ipAddress", "");
+		}
+		
+		public String getPort() {
+			return this.jsonAP.optString("port", "");
+		}
+		
+		public String getURL() {
+			return this.jsonAP.optString("url", "");
+		}
+
+		public String getData() {
+			if (data == null) {
+				String base64encoded = jsonAP.optString("data", "");
+				byte[] bytes = Base64.decodeBase64(base64encoded);
+				data = new String(bytes);
+			}
+			
+			return data;
+		}
+
+
+	}
+
+	public ServiceInfoBean(JSONObject jsonService) {
+		this.jsonService = jsonService;
 	}
 	
-	public JSONObject toJSONObject() {
-		JSONObject json = new JSONObject();
-		json.put("id", id);
-		json.put("serviceContractID", serviceContractID);
-		json.put("ipAddress", ipAddress);
-		json.put("port", port);
-		json.put("url", url);
-		json.put("data", data);
-		json.put("ttl", ttl);
-		json.put("description", description);
-		json.put("contractDescription", contractDescription);
-		json.put("serviceName", serviceName);
-		json.put("consumability", consumability);
-	
-		return json;		
+
+	public String getId() {
+		return jsonService.getString("id");
+	}
+
+	public String getServiceName() {
+		return jsonService.getString("serviceName");
+	}
+
+	public String getDescription() {
+		return jsonService.getString("description");
+	}
+
+	public String getServiceContractID() {
+		return jsonService.getString("serviceContractID");
+	}
+
+	public String getContractDescription() {
+		return jsonService.getString("contractDescription");
 	}
 	
-	public String toJSON() {
-		return toJSONObject().toString(4);
+	public String getConsumability() {
+		return jsonService.getString("consumability");
 	}
-	
+
+	public Integer getTtl() {
+		String ttlString = jsonService.optString("ttl", "0");
+		Integer ttl =  Integer.parseInt(ttlString);
+		
+		return ttl;
+	}
+
+
+	@SuppressWarnings("unchecked")
+	public List<AccessPoint> getAccessPoints() {
+		if (accessPoints == null) {
+			JSONArray aps = jsonService.getJSONArray("accessPoints");
+			
+			if (!aps.isEmpty()) {
+			
+				accessPoints = new ArrayList<AccessPoint>();
+				Iterator<Object> apIterator = aps.iterator();
+			
+				while (apIterator.hasNext()) {
+					JSONObject apInfo = (JSONObject) apIterator.next();
+					
+					AccessPoint ap = new AccessPoint(apInfo);
+					
+					accessPoints.add(ap);					
+				}
+			}
+		}
+		return accessPoints;
+	}
+
+
 	public boolean isExpired() {	
-		if (this.ttl == 0) return false;
+		if (this.getTtl() == 0) return false;
 		long t = this.cacheStartTime.getTime();
-		Date validTime = new Date(t + (this.ttl * ONE_MINUTE_IN_MILLIS));		
+		Date validTime = new Date(t + (this.getTtl() * ONE_MINUTE_IN_MILLIS));		
 		Date now = new Date();
 		
 		return (now.getTime() > validTime.getTime());
 	}
+
+
+	public Object toJSONObject() {
+		return jsonService;
+	}
+	
+	
 }

@@ -20,45 +20,35 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 import net.sf.json.JSONArray;
 
 public class ResponseCache {
 
+	private final static Logger LOGGER = Logger.getLogger(ResponseCache.class.getName());
+	//TODO: add in logging in this class
+	
 	private HashMap<String, ServiceInfoBean> cache = new HashMap<String, ServiceInfoBean>();
 	
 	public synchronized void cacheAll(ArrayList<ServiceInfoBean> list) {
 		
 		for (ServiceInfoBean service : list) {
-			cache.put(service.id, service);
+			cache.put(service.getId(), service);
 		}
 		
 	}
 	
 	public synchronized void cache(ServiceInfoBean service) {
-		cache.put(service.id, service);
+		cache.put(service.getId(), service);
 	}
 	
-	public String toXML() {
-		StringBuffer buf = new StringBuffer();
-		
-		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		buf.append("<cache>\n");
-		
-		clearExpired();
-		for (ServiceInfoBean infoBean : cache.values()) {
-			 buf.append(infoBean.toXML());
-		}
-		
-		buf.append("</cache>/n/n");
-		return buf.toString();
-	}
 	
 	public String toJSON() {
 		JSONObject response = this.toJSONObject();
 		
-		return response.toString(4);
+		return response.toString(0);
 	}
 	
 	public JSONObject toJSONObject() {
@@ -81,7 +71,6 @@ public class ResponseCache {
 		Iterator<Entry<String, ServiceInfoBean>> it = cache.entrySet().iterator();
 	    while (it.hasNext()) {
 	        Entry<String, ServiceInfoBean> pair = it.next();
-	        System.out.println(pair.getKey() + " = " + pair.getValue());
 	        ServiceInfoBean infoBean = (ServiceInfoBean) pair.getValue();
 	        if (infoBean.isExpired()) it.remove(); // avoids a ConcurrentModificationException
 	    }
@@ -96,8 +85,8 @@ public class ResponseCache {
 		clearExpired();
 		for (ServiceInfoBean infoBean : cache.values()) {
 			JSONObject contract = new JSONObject();
-			contract.put("contractID", infoBean.serviceContractID);
-			contract.put("contractDescription", infoBean.contractDescription);
+			contract.put("contractID", infoBean.getServiceContractID());
+			contract.put("contractDescription", infoBean.getContractDescription());
 			array.add(contract);
 		}	
 		

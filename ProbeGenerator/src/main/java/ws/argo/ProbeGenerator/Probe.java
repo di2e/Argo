@@ -16,62 +16,110 @@
 
 package ws.argo.ProbeGenerator;
 
+import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
+import org.apache.commons.validator.routines.UrlValidator;
+
+import ws.argo.ProbeGenerator.xml.ObjectFactory;
+import ws.argo.ProbeGenerator.xml.Probe.Ra.RespondTo;
+
 public class Probe {
 
-	public static final String PROBE_GENERTOR_CONTRACT_ID= "urn:uuid:55f1fecc-bfed-4be0-926b-b36a138a9943";
+	public static final String PROBE_GENERTOR_CONTRACT_ID = "urn:uuid:918b5b45-1496-459e-8a6b-633dbc465380";
 
 	public static final String XML = "XML";
 	public static final String JSON = "JSON";
 
-	public String probeID;
-	public String respondToURL;
-	public String respondToPayloadType; // Should be XML or JSON
-	public int ttl = 255; // the default TTL for a probe is the max TTL of 255 - or the entire network
-	public ArrayList<String> serviceContractIDs = new ArrayList<String>();
-	
-	public Probe(String respondToURL, String respondToPayloadType) {
-		UUID uuid = UUID.randomUUID();
-		probeID = "urn:uuid:"+uuid.toString();	
-		this.respondToURL = respondToURL;
-		this.respondToPayloadType = respondToPayloadType;
-	}
-	
-	public void addServiceContractID(String serviceContractID) {
-		serviceContractIDs.add(serviceContractID);
-	}
-	
-	public String asXML() {
-		StringBuffer buf = new StringBuffer();
-		
-		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		buf.append("<probe id=\"")
-			.append(probeID)
-			.append("\" contractID=\"")
-			.append(PROBE_GENERTOR_CONTRACT_ID)
-			.append("\" >")
-			.append("\n");
-		
-		buf.append("\t<respondTo>")
-			.append(this.respondToURL)
-			.append("</respondTo>\n");
+	public int ttl = 255; // the default TTL for a probe is the max TTL of 255 -
+							// or the entire network
+	public ArrayList<String> serviceInstanceIDs = new ArrayList<String>();
 
-		buf.append("\t<respondToPayloadType>")
-			.append(this.respondToPayloadType)
-			.append("</respondToPayloadType>\n");
-		
-		for (String contractID : serviceContractIDs ) {
-			buf.append("\t<serviceContractID>")
-				.append(contractID)
-				.append("</serviceContractID>\n");
-		}
-		
-		
-		buf.append("</probe>\n\n");
-		
-		return buf.toString();
+	private ws.argo.ProbeGenerator.xml.Probe xmlProbe;
+	private ObjectFactory xmlProbeFactory = new ObjectFactory();
+
+	public Probe(String respondToPayloadType) throws UnsupportedPayloadType {
+		xmlProbe = xmlProbeFactory.createProbe();
+
+		UUID uuid = UUID.randomUUID();
+		String probeID = "urn:uuid:" + uuid.toString();
+		xmlProbe.setId(probeID);
+		xmlProbe.setDESVersion(PROBE_GENERTOR_CONTRACT_ID);
+		if (respondToPayloadType == null
+				|| respondToPayloadType.isEmpty()
+				|| (!respondToPayloadType.equals(JSON) && !respondToPayloadType
+						.equals(XML)))
+			throw new UnsupportedPayloadType(
+					"Attempting to set payload type to: "
+							+ respondToPayloadType
+							+ ". Cannot be null or empty and must be " + JSON
+							+ " or " + XML);
+		xmlProbe.setRespondToPayloadType(respondToPayloadType); // Should be XML
+																// or JSON
+	}
+
+	public int getHopLimit() {
+		return ttl;
+	}
+
+	public void setHopLimit(int limit) {
+		this.ttl = limit;
+	}
+
+	public String getProbeID() {
+		return xmlProbe.getId();
 	}
 	
+	public void setClientID(String clientID) {
+		xmlProbe.setClient(clientID);
+	}
+	
+	public void addRespondToURL(String label, String respondToURL) throws MalformedURLException {
+
+		String[] schemes = { "http", "https" };
+		UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
+		if (!urlValidator.isValid(respondToURL)) {
+			throw new MalformedURLException("The probe respondTo URL is invalid: "+respondToURL);
+		}
+		RespondTo rt = xmlProbeFactory.createProbeRaRespondTo();
+		rt.setLabel(label);
+		rt.setValue(respondToURL);
+		if (xmlProbe.getRa() == null)
+			xmlProbe.setRa(xmlProbeFactory.createProbeRa());
+		xmlProbe.getRa().getRespondTo().add(rt);
+	}
+
+	public void addServiceContractID(String serviceContractID) {
+		if (xmlProbe.getScids() == null)
+			xmlProbe.setScids(xmlProbeFactory.createProbeScids());
+		xmlProbe.getScids().getServiceContractID().add(serviceContractID);
+	}
+
+	public void addServiceInstanceID(String serviceInstanceID) {
+		if (xmlProbe.getSiids() == null)
+			xmlProbe.setSiids(xmlProbeFactory.createProbeSiids());
+		xmlProbe.getSiids().getServiceInstanceID().add(serviceInstanceID);
+	}
+
+	public String asXML() throws JAXBException {
+
+		StringWriter sw = new StringWriter();
+		JAXBContext jaxbContext = JAXBContext
+				.newInstance(ws.argo.ProbeGenerator.xml.Probe.class);
+		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+		// output pretty printed
+		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+		jaxbMarshaller.marshal(xmlProbe, sw);
+
+		return sw.toString();
+	}
+
 }

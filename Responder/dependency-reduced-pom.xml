@@ -3,16 +3,85 @@
   <parent>
     <artifactId>Argo</artifactId>
     <groupId>ws.argo</groupId>
-    <version>0.2.3-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>ws.argo.responder</groupId>
   <artifactId>Responder</artifactId>
   <name>Responder</name>
-  <version>0.2.3-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>com.google.code.maven-replacer-plugin</groupId>
+                    <artifactId>replacer</artifactId>
+                    <versionRange>[1.5.3,)</versionRange>
+                    <goals>
+                      <goal>replace</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <version>1.5.3</version>
+        <executions>
+          <execution>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <filesToInclude>${basedir}/src/**/*</filesToInclude>
+          <inputFilePattern>(.*).template</inputFilePattern>
+          <outputFilePattern>$1</outputFilePattern>
+          <replacements>
+            <replacement>
+              <token>@ARGO_VERSION@</token>
+              <value>${project.version}</value>
+            </replacement>
+            <replacement>
+              <token>@INSTALL_DIR@</token>
+              <value>${basedir}/target/test-classes</value>
+            </replacement>
+          </replacements>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18.1</version>
+        <configuration>
+          <argLine>-DconfigFile=${basedir}/target/test-classes/config/responderConfig.prop</argLine>
+          <systemProperties>
+            <property>
+              <name>configFile</name>
+              <value>${basedir}/target/test-classes/config/responderConfig.prop</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.3</version>
@@ -30,6 +99,37 @@
                   </manifestEntries>
                 </transformer>
               </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>xjc</id>
+            <goals>
+              <goal>xjc</goal>
+            </goals>
+            <configuration>
+              <schemaDirectory>${basedir}/src/main/resources/responseFormat</schemaDirectory>
+              <packageName>ws.argo.Responder.response.xml</packageName>
+              <outputDirectory>${basedir}/src/main/java</outputDirectory>
+              <clearOutputDir>false</clearOutputDir>
+            </configuration>
+          </execution>
+          <execution>
+            <id>xjc-configFileFormat</id>
+            <goals>
+              <goal>xjc</goal>
+            </goals>
+            <configuration>
+              <schemaDirectory>${basedir}/src/main/resources/configFileFormat</schemaDirectory>
+              <packageName>ws.argo.Responder.plugin.configFile.xml</packageName>
+              <outputDirectory>${basedir}/src/main/java</outputDirectory>
+              <clearOutputDir>false</clearOutputDir>
             </configuration>
           </execution>
         </executions>
@@ -54,6 +154,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.2</version>
         <configuration>
           <skip>true</skip>
         </configuration>
@@ -64,11 +165,56 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.12</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>hamcrest-core</artifactId>
+          <groupId>org.hamcrest</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-grizzly2</artifactId>
+      <version>1.19</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>grizzly-http</artifactId>
+          <groupId>org.glassfish.grizzly</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>grizzly-http-server</artifactId>
+          <groupId>org.glassfish.grizzly</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-server</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-client</artifactId>
+      <version>1.19</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>jersey-core</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>2.0.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
   <properties>
+    <jersey-version>1.19</jersey-version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.target>1.7</maven.compiler.target>

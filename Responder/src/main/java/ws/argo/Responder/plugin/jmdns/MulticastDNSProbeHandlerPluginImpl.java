@@ -31,8 +31,8 @@ import javax.jmdns.ServiceTypeListener;
 import ws.argo.Responder.ProbePayloadBean;
 import ws.argo.Responder.ResponsePayloadBean;
 import ws.argo.Responder.ServiceInfoBean;
-import ws.argo.Responder.plugin.ConfigFileProbeHandlerPluginImpl;
-import ws.argo.Responder.plugin.ProbeHandlerPluginIntf;
+import ws.argo.Responder.plugin.configFile.ConfigFileProbeHandlerPluginImpl;
+import ws.argo.Responder.plugin.configFile.ProbeHandlerPluginIntf;
 
 public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, ServiceTypeListener,
 		ProbeHandlerPluginIntf {
@@ -55,7 +55,7 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 	@Override
 	public ResponsePayloadBean probeEvent(ProbePayloadBean payload) {
 		// TODO Auto-generated method stub
-		ResponsePayloadBean response = new ResponsePayloadBean(payload.probeID);
+		ResponsePayloadBean response = new ResponsePayloadBean(payload.probe.getId());
 		
 		LOGGER.fine("Handling probe: " + payload.toString());
 		
@@ -64,7 +64,7 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 		// Can you say O(n^2) lookup?  Very bad - we can fix later
 				
 		
-		if (payload.serviceContractIDs.isEmpty()) {
+		if (payload.isNaked()) {
 			LOGGER.fine("Query all detected - no service contract IDs in probe");
 			for (ServiceInfoBean entry : serviceList) {			
 				// If the set of contract IDs is empty, get all of them
@@ -72,14 +72,15 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 			}
 			
 		} else {
-			for (String serviceContractID : payload.serviceContractIDs) {
+			for (String serviceContractID : payload.probe.getScids().getServiceContractID()) {
 				LOGGER.fine("Looking to detect "+serviceContractID+" in entry list.");
 				for (ServiceInfoBean entry : serviceList) {			
-					if (entry.serviceContractID.equals(serviceContractID)) {
+					if (entry.getServiceContractID().equals(serviceContractID)) {
 						// Boom Baby - we got one!!!
 						response.addResponse(entry);
 					}				
 				}
+				// Do "instance" name lookup here
 			}
 		}
 		
@@ -154,25 +155,26 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 		
 		ServiceInfoBean config = new ServiceInfoBean(event.getInfo().getKey());
 		
-		config.serviceContractID = contractID;
-		config.serviceName = event.getInfo().getName();
+		config.setServiceContractID(contractID);
+		config.setServiceName(event.getInfo().getName());
 
 		java.net.Inet4Address[] ipv4Addresses = event.getInfo().getInet4Addresses();
-		config.ipAddress = ipv4Addresses[0].getHostAddress();
-		
-		config.port = Integer.toString(event.getInfo().getPort());
-		
-		java.lang.String[] urls = event.getInfo().getURLs();
-		StringBuffer buf = new StringBuffer();
-		for (String url : event.getInfo().getURLs()) {
-			buf.append(url+" ");
+		for (java.net.Inet4Address addr : ipv4Addresses) {			
+			config.addAccessPoint("IPv4", addr.getHostAddress(), Integer.toString(event.getInfo().getPort()), "", "text", event.getInfo().getNiceTextString());
 		}
-		//config.url = buf.toString();
-		config.url = urls[0];
 		
-		config.description = event.getInfo().getQualifiedName();
+		java.net.Inet6Address[] ipv6Addresses = event.getInfo().getInet6Addresses();
+		for (java.net.Inet4Address addr : ipv4Addresses) {			
+			config.addAccessPoint("IPv6", addr.getHostAddress(), Integer.toString(event.getInfo().getPort()), "", "text", event.getInfo().getNiceTextString());
+		}
 		
-		config.data = event.getInfo().getNiceTextString();
+		
+		for (String url : event.getInfo().getURLs()) {
+			config.addAccessPoint("URL", "", "", url, "text", event.getInfo().getNiceTextString());
+		}
+		
+		config.setDescription(event.getInfo().getQualifiedName());
+		
 		
 //		String tempData = new String(config.data);
 //		
@@ -189,11 +191,11 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 //		
 //		config.data = tempData;
 	
-		config.contractDescription = event.getInfo().getApplication();
+		config.setContractDescription(event.getInfo().getApplication());
 		
-		config.consumability = ServiceInfoBean.MACHINE_CONSUMABLE;
+		config.setConsumability(ServiceInfoBean.MACHINE_CONSUMABLE);
 		
-		config.ttl = 0;
+		config.setTtl(0);
 		
 		
 		serviceList.add(config);		

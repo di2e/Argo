@@ -209,11 +209,6 @@
 
 	  	var row = $("<tr />");
 	  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
-	    row.append($("<td align='right' class='detail-key'>Consumability</td>"));
-	    row.append($("<td class='detail-data'>" + service.consumability + "</td>"));
-
-	  	var row = $("<tr />");
-	  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
 	    row.append($("<td align='right' class='detail-key'>Contract ID</td>"));
 	    row.append($("<td class='detail-data'>" + service.serviceContractID + "</td>"));
 
@@ -224,33 +219,53 @@
 
 	  	var row = $("<tr />");
 	  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
-	    row.append($("<td align='right' class='detail-key'>IP Address</td>"));
-	    row.append($("<td class='detail-data'>" + service.ipAddress + "</td>"));
-
-	  	var row = $("<tr />");
-	  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
-	    row.append($("<td align='right' class='detail-key'>Port</td>"));
-	    row.append($("<td class='detail-data'>" + service.port + "</td>"));
-
-	  	var row = $("<tr />");
-	  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
-	    row.append($("<td align='right' class='detail-key'>URL</td>"));
-		if (service.consumability == "HUMAN_CONSUMABLE") {
-			row.append($("<td class='detail-data'><a href='" + service.url + "'>" + service.url + "</td>"));
-		} else {
-			row.append($("<td class='detail-data'>" + service.url + "</td>"));
-		}
-	  	
+	    row.append($("<td align='right' class='detail-key'>Consumability</td>"));
+	    row.append($("<td class='detail-data'>" + service.consumability + "</td>"));
 
 	  	var row = $("<tr />");
 	  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
 	    row.append($("<td align='right' class='detail-key'>TTL</td>"));
 	    row.append($("<td class='detail-data'>" + service.ttl + "</td>"));
+
+	    var arrayLength = service.accessPoints.length;
+	    for (var i = 0; i < arrayLength; i++) {
+		    var accessPoint = service.accessPoints[i];
+
+	        table.append("<tr><td class='access-point-header'>Access Point: " + accessPoint.label + " </td></tr>");
+
+		  	var row = $("<tr />");
+		  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
+		    row.append($("<td align='right' class='detail-key'>AP IP Address</td>"));
+		    row.append($("<td class='detail-data access-point'>" + accessPoint.ipAddress + "</td>"));
+
+		    var row = $("<tr />");
+		  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
+		    row.append($("<td align='right' class='detail-key'>AP Port</td>"));
+		    row.append($("<td class='detail-data access-point'>" + accessPoint.port + "</td>"));
+
+		  	var row = $("<tr />");
+		  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
+		    row.append($("<td align='right' class='detail-key'>AP URL</td>"));
+			if (service.consumability == "HUMAN_CONSUMABLE") {
+				row.append($("<td class='detail-data access-point'><a href='" + accessPoint.url + "'>" + accessPoint.url + "</td>"));
+			} else {
+				row.append($("<td class='detail-data access-point'>" + accessPoint.url + "</td>"));
+			}
+			
+		    var row = $("<tr />");
+            table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
+            row.append($("<td align='right' class='detail-key'>AP Data</td>"));
+            var apData = window.atob(accessPoint.data);
+            if (accessPoint.dataType == "image") {
+            	var img = $('<td class="detail-data access-point"><img alt="star" src="'+apData+'" /></td>');
+                row.append(img);
+            } else { //assume text
+                row.append($("<td class='detail-data access-point'>" + apData + "</td>"));
+            }
+ 
+			    
+	    }
 	    
-	  	var row = $("<tr />");
-	  	table.append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
-	    row.append($("<td align='right' class='detail-key'>Data</td>"));
-	    row.append($("<td class='detail-data'>" + service.data + "</td>"));
 	    
 	  }
 	  

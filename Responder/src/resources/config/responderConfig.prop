@@ -16,7 +16,7 @@
 
 multicastPort=4003
 multicastAddress=230.0.0.1
-probeHandlerClassname.1=ws.argo.Responder.plugin.ConfigFileProbeHandlerPluginImpl
+probeHandlerClassname.1=ws.argo.Responder.plugin.configFile.ConfigFileProbeHandlerPluginImpl
 probeHandlerConfigFilename.1=<install dir>/config/configFileProbeHandlerConfig.prop
 #
 # Uncomment to enable Argo to discovery mDNS services as well

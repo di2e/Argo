@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.argo.Responder.plugin;
+package ws.argo.Responder.plugin.configFile;
 
 import java.io.IOException;
 
