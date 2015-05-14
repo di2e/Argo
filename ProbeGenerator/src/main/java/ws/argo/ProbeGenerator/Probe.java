@@ -64,6 +64,14 @@ public class Probe {
 																// or JSON
 	}
 
+	public int getHopLimit() {
+		return ttl;
+	}
+
+	public void setHopLimit(int limit) {
+		this.ttl = limit;
+	}
+
 	public String getProbeID() {
 		return xmlProbe.getId();
 	}
@@ -75,7 +83,7 @@ public class Probe {
 	public void addRespondToURL(String label, String respondToURL) throws MalformedURLException {
 
 		String[] schemes = { "http", "https" };
-		UrlValidator urlValidator = new UrlValidator(schemes);
+		UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
 		if (!urlValidator.isValid(respondToURL)) {
 			throw new MalformedURLException("The probe respondTo URL is invalid: "+respondToURL);
 		}

@@ -17,6 +17,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
+		<jersey-version>1.19</jersey-version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -56,9 +57,69 @@
 			<artifactId>jmdns</artifactId>
 			<version>3.4.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-grizzly2</artifactId>
+			<version>${jersey-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>replacer</artifactId>
+				<version>1.5.3</version>
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<filesToInclude>${basedir}/src/**/*</filesToInclude>
+					<inputFilePattern>(.*).template</inputFilePattern>
+					<outputFilePattern>$1</outputFilePattern>
+					<replacements>
+						<replacement>
+							<token>@ARGO_VERSION@</token>
+							<value>${project.version}</value>
+						</replacement>
+						<replacement>
+							<token>@INSTALL_DIR@</token>
+							<value>${basedir}/target/test-classes</value>
+						</replacement>
+					</replacements>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18.1</version>
+				<configuration>
+					<argLine>-DconfigFile=${basedir}/target/test-classes/config/responderConfig.prop</argLine>
+					<systemProperties>
+						<property>
+							<name>configFile</name>
+							<value>${basedir}/target/test-classes/config/responderConfig.prop</value>
+						</property>
+					</systemProperties>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -87,30 +148,30 @@
 				<artifactId>jaxb2-maven-plugin</artifactId>
 				<version>1.5</version>
 				<executions>
-                    <execution>
-                        <id>xjc</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <schemaDirectory>${basedir}/src/main/resources/responseFormat</schemaDirectory>
-                            <packageName>ws.argo.Responder.response.xml</packageName>
-                            <outputDirectory>${basedir}/src/main/java</outputDirectory>
-                            <clearOutputDir>false</clearOutputDir>
-                        </configuration>
-                    </execution>
-                    <execution> 
-                        <id>xjc-configFileFormat</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <schemaDirectory>${basedir}/src/main/resources/configFileFormat</schemaDirectory>
-                            <packageName>ws.argo.Responder.plugin.configFile.xml</packageName>
-                            <outputDirectory>${basedir}/src/main/java</outputDirectory>
-                            <clearOutputDir>false</clearOutputDir>
-                        </configuration>
-                    </execution>
+					<execution>
+						<id>xjc</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<schemaDirectory>${basedir}/src/main/resources/responseFormat</schemaDirectory>
+							<packageName>ws.argo.Responder.response.xml</packageName>
+							<outputDirectory>${basedir}/src/main/java</outputDirectory>
+							<clearOutputDir>false</clearOutputDir>
+						</configuration>
+					</execution>
+					<execution>
+						<id>xjc-configFileFormat</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<schemaDirectory>${basedir}/src/main/resources/configFileFormat</schemaDirectory>
+							<packageName>ws.argo.Responder.plugin.configFile.xml</packageName>
+							<outputDirectory>${basedir}/src/main/java</outputDirectory>
+							<clearOutputDir>false</clearOutputDir>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -141,5 +202,41 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.google.code.maven-replacer-plugin
+										</groupId>
+										<artifactId>
+											replacer
+										</artifactId>
+										<versionRange>
+											[1.5.3,)
+										</versionRange>
+										<goals>
+											<goal>replace</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 </project>

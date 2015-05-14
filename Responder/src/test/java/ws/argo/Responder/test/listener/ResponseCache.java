@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package ws.argo.AsynchListener.ResponseCache;
+package ws.argo.Responder.test.listener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 import net.sf.json.JSONArray;
 
 public class ResponseCache {
 
-	private final static Logger LOGGER = Logger.getLogger(ResponseCache.class.getName());
-	//TODO: add in logging in this class
-	
 	private HashMap<String, ServiceInfoBean> cache = new HashMap<String, ServiceInfoBean>();
 	
 	public synchronized void cacheAll(ArrayList<ServiceInfoBean> list) {

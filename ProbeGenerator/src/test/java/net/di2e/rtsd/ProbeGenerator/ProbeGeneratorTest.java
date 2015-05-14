@@ -1,19 +1,17 @@
 package net.di2e.rtsd.ProbeGenerator;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ws.argo.ProbeGenerator.Probe;
@@ -22,28 +20,33 @@ import ws.argo.ProbeGenerator.UnsupportedPayloadType;
 
 public class ProbeGeneratorTest {
 
-	ProbeGenerator gen = null;
+	static ProbeGenerator gen = null;
 	
-	public String targetXML = "";
-	public String targetNakedProbeXML = "";
+	public static String targetXML = "";
+	public static String targetNakedProbeXML = "";
 	
-	@Before
-	public void setupProbeGenerator() throws IOException {
+	@BeforeClass
+	public static void setupProbeGenerator() throws IOException {
 		gen = new ProbeGenerator("230.0.0.1", 4003);
 		
 		readTargetXMLFiles();
 	}
 	
-	private void readTargetXMLFiles() throws IOException {
+	/**
+	 * reads in the test payload text to check responses against.
+	 * better then putting it in the source code.
+	 * @throws IOException
+	 */
+	private static void readTargetXMLFiles() throws IOException {
 		// Read the completely filled out probe test file for comparison
-		assertNotNull("targetProbeXML.xml file missing",   getClass().getResource("/targetProbeXML.xml"));
-		try (InputStream is = getClass().getResourceAsStream("/targetProbeXML.xml")) {
+		assertNotNull("targetProbeXML.xml file missing",   ProbeGeneratorTest.class.getResource("/targetProbeXML.xml"));
+		try (InputStream is = ProbeGeneratorTest.class.getResourceAsStream("/targetProbeXML.xml")) {
 			targetXML = IOUtils.toString(is, "UTF-8");
 		}
 	
 		// Read the naked (minimally) filled out probe test file for comparison
-		assertNotNull("targetNakedProbeXML.xml file missing",   getClass().getResource("/targetNakedProbeXML.xml"));
-		try (InputStream is = getClass().getResourceAsStream("/targetNakedProbeXML.xml")) {
+		assertNotNull("targetNakedProbeXML.xml file missing",   ProbeGeneratorTest.class.getResource("/targetNakedProbeXML.xml"));
+		try (InputStream is = ProbeGeneratorTest.class.getResourceAsStream("/targetNakedProbeXML.xml")) {
 			targetNakedProbeXML = IOUtils.toString(is, "UTF-8");
 		}
 	}
@@ -51,27 +54,27 @@ public class ProbeGeneratorTest {
 	
 	@Test(expected=UnsupportedPayloadType.class)
 	public void testBadPayloadTypesWithNull() throws UnsupportedPayloadType {
-		Probe probe = new Probe(null);
+		new Probe(null);
 	}
 	
 	@Test(expected=UnsupportedPayloadType.class)
 	public void testBadPayloadTypesWithEmptyString() throws UnsupportedPayloadType {
-		Probe probe = new Probe("");
+		new Probe("");
 	}
 	
 	@Test(expected=UnsupportedPayloadType.class)
 	public void testBadPayloadTypesWithEmptyNotXMLorJSON() throws UnsupportedPayloadType {
-		Probe probe = new Probe("yomama");
+		new Probe("yomama");
 	}
 	
 	@Test
 	public void testCreatingGoodProbeWithJSON() throws UnsupportedPayloadType {
-		Probe p = new Probe(Probe.JSON);
+		new Probe(Probe.JSON);
 	}
 	
 	@Test
 	public void testCreatingGoodProbeWithXML() throws UnsupportedPayloadType {
-		Probe p = new Probe(Probe.XML);
+		new Probe(Probe.XML);
 	}
 	
 	@Test
@@ -97,6 +100,14 @@ public class ProbeGeneratorTest {
 		Probe probe = new Probe(Probe.XML);
 		
 		probe.addRespondToURL("bad", "http://234.23,23:90/xxx/xxx");
+	}
+	
+	@Test
+	public void testLocalhostRespondToURL() throws MalformedURLException, UnsupportedPayloadType {
+		Probe probe = new Probe(Probe.XML);
+		
+		probe.addRespondToURL("localhost", "http://localhost:9998/xxx/xxx");
+		
 	}
 	
 	@Test 
