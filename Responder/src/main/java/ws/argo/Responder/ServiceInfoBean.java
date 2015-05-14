@@ -29,7 +29,6 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.codec.binary.Base64;
 
-import ws.argo.ProbeGenerator.xml.Probe;
 import ws.argo.Responder.response.xml.ObjectFactory;
 import ws.argo.Responder.response.xml.Services.Service;
 import ws.argo.Responder.response.xml.Services.Service.AccessPoints;
@@ -47,6 +46,10 @@ public class ServiceInfoBean {
 		ObjectFactory of = new ObjectFactory();
 		xmlService = of.createServicesService();
 		this.setId(id);
+	}
+	
+	public int hashCode() {
+		return this.getId().hashCode();
 	}
 
 	public Service getXmlService() {
@@ -150,7 +153,7 @@ public class ServiceInfoBean {
 	public String toXML() {
 		StringWriter sw = new StringWriter();
 		try {
-			JAXBContext jaxbContext = JAXBContext.newInstance(Probe.class);
+			JAXBContext jaxbContext = JAXBContext.newInstance(Service.class);
 			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 
 			// output pretty printed
