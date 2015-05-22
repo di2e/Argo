@@ -1,6 +1,6 @@
 # Maven
 log/
 target/
-.setting/
+.settings/
 .classpath
 .DS_Store
