@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package ws.argo.Responder.plugin.configFile;
+package ws.argo.Responder;
 
 import java.io.IOException;
-
-import ws.argo.Responder.ProbePayloadBean;
-import ws.argo.Responder.ResponsePayloadBean;
 
 public interface ProbeHandlerPluginIntf {
 
 	public ResponsePayloadBean probeEvent(ProbePayloadBean payload);
-	public void setPropertiesFilename(String filename) throws IOException;
+	public void initializeWithPropertiesFilename(String filename) throws IOException;
 }

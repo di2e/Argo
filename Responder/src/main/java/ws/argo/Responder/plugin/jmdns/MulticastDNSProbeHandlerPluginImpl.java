@@ -28,11 +28,11 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 
+import ws.argo.Responder.ProbeHandlerPluginIntf;
 import ws.argo.Responder.ProbePayloadBean;
 import ws.argo.Responder.ResponsePayloadBean;
 import ws.argo.Responder.ServiceInfoBean;
 import ws.argo.Responder.plugin.configFile.ConfigFileProbeHandlerPluginImpl;
-import ws.argo.Responder.plugin.configFile.ProbeHandlerPluginIntf;
 
 public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, ServiceTypeListener,
 		ProbeHandlerPluginIntf {
@@ -87,7 +87,7 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 		return response;		}
 
 	@Override
-	public void setPropertiesFilename(String filename) throws IOException {
+	public void initializeWithPropertiesFilename(String filename) throws IOException {
 		// TODO Auto-generated method stub
 		LOGGER.info("Does not support loading props");
 	}

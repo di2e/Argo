@@ -30,6 +30,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import ws.argo.Responder.ProbeHandlerPluginIntf;
 import ws.argo.Responder.ProbePayloadBean;
 import ws.argo.Responder.ResponsePayloadBean;
 import ws.argo.Responder.ServiceInfoBean;
@@ -46,8 +47,6 @@ import ws.argo.Responder.plugin.configFile.xml.ServicesConfiguration.Service.Acc
 public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf {
 	
 	private final static Logger LOGGER = Logger.getLogger(ConfigFileProbeHandlerPluginImpl.class.getName());
-
-	private static final String SERVICE = "service";
 
 	Properties config = new Properties();
 	
@@ -104,7 +103,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 		
 	}
 
-	public void setPropertiesFilename(String filename) throws IOException {
+	public void initializeWithPropertiesFilename(String filename) throws IOException {
 		 
 		config.load(new FileInputStream(filename));
 		
@@ -117,9 +116,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 		}
 	}
 
-	// This entire method is likely better done with JAXB.  This manual reading DOM process is
-	// sooooooo prone to issues, it's not funny.  But, this is a prototype
-	// TODO: make this method more solid
+	// Now using JAXB - far more solid
 	private void loadServiceConfigFile() throws JAXBException, FileNotFoundException {
 		
 		

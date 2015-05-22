@@ -14,12 +14,57 @@
 		<module>VPNMulticastGateway</module>
 		<module>BrowserWeb</module>
 		<module>build-tools</module>
+		<module>CLClient</module>
+		<module>ArgoProtocol</module>
 	</modules>
+	<licenses>
+		<license>
+			<name>The MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git://github.com/di2e/argo.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/di2e/argo.git</developerConnection>
+		<url>http://github.com/di2e/argo</url>
+	</scm>
+
+	<issueManagement>
+		<system>github</system>
+		<url>https://github.com/di2e/argo/issues</url>
+	</issueManagement>
+
+	<mailingLists>
+		<mailingList>
+			<name>argo-rtsd-dev</name>
+			<post>mailto:argo-rtsd-dev@googlegroups.com</post>
+			<unsubscribe>mailto:argo-rtsd-dev+unsubscribe@googlegroups.com</unsubscribe>
+			<subscribe>https://groups.google.com/group/argo-rtsd-dev</subscribe>
+			<archive>https://groups.google.com/group/argo-rtsd-dev</archive>
+		</mailingList>
+
+	</mailingLists>
+
+	<developers>
+		<developer>
+			<id>jmsimpson68</id>
+			<name>Jeff Simpson</name>
+			<email>jmsimpson68@gmail.com</email>
+			<roles>
+				<role>Build Master</role>
+				<role>Developer</role>
+			</roles>
+		</developer>
+	</developers>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
 	</properties>
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -103,7 +148,12 @@
 			<layout>default</layout>
 		</repository>
 	</repositories>
+	
 	<distributionManagement>
+        <site>
+            <id>github-project-site</id>
+            <url>gitsite:git@github.com/di2e/argo.git</url>
+        </site>
 		<snapshotRepository>
 			<uniqueVersion>false</uniqueVersion>
 			<id>DI2ENexus</id>

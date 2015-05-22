@@ -19,7 +19,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
 import ws.argo.ProbeGenerator.xml.Probe.Ra.RespondTo;
-import ws.argo.Responder.plugin.configFile.ProbeHandlerPluginIntf;
 
 
 public class ProbeHandlerThread extends Thread {
@@ -50,48 +49,6 @@ public class ProbeHandlerThread extends Thread {
 		
 		return probePayload;
 	}
-	
-//	private ProbePayloadBean parseProbePayload2(String payload) throws SAXException, IOException  {
-//
-//		ProbePayloadBean probePayload = new ProbePayloadBean(payload);
-//
-//		DocumentBuilderFactory builderFactory = DocumentBuilderFactory
-//				.newInstance();
-//		builderFactory.setCoalescing(false);
-//		DocumentBuilder builder = null;
-//		try {
-//			builder = builderFactory.newDocumentBuilder();
-//		} catch (ParserConfigurationException e) {
-//			e.printStackTrace();
-//		}
-//
-//		InputStream is = IOUtils.toInputStream(payload);
-//		Document document = builder.parse(is);
-//
-//		Element probe = (Element) document.getElementsByTagName(PROBE).item(0);
-//		
-//		probePayload.probeID = probe.getAttribute("id");
-//		probePayload.contractID = probe.getAttribute("contractID");
-//		
-//		ArrayList<String> serviceContractIDs= new ArrayList<String>();
-//		
-//		NodeList serviceContractNodes = probe.getElementsByTagName("serviceContractID");
-//		
-//		probePayload.respondToURL = ((Element) probe.getElementsByTagName("respondTo").item(0)).getTextContent();
-//		probePayload.respondToPayloadType = ((Element) probe.getElementsByTagName("respondToPayloadType").item(0)).getTextContent();
-//		
-//		for (int i = 0; i < serviceContractNodes.getLength(); i++) {
-//			Element serviceContractID = (Element) serviceContractNodes.item(i);
-//
-//			String contractID = serviceContractID.getTextContent();
-//			serviceContractIDs.add(contractID);
-//
-//		}
-//		probePayload.serviceContractIDs = serviceContractIDs;
-//		
-//		return probePayload;
-//
-//	}
 
 	private boolean sendResponse(String respondToURL, String payloadType, ResponsePayloadBean payload) {
 		

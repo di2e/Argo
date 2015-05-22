@@ -44,7 +44,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import ws.argo.Responder.plugin.configFile.ConfigFileProbeHandlerPluginImpl;
-import ws.argo.Responder.plugin.configFile.ProbeHandlerPluginIntf;
 
 public class Responder {
 
@@ -52,6 +51,8 @@ public class Responder {
 			.getName());
 
 	private static String ARGO_VERSION = "0.3.0-SNAPSHOT";
+	
+	private static ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
 
 	NetworkInterface ni = null;
 	protected MulticastSocket inboundSocket = null;
@@ -108,6 +109,35 @@ public class Responder {
 
 	public Responder(ResponderCLIValues cliValues) {
 		this.cliValues = cliValues;
+	}
+
+	public static ArrayList<ProbeHandlerPluginIntf> getHandlers() {
+		return handlers;
+	}
+	
+	public static void addHandler(String classname, String configFilename) throws IOException, ClassNotFoundException  {
+		
+		ClassLoader cl = ClassLoader.getSystemClassLoader();
+		Class<?> handlerClass = cl.loadClass(classname);
+		ProbeHandlerPluginIntf handler;
+
+		try {
+			handler = (ProbeHandlerPluginIntf) handlerClass.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			LOGGER.warning("Could not create an instance of the configured handler class - " + classname);
+			LOGGER.warning("Using default handler");
+			LOGGER.fine("The issue was:");
+			LOGGER.fine(e.getMessage());
+			handler = new ConfigFileProbeHandlerPluginImpl();
+		}
+
+		handler.initializeWithPropertiesFilename(configFilename);
+
+		handlers.add(handler);		
+	}
+	
+	public static void addHandler(ProbeHandlerPluginIntf plugin) {
+		handlers.add(plugin);
 	}
 
 	boolean joinGroup() {
@@ -185,11 +215,9 @@ public class Responder {
 
 	public void run() throws IOException, ClassNotFoundException {
 
-		ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
-
 		// load up the handler classes specified in the configuration parameters
 		// I hope the hander classes are in a jar file on the classpath
-		handlers = loadHandlerPlugins(cliValues.config.appHandlerConfigs);
+		loadHandlerPlugins(cliValues.config.appHandlerConfigs);
 
 		if (!joinGroup()) {
 			LOGGER.severe("Responder shutting down: unable to join multicast group");
@@ -350,38 +378,17 @@ public class Responder {
 
 	}
 
-	private ArrayList<ProbeHandlerPluginIntf> loadHandlerPlugins(
+	private void loadHandlerPlugins(
 			ArrayList<AppHandlerConfig> configs) throws IOException,
 			ClassNotFoundException {
 
-		ClassLoader cl = ClassLoader.getSystemClassLoader();
-
-		ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
-
 		for (AppHandlerConfig appConfig : configs) {
-
-			Class<?> handlerClass = cl.loadClass(appConfig.classname);
-			ProbeHandlerPluginIntf handler;
-
-			try {
-				handler = (ProbeHandlerPluginIntf) handlerClass.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
-				LOGGER.warning("Could not create an instance of the configured handler class - "
-						+ appConfig.classname);
-				LOGGER.warning("Using default handler");
-				LOGGER.fine("The issue was:");
-				LOGGER.fine(e.getMessage());
-				handler = new ConfigFileProbeHandlerPluginImpl();
-			}
-
-			handler.setPropertiesFilename(appConfig.configFilename);
-
-			handlers.add(handler);
+			addHandler(appConfig.classname, appConfig.configFilename);
 		}
 
-		return handlers;
-
 	}
+	
+	
 
 	private static ResponderConfigurationBean processPropertiesValue(
 			String propertiesFilename, ResponderConfigurationBean config)
