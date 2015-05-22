@@ -31,29 +31,26 @@ import javax.xml.bind.JAXBException;
 
 public class ProbeGenerator {
 
-	private static final String DEFAULT_ARGO_GROUP = "230.0.0.1";
-	private static final int DEFAULT_ARGO_PORT = 4003;
-	
-	private final static Logger LOGGER = Logger.getLogger(ProbeGenerator.class
-			.getName());
+	private static final String	DEFAULT_ARGO_GROUP	= "230.0.0.1";
+	private static final int	DEFAULT_ARGO_PORT	= 4003;
 
-	public String multicastAddress;
-	public int multicastPort;
-	protected MulticastSocket outboundSocket = null;
-	private boolean readyToSend = false;
+	private final static Logger	LOGGER	           = Logger.getLogger(ProbeGenerator.class.getName());
 
-	public ProbeGenerator(String multicastAddress, int multicastPort,
-			String niName) {
+	public String	            multicastAddress;
+	public int	                multicastPort;
+	protected MulticastSocket	outboundSocket	   = null;
+	private boolean	            readyToSend	       = false;
+
+	public ProbeGenerator(String multicastAddress, int multicastPort, String niName) {
 		this.multicastAddress = multicastAddress;
 		this.multicastPort = multicastPort;
 
 		this.readyToSend = joinGroup(niName);
 		if (this.readyToSend) {
-			LOGGER.info("ProbeGenerator ready to send on "
-					+ this.outboundSocket.getInetAddress().toString());
+			LOGGER.info("ProbeGenerator ready to send on " + this.outboundSocket.getInetAddress().toString());
 		}
 	}
-	
+
 	public ProbeGenerator(String niName) throws IOException {
 		this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT, niName);
 	}
@@ -62,8 +59,7 @@ public class ProbeGenerator {
 		this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT);
 	}
 
-	public ProbeGenerator(String multicastAddress, int multicastPort)
-			throws IOException {
+	public ProbeGenerator(String multicastAddress, int multicastPort) throws IOException {
 		this.multicastAddress = multicastAddress;
 		this.multicastPort = multicastPort;
 
@@ -75,8 +71,7 @@ public class ProbeGenerator {
 
 	boolean joinGroup(String niName) {
 		boolean success = true;
-		InetSocketAddress socketAddress = new InetSocketAddress(
-				multicastAddress, multicastPort);
+		InetSocketAddress socketAddress = new InetSocketAddress(multicastAddress, multicastPort);
 		NetworkInterface ni = null;
 		try {
 			// Setup for incoming multicast requests
@@ -87,27 +82,26 @@ public class ProbeGenerator {
 			if (ni == null) {
 				InetAddress localhost = InetAddress.getLocalHost();
 				LOGGER.fine("Network Interface name not specified.  Using the NI for localhost "
-						+ localhost.getHostAddress());
+				        + localhost.getHostAddress());
 				ni = NetworkInterface.getByInetAddress(localhost);
 			}
 
 			this.outboundSocket = new MulticastSocket(multicastPort);
 			if (ni == null) { // for some reason NI is still NULL. Not sure why
-								// this happens.
+				              // this happens.
 				this.outboundSocket.joinGroup(maddress);
 				LOGGER.warning("Unable to determine the network interface for the localhost address. Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
 				LOGGER.info("Unknown network interface joined group "
-						+ socketAddress.toString());
+				        + socketAddress.toString());
 			} else {
 				this.outboundSocket.joinGroup(socketAddress, ni);
 				LOGGER.info(ni.getName() + " joined group "
-						+ socketAddress.toString());
+				        + socketAddress.toString());
 			}
 		} catch (IOException e) {
 
 			if (ni == null) {
-				LOGGER.log(Level.SEVERE,
-						"Error attempting to joint multicast address: ", e);
+				LOGGER.log(Level.SEVERE, "Error attempting to joint multicast address: ", e);
 			} else {
 
 				StringBuffer buf = new StringBuffer();
@@ -134,8 +128,8 @@ public class ProbeGenerator {
 				buf.append("v:" + ni.isVirtual() + ") ");
 
 				LOGGER.severe(ni.getName() + " " + buf.toString()
-						+ ": could not join group " + socketAddress.toString()
-						+ " --> " + e.toString());
+				        + ": could not join group " + socketAddress.toString()
+				        + " --> " + e.toString());
 			}
 			success = false;
 		}
@@ -144,14 +138,11 @@ public class ProbeGenerator {
 
 	public void sendProbe(Probe probe) throws IOException {
 
-		LOGGER.info("Sending probe on port " + multicastAddress + ":"
-				+ multicastPort);
+		LOGGER.info("Sending probe on port " + multicastAddress + ":" + multicastPort);
 		LOGGER.info("Probe requesting TTL of " + probe.ttl);
 
 		if (!readyToSend)
-			throw new IOException(
-					"ProbeGenerator not ready to send. Did not join group "
-							+ multicastAddress);
+			throw new IOException("ProbeGenerator not ready to send. Did not join group " + multicastAddress);
 
 		try {
 			String msg = probe.asXML();
@@ -163,13 +154,11 @@ public class ProbeGenerator {
 
 			// send discovery string
 			InetAddress group = InetAddress.getByName(multicastAddress);
-			DatagramPacket packet = new DatagramPacket(msgBytes,
-					msgBytes.length, group, multicastPort);
+			DatagramPacket packet = new DatagramPacket(msgBytes, msgBytes.length, group, multicastPort);
 			outboundSocket.setTimeToLive(probe.ttl);
 			outboundSocket.send(packet);
 
-			LOGGER.info("Probe sent on port " + multicastAddress + ":"
-					+ multicastPort);
+			LOGGER.info("Probe sent on port " + multicastAddress + ":" + multicastPort);
 
 		} catch (IOException e) {
 			e.printStackTrace();

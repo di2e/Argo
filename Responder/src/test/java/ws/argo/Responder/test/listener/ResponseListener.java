@@ -1,4 +1,3 @@
-
 package ws.argo.Responder.test.listener;
 
 import com.sun.jersey.api.container.grizzly2.GrizzlyServerFactory;

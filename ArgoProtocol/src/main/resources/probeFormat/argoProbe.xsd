@@ -1,0 +1,45 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    attributeFormDefault="unqualified" elementFormDefault="qualified">
+    <xs:element name="probe">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element type="xs:string" name="respondToPayloadType" />
+                <xs:element name="ra">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="respondTo" maxOccurs="unbounded"
+                                minOccurs="1">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:string">
+                                            <xs:attribute type="xs:string" name="label" use="optional" />
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="scids">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:string" name="serviceContractID"
+                                maxOccurs="unbounded" minOccurs="0" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="siids">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:string" name="serviceInstanceID"
+                                maxOccurs="unbounded" minOccurs="0" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute type="xs:string" name="id" />
+            <xs:attribute type="xs:string" name="DESVersion" />
+            <xs:attribute type="xs:string" name="client" />
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
