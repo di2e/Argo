@@ -83,7 +83,7 @@
                         </goals>
                         <configuration>
                             <schemaDirectory>${basedir}/src/main/resources/responseFormat</schemaDirectory>
-                            <packageName>ws.argo.ArgoProtocol.response.xml</packageName>
+                            <packageName>ws.argo.ArgoWirelineFormat.response.xml</packageName>
                             <outputDirectory>${basedir}/src/main/java</outputDirectory>
                             <clearOutputDir>false</clearOutputDir>
                         </configuration>
@@ -95,7 +95,7 @@
                         </goals>
                         <configuration>
                             <schemaDirectory>${basedir}/src/main/resources/probeFormat</schemaDirectory>
-                            <packageName>ws.argo.ArgoProtocol.probe.xml</packageName>
+                            <packageName>ws.argo.ArgoWirelineFormat.probe.xml</packageName>
                             <outputDirectory>${basedir}/src/main/java</outputDirectory>
                             <clearOutputDir>false</clearOutputDir>
                         </configuration>

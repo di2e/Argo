@@ -18,7 +18,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
-import ws.argo.ArgoProtocol.probe.xml.Probe.Ra.RespondTo;
+import ws.argo.ArgoWirelineFormat.probe.xml.Probe.Ra.RespondTo;
 
 
 public class ProbeHandlerThread extends Thread {
