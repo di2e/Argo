@@ -28,7 +28,6 @@ import javax.xml.bind.Marshaller;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import ws.argo.ArgoWirelineFormat.probe.xml.ObjectFactory;
-import ws.argo.ArgoWirelineFormat.probe.xml.Probe;
 import ws.argo.ArgoWirelineFormat.probe.xml.Probe.Ra.RespondTo;
 
 public class Probe {
@@ -41,9 +40,9 @@ public class Probe {
 	//  the default TTL for a probe is the max TTL of 255 - or the entire network
 	public int                    ttl	                    = 255;
 
-	public ArrayList<String>      serviceInstanceIDs	        = new ArrayList<String>();
+	public ArrayList<String>      serviceInstanceIDs	    = new ArrayList<String>();
 
-	private Probe                 xmlProbe;
+	private ws.argo.ArgoWirelineFormat.probe.xml.Probe      xmlProbe;
 	private ObjectFactory         xmlProbeFactory	        = new ObjectFactory();
 
 	public Probe(String respondToPayloadType) throws UnsupportedPayloadType {
@@ -110,7 +109,7 @@ public class Probe {
 	public String asXML() throws JAXBException {
 
 		StringWriter sw = new StringWriter();
-		JAXBContext jaxbContext = JAXBContext.newInstance(Probe.class);
+		JAXBContext jaxbContext = JAXBContext.newInstance(ws.argo.ArgoWirelineFormat.probe.xml.Probe.class);
 		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 
 		// output pretty printed
