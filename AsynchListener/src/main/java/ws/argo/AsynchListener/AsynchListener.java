@@ -89,6 +89,7 @@ public class AsynchListener {
 		
 		cache.cacheAll(serviceList);
 		
+		
 		return "Asynch Listener Cached "+serviceList.size()+" services from probe response\n";
 	}
 	
@@ -99,6 +100,7 @@ public class AsynchListener {
 	public String handleXMLProbeResponse(String probeResponseXML) throws SAXException, IOException {
 		System.out.println("handling XML probe response: "+probeResponseXML);
 		
+		// TODO: Yea, make this work.
 //		ArrayList<ServiceInfoBean> serviceList = parseProbeResponseXML(probeResponseXML);
 //		
 //		cache.cacheAll(serviceList);

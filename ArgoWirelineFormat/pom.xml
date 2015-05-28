@@ -6,7 +6,7 @@
 		<artifactId>Argo</artifactId>
 		<version>0.3.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>ArgoProtocol</artifactId>
+	<artifactId>ArgoWirelineFormat</artifactId>
 	<name>Argo Wireline Protocol</name>
 	<description>Encapsulated the json and xml protocols for the Argo probes and responses</description>
 	<properties>
@@ -77,7 +77,7 @@
                 <version>1.5</version>
                 <executions>
                     <execution>
-                        <id>xjc</id>
+                        <id>xjc-responseFormat</id>
                         <goals>
                             <goal>xjc</goal>
                         </goals>
@@ -89,7 +89,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>xjc-configFileFormat</id>
+                        <id>xjc-probeFormat</id>
                         <goals>
                             <goal>xjc</goal>
                         </goals>
@@ -106,4 +106,7 @@
 
         </plugins>
  
-    </build></project>
+    </build>
+    <groupId>ws.argo.ArgoWirelineFormat</groupId>
+    <version>0.3.0-SNAPSHOT</version>
+</project>

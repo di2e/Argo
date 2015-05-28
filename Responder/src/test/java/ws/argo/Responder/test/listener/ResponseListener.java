@@ -3,11 +3,16 @@ package ws.argo.Responder.test.listener;
 import com.sun.jersey.api.container.grizzly2.GrizzlyServerFactory;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
+
+import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 
 import javax.ws.rs.core.UriBuilder;
+
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
+import java.util.Map;
 
 
 public class ResponseListener {
@@ -34,7 +39,12 @@ public class ResponseListener {
         ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.Responder.test.listener");
 
         System.out.println("Starting grizzly2...");
-        return GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
+        HttpServer httpServer = GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
+        Map<HttpHandler, String[]> handlers = httpServer.getServerConfiguration().getHttpHandlers();
+        
+        Collection<String[]> values = handlers.values();
+        
+        return httpServer;
     }
     
     public static void main(String[] args) throws IOException {

@@ -6,7 +6,7 @@
 //
 
 
-package ws.argo.ArgoProtocol.response.xml;
+package ws.argo.ArgoWirelineFormat.response.xml;
 
 import java.util.ArrayList;
 import java.util.List;

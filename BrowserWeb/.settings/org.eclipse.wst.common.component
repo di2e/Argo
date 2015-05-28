@@ -7,6 +7,9 @@
         <dependent-module archiveName="ProbeGenerator-0.3.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ProbeGenerator/ProbeGenerator">
             <dependency-type>uses</dependency-type>
         </dependent-module>
+        <dependent-module archiveName="ArgoWirelineFormat-0.3.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ArgoWirelineFormat/ArgoWirelineFormat">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
         <property name="context-root" value="BrowserWeb"/>
         <property name="java-output-path" value="/BrowserWeb/target/classes"/>
     </wb-module>
