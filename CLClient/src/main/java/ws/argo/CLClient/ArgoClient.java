@@ -14,9 +14,9 @@ import com.sun.jersey.api.container.grizzly2.GrizzlyServerFactory;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 
+import ws.argo.CLClient.listener.ResponseListener;
 import ws.argo.CLClient.listener.ServiceInfoBean;
 import ws.argo.ProbeGenerator.ProbeGenerator;
-import ws.argo.Responder.test.listener.ResponseListener;
 
 public class ArgoClient {
 
@@ -65,7 +65,7 @@ public class ArgoClient {
 		httpServer = GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
 
 		Client c = Client.create();
-		target = c.resource(ResponseListener.BASE_URI);
+		target = c.resource(getBaseURI());
 	}
 
 	public static void main(String[] args) throws IOException {

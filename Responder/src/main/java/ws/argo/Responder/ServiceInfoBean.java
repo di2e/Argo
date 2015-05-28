@@ -29,11 +29,11 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.codec.binary.Base64;
 
-import ws.argo.Responder.response.xml.ObjectFactory;
-import ws.argo.Responder.response.xml.Services.Service;
-import ws.argo.Responder.response.xml.Services.Service.AccessPoints;
-import ws.argo.Responder.response.xml.Services.Service.AccessPoints.AccessPoint;
-import ws.argo.Responder.response.xml.Services.Service.AccessPoints.AccessPoint.Data;
+import ws.argo.ArgoWirelineFormat.response.xml.ObjectFactory;
+import ws.argo.ArgoWirelineFormat.response.xml.Services.Service;
+import ws.argo.ArgoWirelineFormat.response.xml.Services.Service.AccessPoints;
+import ws.argo.ArgoWirelineFormat.response.xml.Services.Service.AccessPoints.AccessPoint;
+import ws.argo.ArgoWirelineFormat.response.xml.Services.Service.AccessPoints.AccessPoint.Data;
 
 public class ServiceInfoBean {
 

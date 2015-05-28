@@ -15,7 +15,7 @@
 		<module>BrowserWeb</module>
 		<module>build-tools</module>
 		<module>CLClient</module>
-		<module>ArgoProtocol</module>
+		<module>ArgoWirelineFormat</module>
 	</modules>
 	<licenses>
 		<license>

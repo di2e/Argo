@@ -21,11 +21,10 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.xml.sax.SAXException;
 
-import ws.argo.ProbeGenerator.xml.Probe;
-import ws.argo.Responder.response.xml.Services;
-import ws.argo.Responder.response.xml.Services.Service;
-import ws.argo.Responder.response.xml.Services.Service.AccessPoints.AccessPoint;
-import ws.argo.Responder.response.xml.Services.Service.AccessPoints.AccessPoint.Data;
+import ws.argo.ArgoWirelineFormat.response.xml.Services;
+import ws.argo.ArgoWirelineFormat.response.xml.Services.Service;
+import ws.argo.ArgoWirelineFormat.response.xml.Services.Service.AccessPoints.AccessPoint;
+import ws.argo.ArgoWirelineFormat.response.xml.Services.Service.AccessPoints.AccessPoint.Data;
 
 
 @Path("/listener")

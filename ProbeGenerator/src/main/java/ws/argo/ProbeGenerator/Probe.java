@@ -27,22 +27,23 @@ import javax.xml.bind.Marshaller;
 
 import org.apache.commons.validator.routines.UrlValidator;
 
-import ws.argo.ProbeGenerator.xml.ObjectFactory;
-import ws.argo.ProbeGenerator.xml.Probe.Ra.RespondTo;
+import ws.argo.ArgoProtocol.probe.xml.ObjectFactory;
+import ws.argo.ArgoProtocol.probe.xml.Probe.Ra.RespondTo;
 
 public class Probe {
 
-	public static final String PROBE_GENERTOR_CONTRACT_ID = "urn:uuid:918b5b45-1496-459e-8a6b-633dbc465380";
+	public static final String	                 PROBE_GENERTOR_CONTRACT_ID	= "urn:uuid:918b5b45-1496-459e-8a6b-633dbc465380";
 
-	public static final String XML = "XML";
-	public static final String JSON = "JSON";
+	public static final String	                 XML	                    = "XML";
+	public static final String	                 JSON	                    = "JSON";
 
-	public int ttl = 255; // the default TTL for a probe is the max TTL of 255 -
-							// or the entire network
-	public ArrayList<String> serviceInstanceIDs = new ArrayList<String>();
+	//  the default TTL for a probe is the max TTL of 255 - or the entire network
+	public int	                                 ttl	                    = 255;
 
-	private ws.argo.ProbeGenerator.xml.Probe xmlProbe;
-	private ObjectFactory xmlProbeFactory = new ObjectFactory();
+	public ArrayList<String>	                 serviceInstanceIDs	        = new ArrayList<String>();
+
+	private ws.argo.ArgoProtocol.probe.xml.Probe	xmlProbe;
+	private ObjectFactory	                     xmlProbeFactory	        = new ObjectFactory();
 
 	public Probe(String respondToPayloadType) throws UnsupportedPayloadType {
 		xmlProbe = xmlProbeFactory.createProbe();
@@ -52,14 +53,12 @@ public class Probe {
 		xmlProbe.setId(probeID);
 		xmlProbe.setDESVersion(PROBE_GENERTOR_CONTRACT_ID);
 		if (respondToPayloadType == null
-				|| respondToPayloadType.isEmpty()
-				|| (!respondToPayloadType.equals(JSON) && !respondToPayloadType
-						.equals(XML)))
+		        || respondToPayloadType.isEmpty()
+		        || (!respondToPayloadType.equals(JSON) && !respondToPayloadType
+		                .equals(XML)))
 			throw new UnsupportedPayloadType(
-					"Attempting to set payload type to: "
-							+ respondToPayloadType
-							+ ". Cannot be null or empty and must be " + JSON
-							+ " or " + XML);
+			        "Attempting to set payload type to: " + respondToPayloadType
+			                + ". Cannot be null or empty and must be " + JSON + " or " + XML);
 		xmlProbe.setRespondToPayloadType(respondToPayloadType); // Should be XML
 																// or JSON
 	}
@@ -75,17 +74,17 @@ public class Probe {
 	public String getProbeID() {
 		return xmlProbe.getId();
 	}
-	
+
 	public void setClientID(String clientID) {
 		xmlProbe.setClient(clientID);
 	}
-	
+
 	public void addRespondToURL(String label, String respondToURL) throws MalformedURLException {
 
 		String[] schemes = { "http", "https" };
 		UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
 		if (!urlValidator.isValid(respondToURL)) {
-			throw new MalformedURLException("The probe respondTo URL is invalid: "+respondToURL);
+			throw new MalformedURLException("The probe respondTo URL is invalid: " + respondToURL);
 		}
 		RespondTo rt = xmlProbeFactory.createProbeRaRespondTo();
 		rt.setLabel(label);
@@ -110,8 +109,7 @@ public class Probe {
 	public String asXML() throws JAXBException {
 
 		StringWriter sw = new StringWriter();
-		JAXBContext jaxbContext = JAXBContext
-				.newInstance(ws.argo.ProbeGenerator.xml.Probe.class);
+		JAXBContext jaxbContext = JAXBContext.newInstance(ws.argo.ArgoProtocol.probe.xml.Probe.class);
 		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 
 		// output pretty printed

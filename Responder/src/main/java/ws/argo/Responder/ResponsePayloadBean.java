@@ -27,9 +27,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.PropertyException;
 
-import ws.argo.Responder.response.xml.ObjectFactory;
-import ws.argo.Responder.response.xml.Services;
-import ws.argo.Responder.response.xml.Services.Service;
+import ws.argo.ArgoWirelineFormat.response.xml.ObjectFactory;
+import ws.argo.ArgoWirelineFormat.response.xml.Services;
+import ws.argo.ArgoWirelineFormat.response.xml.Services.Service;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
