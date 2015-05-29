@@ -14,9 +14,9 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ws.argo.ProbeGenerator.Probe;
-import ws.argo.ProbeGenerator.ProbeGenerator;
-import ws.argo.ProbeGenerator.UnsupportedPayloadType;
+import ws.argo.probe.Probe;
+import ws.argo.probe.ProbeGenerator;
+import ws.argo.probe.UnsupportedPayloadType;
 
 public class ProbeGeneratorTest {
 
