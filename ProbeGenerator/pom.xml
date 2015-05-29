@@ -6,7 +6,7 @@
 		<artifactId>Argo</artifactId>
 		<version>0.3.0-SNAPSHOT</version>
 	</parent>
-	<groupId>ws.argo.ProbeGenerator</groupId>
+	<groupId>ws.argo.probe</groupId>
 	<version>0.3.0-SNAPSHOT</version>
 	<artifactId>ProbeGenerator</artifactId>
 	<dependencies>
@@ -24,7 +24,7 @@
 		</dependency>
 		 -->
 		<dependency>
-			<groupId>ws.argo.ArgoWirelineFormat</groupId>
+			<groupId>ws.argo.wireline</groupId>
 			<artifactId>ArgoWirelineFormat</artifactId>
 			<version>0.3.0-SNAPSHOT</version>
 		</dependency>

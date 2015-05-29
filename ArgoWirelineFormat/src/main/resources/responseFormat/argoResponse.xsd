@@ -1,6 +1,6 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	attributeFormDefault="unqualified" elementFormDefault="qualified">
-	<xs:element name="services">
+	<xs:element name="services"> 
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element name="service" maxOccurs="unbounded"
