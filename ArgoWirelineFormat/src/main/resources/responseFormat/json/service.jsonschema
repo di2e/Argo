@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "service.jsonschema",
+    "description": "The JSON wireline payload for Argo responses",
+      
+	"type" : "object",
+	"properties" : {
+	  "id" : { "type" : "string" },
+      "contractId" : { "type" : "string" },
+	  "serviceName" : { "type" : "string" },
+	  "consumability" : { "type" : "string", "enum" : [ "HUMAN_CONSUMABLE", "MACHINE_CONSUMABLE" ] },
+	  "description" : { "type" : "string" },
+	  "contractDescription" : { "type" : "string" },
+	  "ttl" : { "type" : "string" },
+	  "accessPoints" : { "type" : "array", "items" : { "$ref": "accessPoint.jsonschema" } }
+    },
+    "required": ["id", "contractId", "serviceName", "consumability"]
+
+}

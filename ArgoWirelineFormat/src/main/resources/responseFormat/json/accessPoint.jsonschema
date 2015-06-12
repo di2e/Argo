@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "accessPoint.jsonschema",
+    "description": "The JSON wireline payload for Argo responses",
+    
+    "type" : "object",
+    "properties" : {
+      "label" : { "type" : "string" },
+      "ipAddress": { "type" : "string" },
+      "port": { "type" : "string" },
+      "url": { "type" : "string" },
+      "dataType" : { "type" : "string" },
+      "data" : { "type" : "string" }
+    }
+
+}
