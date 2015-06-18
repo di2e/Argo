@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
-<project
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>ws.argo</groupId>
@@ -31,15 +29,14 @@
 			<version>1.2</version>
 		</dependency>
 		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
 			<groupId>ws.argo.probe</groupId>
 			<version>0.3.0-SNAPSHOT</version>
 			<artifactId>ProbeGenerator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.json-lib</groupId>
-			<artifactId>json-lib</artifactId>
-			<version>2.4</version>
-			<classifier>jdk15</classifier>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -132,8 +129,7 @@
 						</goals>
 						<configuration>
 							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
 										<Main-Class>ws.argo.responder.Responder</Main-Class>
 									</manifestEntries>
@@ -156,7 +152,7 @@
 						<configuration>
 							<schemaDirectory>${basedir}/src/main/resources/configFileFormat</schemaDirectory>
 							<packageName>ws.argo.responder.plugin.configfile.xml</packageName>
-							<outputDirectory>${basedir}/src/main/java</outputDirectory>
+							<outputDirectory>${project.build.directory}/java-gen</outputDirectory>
 							<clearOutputDir>false</clearOutputDir>
 						</configuration>
 					</execution>
@@ -192,8 +188,7 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
-					only. It has no influence on the Maven build itself. -->
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>

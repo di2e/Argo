@@ -18,7 +18,6 @@ package ws.argo.responder.plugin.jmdns;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
@@ -27,9 +26,9 @@ import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 
 import ws.argo.responder.ProbeHandlerPluginIntf;
-import ws.argo.responder.ProbePayloadBean;
-import ws.argo.responder.ResponsePayloadBean;
-import ws.argo.responder.ServiceInfoBean;
+import ws.argo.wireline.probe.ProbeWrapper;
+import ws.argo.wireline.response.ResponseWrapper;
+import ws.argo.wireline.response.ServiceWrapper;
 
 public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, ServiceTypeListener,
     ProbeHandlerPluginIntf {
@@ -37,39 +36,33 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
   private static final Logger LOGGER      = Logger.getLogger(MulticastDNSProbeHandlerPluginImpl.class.getName());
 
   protected JmDNS             jmmDNS;
-  ArrayList<ServiceInfoBean>  serviceList = new ArrayList<ServiceInfoBean>();
+  ArrayList<ServiceWrapper>   serviceList = new ArrayList<ServiceWrapper>();
 
   public MulticastDNSProbeHandlerPluginImpl() {
-    try {
-      initialize();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
   }
 
   @Override
-  public ResponsePayloadBean handleProbeEvent(ProbePayloadBean payload) {
+  public ResponseWrapper handleProbeEvent(ProbeWrapper probe) {
     // TODO Auto-generated method stub
-    ResponsePayloadBean response = new ResponsePayloadBean(payload.probe.getId());
+    ResponseWrapper response = new ResponseWrapper(probe.getProbeId());
 
-    LOGGER.fine("Handling probe: " + payload.toString());
+    LOGGER.fine("Handling probe: " + probe.asXML());
 
     // do the actual lookup here
     // and create and return the ResponderPayload
     // Can you say O(n^2) lookup? Very bad - we can fix later
 
-    if (payload.isNaked()) {
+    if (probe.isNaked()) {
       LOGGER.fine("Query all detected - no service contract IDs in probe");
-      for (ServiceInfoBean entry : serviceList) {
+      for (ServiceWrapper entry : serviceList) {
         // If the set of contract IDs is empty, get all of them
         response.addResponse(entry);
       }
 
     } else {
-      for (String serviceContractID : payload.probe.getScids().getServiceContractID()) {
+      for (String serviceContractID : probe.getServiceContractIDs()) {
         LOGGER.fine("Looking to detect " + serviceContractID + " in entry list.");
-        for (ServiceInfoBean entry : serviceList) {
+        for (ServiceWrapper entry : serviceList) {
           if (entry.getServiceContractID().equals(serviceContractID)) {
             // Boom Baby - we got one!!!
             response.addResponse(entry);
@@ -84,8 +77,13 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 
   @Override
   public void initializeWithPropertiesFilename(String filename) throws IOException {
-    // TODO Auto-generated method stub
     LOGGER.info("Does not support loading props");
+    try {
+      initialize();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   private void initialize() throws IOException {
@@ -96,7 +94,6 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    LOGGER.setLevel(Level.INFO);
   }
 
   @Override
@@ -143,7 +140,7 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
     contractID = event.getInfo().getType();
     serviceID = event.getInfo().getQualifiedName();
 
-    ServiceInfoBean config = new ServiceInfoBean(event.getInfo().getKey());
+    ServiceWrapper config = new ServiceWrapper(event.getInfo().getKey());
 
     config.setServiceContractID(contractID);
     config.setServiceName(event.getInfo().getName());
@@ -181,7 +178,7 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
 
     config.setContractDescription(event.getInfo().getApplication());
 
-    config.setConsumability(ServiceInfoBean.MACHINE_CONSUMABLE);
+    config.setConsumability(ServiceWrapper.MACHINE_CONSUMABLE);
 
     config.setTtl(0);
 

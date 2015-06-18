@@ -18,6 +18,9 @@ package ws.argo.responder;
 
 import java.io.IOException;
 
+import ws.argo.wireline.probe.ProbeWrapper;
+import ws.argo.wireline.response.ResponseWrapper;
+
 /**
  * This is the interface for a probe handler. It's not a complicated animal.
  * When a probe handler is instantiated it should be initialized with the
@@ -30,7 +33,7 @@ import java.io.IOException;
  */
 public interface ProbeHandlerPluginIntf {
 
-  public ResponsePayloadBean handleProbeEvent(ProbePayloadBean payload);
+  public ResponseWrapper handleProbeEvent(ProbeWrapper payload);
 
   public void initializeWithPropertiesFilename(String filename) throws IOException;
 }

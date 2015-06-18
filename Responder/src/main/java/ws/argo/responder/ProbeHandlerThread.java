@@ -27,19 +27,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
-import ws.argo.wireline.probe.xml.Probe.Ra.RespondTo;
+import ws.argo.wireline.probe.ProbeWrapper;
+import ws.argo.wireline.probe.ProbeWrapper.RespondToURL;
+import ws.argo.wireline.response.ResponseWrapper;
 
 public class ProbeHandlerThread extends Thread {
 
-  private static final Logger       LOGGER            = Logger.getLogger(ProbeHandlerThread.class
-                                                          .getName());
+  private static final Logger       LOGGER            = Logger.getLogger(ProbeHandlerThread.class.getName());
 
   // 5 minutes
   private static final long         probeCacheTimeout = 5 * 60 * 1000;
@@ -49,40 +48,37 @@ public class ProbeHandlerThread extends Thread {
   protected CloseableHttpClient     httpClient;
 
   ArrayList<ProbeHandlerPluginIntf> handlers;
-  String                            probeStr;
+  ProbeWrapper                      probe;
   boolean                           noBrowser;
 
   /**
-   * Create a new ProbeHandler thread that will process a probe in a multi-threaded way.
-   * @param handlers is the list of commmon handlers - these need to be multi-thread capable
-   * @param probeStr - the actual probe payload
-   * @param httpClient - a reusable httpClient for sending back respondes
-   * @param noBrowser - a flag that indicated whether a naked probe should be processed
+   * Create a new ProbeHandler thread that will process a probe in a
+   * multi-threaded way.
+   * 
+   * @param handlers is the list of common handlers - these need to be
+   *          multi-thread capable
+   * @param probe - the actual probe payload
+   * @param httpClient - a reusable httpClient for sending back responses
+   * @param noBrowser - a flag that indicated whether a naked probe should be
+   *          processed
    */
-  public ProbeHandlerThread(ArrayList<ProbeHandlerPluginIntf> handlers, String probeStr, CloseableHttpClient httpClient, boolean noBrowser) {
+  public ProbeHandlerThread(ArrayList<ProbeHandlerPluginIntf> handlers, ProbeWrapper probe, CloseableHttpClient httpClient, boolean noBrowser) {
     this.handlers = handlers;
-    this.probeStr = probeStr;
+    this.probe = probe;
     this.httpClient = httpClient;
     this.noBrowser = noBrowser;
   }
 
-  private ProbePayloadBean parseProbePayload(String payload) throws JAXBException {
-
-    ProbePayloadBean probePayload = new ProbePayloadBean(payload);
-
-    return probePayload;
-  }
-  
   /**
-   * If the probe yields responses from the handler, then send this method will send the responses
-   * to the given respondTo addresses.
+   * If the probe yields responses from the handler, then send this method will
+   * send the responses to the given respondTo addresses.
    * 
    * @param respondToURL - address to send the response to
    * @param payloadType - JSON or XML
    * @param payload - the actual service records to return
    * @return true if the send was successful
    */
-  private boolean sendResponse(String respondToURL, String payloadType, ResponsePayloadBean payload) {
+  private boolean sendResponse(String respondToURL, String payloadType, ResponseWrapper payload) {
 
     // This method will likely need some thought and care in the error handling
     // and error reporting
@@ -142,7 +138,7 @@ public class ProbeHandlerThread extends Thread {
         httpResponse.close();
       }
 
-      LOGGER.info("Successfully handled probeID: " + payload.probeID + " sending response to: " + respondToURL);
+      LOGGER.info("Successfully handled probeID: " + probe.getProbeId() + " sending response to: " + respondToURL);
 
     } catch (MalformedURLException e) {
       success = false;
@@ -180,58 +176,52 @@ public class ProbeHandlerThread extends Thread {
 
     return isProbeHandled;
   }
-  
+
   /**
    * Handle the probe.
    */
   public void run() {
 
-    ResponsePayloadBean response = null;
+    ResponseWrapper response = null;
 
-    try {
-      ProbePayloadBean payload = parseProbePayload(probeStr);
+    LOGGER.info("Received probe id: " + probe.getProbeId());
 
-      LOGGER.info("Received probe id: " + payload.probe.getId());
+    // Only handle probes that we haven't handled before
+    // The Probe Generator needs to send a stream of identical UDP packets
+    // to compensate for UDP reliability issues. Therefore, the Responder
+    // will likely get more than 1 identical probe. We should ignore
+    // duplicates.
+    if (!isProbeHandled(probe.getProbeId())) {
 
-      // Only handle probes that we haven't handled before
-      // The Probe Generator needs to send a stream of identical UDP packets
-      // to compensate for UDP reliability issues. Therefore, the Responder
-      // will likely get more than 1 identical probe. We should ignore
-      // duplicates.
-      if (!isProbeHandled(payload.probe.getId())) {
+      if (this.noBrowser && probe.isNaked()) {
+        LOGGER.warning("Responder set to noBrowser mode. Discarding naked probe with id: " + probe.getProbeId());
+      } else {
 
-        if (this.noBrowser & payload.isNaked()) {
-          LOGGER.warning("Responder set to noBrowser mode. Discarding naked probe with id: " + payload.probe.getId());
-        } else {
+        for (ProbeHandlerPluginIntf handler : handlers) {
+          response = handler.handleProbeEvent(probe);
+          if (!response.isEmpty()) {
+            LOGGER.fine("Response includes " + response.numberOfServices());
+            Iterator<RespondToURL> respondToURLs = probe.getRespondToURLs().iterator();
 
-          for (ProbeHandlerPluginIntf handler : handlers) {
-            response = handler.handleProbeEvent(payload);
-            if (!response.isEmpty()) {
-              LOGGER.fine("Response includes " + response.numberOfServices());
-              Iterator<RespondTo> respondToURLs = payload.probe.getRa().getRespondTo().iterator();
-              boolean processRespondToURL = true;
-              RespondTo respondToURL = respondToURLs.next();
-              while (processRespondToURL) {
-                // we are ignoring the label for now
-                boolean success = sendResponse(respondToURL.getValue(), payload.probe.getRespondToPayloadType(), response);
-                processRespondToURL = !success;
-              }
-
-            } else {
-              LOGGER.fine("Response is empty.  Not sending empty response.");
+            RespondToURL respondToURL = respondToURLs.next();
+            boolean processRespondToURL = true;
+            while (processRespondToURL) {
+              // we are ignoring the label for now
+              boolean success = sendResponse(respondToURL.url, probe.getRespondToPayloadType(), response);
+              processRespondToURL = !success;
             }
-          }
 
+          } else {
+            LOGGER.fine("Response is empty.  Not sending empty response.");
+          }
         }
 
-        markProbeAsHandled(payload.probe.getId());
-
-      } else {
-        LOGGER.info("Discarding duplicate/handled probe with id: " + payload.probe.getId());
       }
 
-    } catch (JAXBException e) {
-      LOGGER.log(Level.SEVERE, "Error occured while parsing probe: ", e);
+      markProbeAsHandled(probe.getProbeId());
+
+    } else {
+      LOGGER.info("Discarding duplicate/handled probe with id: " + probe.getProbeId());
     }
   }
 }

@@ -17,6 +17,7 @@ import ws.argo.probe.ProbeGenerator;
 import ws.argo.probe.UnsupportedPayloadType;
 import ws.argo.responder.test.listener.ResponseListener;
 import ws.argo.responder.Responder;
+import ws.argo.wireline.probe.ProbeWrapper;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
@@ -40,8 +41,7 @@ public class ResponderProbeTest {
   private static void readTargetXMLFiles() throws IOException {
     // Read the completely filled out probe test file for comparison
     assertNotNull("targetProbeXML.xml file missing", ResponderProbeTest.class.getResource("/nakedProbeResponseFromListener.json"));
-    try (InputStream is = ResponderProbeTest.class
-        .getResourceAsStream("/nakedProbeResponseFromListener.json")) {
+    try (InputStream is = ResponderProbeTest.class .getResourceAsStream("/nakedProbeResponseFromListener.json")) {
       nakedProbeResponseFromListener = IOUtils.toString(is, "UTF-8");
     }
 
@@ -107,7 +107,7 @@ public class ResponderProbeTest {
 
   @Test
   public void testNakedProbeJSON() throws UnsupportedPayloadType, IOException, InterruptedException {
-    Probe probe = new Probe(Probe.JSON);
+    Probe probe = new Probe(ProbeWrapper.JSON);
     probe.addRespondToURL("", "http://localhost:9998/listener/probeResponse");
     gen.sendProbe(probe); // Send the naked probe
     Thread.sleep(1000); // let the responder process the message and post back
@@ -122,7 +122,7 @@ public class ResponderProbeTest {
 
   @Test
   public void testNakedProbeXML() throws UnsupportedPayloadType, IOException, InterruptedException {
-    Probe probe = new Probe(Probe.XML);
+    Probe probe = new Probe(ProbeWrapper.XML);
     probe.addRespondToURL("", "http://localhost:9998/listener/probeResponse");
     gen.sendProbe(probe); // Send the naked probe
     Thread.sleep(1000); // let the responder process the message and post back
