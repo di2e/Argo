@@ -26,7 +26,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.JSONSerializer;
 import ws.argo.wireline.response.ResponseParseException;
 import ws.argo.wireline.response.ResponseWrapper;
@@ -37,7 +36,6 @@ public class ResponseSerializationTest {
 
   private static final String TESTING_RESPONSE_ID = "urn:uuid:9c6bd8aa-bf9b-45aa-9348-24897d89e86f";
   private static String testResponseXMLPayload;
-  private String testResponseJSONLPayload;
   private static String testResponseXMLPayloadMultipleAccessPoints;
   private static String testResponseXMLPayloadMultipleServices;
   private static String testResponseJSONPayload;

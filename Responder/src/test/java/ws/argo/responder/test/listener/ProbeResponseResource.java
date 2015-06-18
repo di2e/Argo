@@ -31,12 +31,13 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.apache.commons.codec.binary.Base64;
 import org.xml.sax.SAXException;
 
+import ws.argo.wireline.response.JSONSerializer;
+import ws.argo.wireline.response.ResponseParseException;
+import ws.argo.wireline.response.ResponseWrapper;
+import ws.argo.wireline.response.ServiceWrapper;
+import ws.argo.wireline.response.XMLSerializer;
 import ws.argo.wireline.response.xml.Services;
 import ws.argo.wireline.response.xml.Services.Service;
 import ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint;
@@ -47,37 +48,51 @@ public class ProbeResponseResource {
 
   private static ResponseCache cache = new ResponseCache();
 
+/**
+ * 
+ * @param probeResponseJSON
+ * @return
+ * @throws ResponseParseException
+ */
   @POST
   @Path("/probeResponse")
   @Consumes("application/json")
-  public String handleJSONProbeResponse(String probeResponseJSON) throws SAXException, IOException {
+  public String handleJSONProbeResponse(String probeResponseJSON) throws ResponseParseException {
     System.out.println("Listener receiving JSON probe response: " + probeResponseJSON);
+    
+    JSONSerializer serializer = new JSONSerializer();
+    
+    ResponseWrapper response = serializer.unmarshal(probeResponseJSON);
+    
+    for (ServiceWrapper service : response.getServices()) {
+      cache.cache(new ExpiringService(service));
+    }
 
-    ArrayList<ServiceInfoBean> serviceList = parseProbeResponseJSON(probeResponseJSON);
-
-    cache.cacheAll(serviceList);
-
-    return probeResponseJSON;
+    return "Successfully cached services";
   }
 
   @POST
   @Path("/probeResponse")
   @Consumes("application/xml")
-  public String handleXMLProbeResponse(String probeResponseXML) throws SAXException, IOException, JAXBException {
+  public String handleXMLProbeResponse(String probeResponseXML) throws ResponseParseException {
     System.out.println("Listener receiving XML probe response: " + probeResponseXML);
 
-    ArrayList<ServiceInfoBean> serviceList = parseProbeResponseXML(probeResponseXML);
+    XMLSerializer serializer = new XMLSerializer();
+    
+    ResponseWrapper response = serializer.unmarshal(probeResponseXML);
+    
+    for (ServiceWrapper service : response.getServices()) {
+      cache.cache(new ExpiringService(service));
+    }
 
-    cache.cacheAll(serviceList);
-
-    return probeResponseXML;
+    return "Successfully cached services";
   }
 
   @GET
   @Path("/responses")
   @Produces("application/json")
   public String getResponses() {
-    return cache.toJSON();
+    return cache.asJSON();
   }
 
   @GET
@@ -88,87 +103,5 @@ public class ProbeResponseResource {
     return "Cleared Cache";
   }
 
-  @SuppressWarnings("unchecked")
-  private ArrayList<ServiceInfoBean> parseProbeResponseJSON(String jsonString) throws SAXException, IOException {
-    ArrayList<ServiceInfoBean> serviceList = new ArrayList<ServiceInfoBean>();
-
-    JSONObject repsonseJSON = JSONObject.fromObject(jsonString);
-
-    JSONArray responses = (JSONArray) repsonseJSON.get("services");
-
-    Iterator<Object> it = responses.iterator();
-
-    while (it.hasNext()) {
-      JSONObject serviceInfo = (JSONObject) it.next();
-
-      ServiceInfoBean config = new ServiceInfoBean(serviceInfo);
-
-      serviceList.add(config);
-    }
-
-    return serviceList;
-  }
-
-  private ArrayList<ServiceInfoBean> parseProbeResponseXML(String probeResponseXML) throws JAXBException {
-    ArrayList<ServiceInfoBean> serviceList = new ArrayList<ServiceInfoBean>();
-    JAXBContext jaxbContext = JAXBContext.newInstance(Services.class);
-
-    StringReader sr = new StringReader(probeResponseXML);
-    Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-    Services xmlServices = (Services) jaxbUnmarshaller.unmarshal(sr);
-
-    List<Service> xmlServiceList = xmlServices.getService();
-
-    for (Service xmlService : xmlServiceList) {
-      JSONObject serviceInfo = convertToJSON(xmlService);
-
-      ServiceInfoBean config = new ServiceInfoBean(serviceInfo);
-
-      serviceList.add(config);
-    }
-
-    return serviceList;
-  }
-
-  private JSONObject convertToJSON(Service xmlService) {
-    JSONObject json = new JSONObject();
-
-    json.put("id", xmlService.getId());
-    json.put("serviceContractID", xmlService.getContractID());
-    json.put("serviceName", xmlService.getServiceName());
-    json.put("description", xmlService.getDescription());
-    json.put("contractDescription", xmlService.getContractDescription());
-    json.put("consumability", xmlService.getConsumability());
-    json.put("ttl", xmlService.getTtl().toString());
-
-    JSONArray array = new JSONArray();
-
-    for (AccessPoint ap : xmlService.getAccessPoints().getAccessPoint()) {
-      JSONObject jsonAP = new JSONObject();
-
-      jsonAP.put("label", ap.getLabel());
-      jsonAP.put("ipAddress", ap.getIpAddress());
-      jsonAP.put("port", ap.getPort());
-      jsonAP.put("url", ap.getUrl());
-
-      if (ap.getData() != null) {
-        Data xmlData = ap.getData();
-        jsonAP.put("dataType", xmlData.getType());
-        byte[] bytesEncoded = Base64.encodeBase64(xmlData.getValue()
-            .getBytes());
-        String encodedString = new String(bytesEncoded);
-        jsonAP.put("data", encodedString);
-      } else {
-        jsonAP.put("dataType", "");
-        jsonAP.put("data", "");
-      }
-
-      array.add(jsonAP);
-    }
-
-    json.put("accessPoints", array);
-
-    return json;
-  }
 
 }

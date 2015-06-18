@@ -16,16 +16,15 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import ws.argo.responder.ServiceInfoBean;
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration;
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service;
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service.AccessPoints.AccessPoint;
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service.AccessPoints.AccessPoint.Data;
+import ws.argo.wireline.response.ServiceWrapper;
 
 public class ConfigFileMonitorTask extends TimerTask {
 
-  private static final Logger      LOGGER       = Logger.getLogger(ConfigFileMonitorTask.class
-                                                    .getName());
+  private static final Logger      LOGGER       = Logger.getLogger(ConfigFileMonitorTask.class.getName());
 
   ConfigFileProbeHandlerPluginImpl plugin;
   Date                             lastTimeRead = null;
@@ -70,10 +69,11 @@ public class ConfigFileMonitorTask extends TimerTask {
   }
 
   /**
-   * actually load the xml configuration file.  If anything goes wrong throws an exception.
-   * This created a list of service records.  When done, set the service record list in the
-   * plugin.  The plugin set function should be synchronized so that it won't squash any
-   * concurrent access to the old set of services.
+   * actually load the xml configuration file. If anything goes wrong throws an
+   * exception. This created a list of service records. When done, set the
+   * service record list in the plugin. The plugin set function should be
+   * synchronized so that it won't squash any concurrent access to the old set
+   * of services.
    * 
    * @throws JAXBException if there is some issue with the XML
    * @throws FileNotFoundException if the file name does not exist
@@ -83,18 +83,21 @@ public class ConfigFileMonitorTask extends TimerTask {
     Properties config = plugin.getConfiguration();
     String xmlConfigFilename = config.getProperty("xmlConfigFilename");
 
-    JAXBContext jaxbContext = JAXBContext.newInstance(ServicesConfiguration.class);
-    LOGGER.info("Loading configuration from " + xmlConfigFilename);
-    InputStream is = new FileInputStream(xmlConfigFilename);
+    ServicesConfiguration services = parseConfigFile(xmlConfigFilename);
 
-    Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-    ServicesConfiguration services = (ServicesConfiguration) jaxbUnmarshaller.unmarshal(is);
+    ArrayList<ServiceWrapper> serviceList = constructServiceList(services);
 
-    ArrayList<ServiceInfoBean> serviceList = new ArrayList<ServiceInfoBean>();
+    LOGGER.fine("Setting the service list in the plugin");
+    plugin.setServiceList(serviceList);
+
+  }
+
+  private ArrayList<ServiceWrapper> constructServiceList(ServicesConfiguration services) {
+    ArrayList<ServiceWrapper> serviceList = new ArrayList<ServiceWrapper>();
 
     for (Service service : services.getService()) {
 
-      ServiceInfoBean serviceBean = new ServiceInfoBean(service.getId());
+      ServiceWrapper serviceBean = new ServiceWrapper(service.getId());
 
       serviceBean.setServiceName(service.getServiceName());
       serviceBean.setDescription(service.getDescription());
@@ -114,9 +117,24 @@ public class ConfigFileMonitorTask extends TimerTask {
 
       serviceList.add(serviceBean);
     }
+    return serviceList;
+  }
 
-    LOGGER.fine("Setting the service list in the plugin");
-    plugin.setServiceList(serviceList);
+  private ServicesConfiguration parseConfigFile(String xmlConfigFilename) throws JAXBException, FileNotFoundException {
+    JAXBContext jaxbContext = JAXBContext.newInstance(ServicesConfiguration.class);
+    LOGGER.info("Loading configuration from " + xmlConfigFilename);
+    
+    InputStream is;
+    // try to load the properties file off the classpath first
 
+    if (ConfigFileProbeHandlerPluginImpl.class.getResource(xmlConfigFilename) != null) {
+      is = ConfigFileProbeHandlerPluginImpl.class.getResourceAsStream(xmlConfigFilename);
+    } else {
+      is = new FileInputStream(xmlConfigFilename);
+    }
+
+    Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+    ServicesConfiguration services = (ServicesConfiguration) jaxbUnmarshaller.unmarshal(is);
+    return services;
   }
 }

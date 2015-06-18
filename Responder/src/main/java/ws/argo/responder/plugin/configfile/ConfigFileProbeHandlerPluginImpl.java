@@ -18,15 +18,19 @@ package ws.argo.responder.plugin.configfile;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.IOUtils;
+
 import ws.argo.responder.ProbeHandlerPluginIntf;
-import ws.argo.responder.ProbePayloadBean;
-import ws.argo.responder.ResponsePayloadBean;
-import ws.argo.responder.ServiceInfoBean;
+import ws.argo.responder.test.ResponderProbeTest;
+import ws.argo.wireline.probe.ProbeWrapper;
+import ws.argo.wireline.response.ResponseWrapper;
+import ws.argo.wireline.response.ServiceWrapper;
 
 // This default probe handler will load up a list of IP addresses and port number associates
 // with a service contract ID (like a UUID)
@@ -40,13 +44,9 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 
   // This really needs to be better than an O(n^2) lookup - like an O(n log n)
   // with a HashMap with a list value. But I'm lazy at the moment
-  ArrayList<ServiceInfoBean>  serviceList = new ArrayList<ServiceInfoBean>();
+  ArrayList<ServiceWrapper>   serviceList = new ArrayList<ServiceWrapper>();
 
   private Timer               configFileScan;
-
-  public ResponsePayloadBean probeEvent(ProbePayloadBean payload) {
-    return handleProbeEvent(payload);
-  }
 
   public Properties getConfiguration() {
     return config;
@@ -54,51 +54,53 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 
   /**
    * As the Responder is multi-threaded, make sure that the access to the
-   * services list which might change out if the user changes it, is synchronized to make sure
-   * nothing weird happens.
+   * services list which might change out if the user changes it, is
+   * synchronized to make sure nothing weird happens.
+   * 
    * @param services - the ArrayList of ServiceInfoBeans
    */
-  public synchronized void setServiceList(ArrayList<ServiceInfoBean> services) {
+  public synchronized void setServiceList(ArrayList<ServiceWrapper> services) {
     this.serviceList = services;
   }
 
-  public synchronized ArrayList<ServiceInfoBean> getServiceList() {
+  public synchronized ArrayList<ServiceWrapper> getServiceList() {
     return this.serviceList;
   }
 
   /**
    * Handle the probe event.
    */
-  public ResponsePayloadBean handleProbeEvent(ProbePayloadBean payload) {
+  @Override
+  public ResponseWrapper handleProbeEvent(ProbeWrapper probe) {
 
-    ResponsePayloadBean response = new ResponsePayloadBean(payload.probe.getId());
+    ResponseWrapper response = new ResponseWrapper(probe.getProbeId());
 
-    LOGGER.fine("ConfigFileProbeHandlerPluginImpl handling probe: " + payload.toString());
+    LOGGER.fine("ConfigFileProbeHandlerPluginImpl handling probe: " + probe.asXML());
 
     // do the actual lookup here
     // and create and return the ResponderPayload
     // Can you say O(n^2) lookup? Very bad - we can fix later
 
-    if (payload.isNaked()) {
+    if (probe.isNaked()) {
       LOGGER.fine("Query all detected - no service contract IDs in probe");
-      for (ServiceInfoBean entry : serviceList) {
+      for (ServiceWrapper entry : serviceList) {
         // If the set of contract IDs is empty, get all of them
         response.addResponse(entry);
       }
 
     } else {
-      for (String serviceContractID : payload.probe.getScids().getServiceContractID()) {
+      for (String serviceContractID : probe.getServiceContractIDs()) {
         LOGGER.fine("Looking to detect " + serviceContractID + " in entry list.");
-        for (ServiceInfoBean entry : serviceList) {
+        for (ServiceWrapper entry : serviceList) {
           if (entry.getServiceContractID().equals(serviceContractID)) {
             // Boom Baby - we got one!!!
             response.addResponse(entry);
           }
         }
       }
-      for (String serviceInstanceID : payload.probe.getSiids().getServiceInstanceID()) {
+      for (String serviceInstanceID : probe.getServiceInstanceIDs()) {
         LOGGER.fine("Looking to detect " + serviceInstanceID + " in entry list.");
-        for (ServiceInfoBean entry : serviceList) {
+        for (ServiceWrapper entry : serviceList) {
           if (entry.getId().equals(serviceInstanceID)) {
             // Boom Baby - we got one!!!
             response.addResponse(entry);
@@ -116,11 +118,20 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
    */
   public void initializeWithPropertiesFilename(String filename) throws IOException {
 
-    config.load(new FileInputStream(filename));
+    InputStream is;
+    // try to load the properties file off the classpath first
+
+    if (ConfigFileProbeHandlerPluginImpl.class.getResource(filename) != null) {
+      is = ConfigFileProbeHandlerPluginImpl.class.getResourceAsStream(filename);
+    } else {
+      is = new FileInputStream(filename);
+    }
+
+    config.load(is);
 
     // Launch the timer task that will look for changes to the config file
     configFileScan = new Timer();
-    configFileScan.scheduleAtFixedRate(new ConfigFileMonitorTask(this), 2000, 10000);
+    configFileScan.scheduleAtFixedRate(new ConfigFileMonitorTask(this), 100, 10000);
 
   }
 

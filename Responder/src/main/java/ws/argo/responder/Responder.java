@@ -31,6 +31,8 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.bind.JAXBException;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -43,6 +45,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import ws.argo.responder.plugin.configfile.ConfigFileProbeHandlerPluginImpl;
+import ws.argo.wireline.probe.ProbeParseException;
+import ws.argo.wireline.probe.ProbeWrapper;
+import ws.argo.wireline.probe.XMLSerializer;
 
 public class Responder {
 
@@ -122,15 +127,11 @@ public class Responder {
    * the class and then calls its initialization method to get the handler ready
    * to process inbound probes.
    * 
-   * @param classname
-   *          is the FQCN of the handler class
-   * @param configFilename
-   *          is the full path name of the config file name specific for the
-   *          handler (could be any crazy format)
-   * @throws IOException
-   *           if there is some issues with the config file
-   * @throws ClassNotFoundException
-   *           if the FQCN is invalid
+   * @param classname is the FQCN of the handler class
+   * @param configFilename is the full path name of the config file name
+   *          specific for the handler (could be any crazy format)
+   * @throws IOException if there is some issues with the config file
+   * @throws ClassNotFoundException if the FQCN is invalid
    */
   public static void addHandler(String classname, String configFilename) throws IOException, ClassNotFoundException {
 
@@ -246,11 +247,9 @@ public class Responder {
    * This is the main run method for the Argo Responder. It starts up all the
    * necessary machinery and enters the UDP receive loop.
    * 
-   * @throws IOException
-   *           if bad things happen with the configuration files
-   * @throws ClassNotFoundException
-   *           if the classnames for the probe handlers are bad (usually a type
-   *           or classpath issue)
+   * @throws IOException if bad things happen with the configuration files
+   * @throws ClassNotFoundException if the classnames for the probe handlers are
+   *           bad (usually a type or classpath issue)
    */
   public void run() throws IOException, ClassNotFoundException {
 
@@ -280,14 +279,22 @@ public class Responder {
 
       LOGGER.fine("Received packet");
       LOGGER.fine("Packet contents:");
-      // Get the string
-      String probeStr = new String(packet.getData(), 0,
-          packet.getLength());
+
+      // Get the actual wireline payload
+      String probeStr = new String(packet.getData(), 0, packet.getLength());
       LOGGER.fine(probeStr);
 
-      // reuses the handlers and the httpClient. Both should be threadSafe
-      new ProbeHandlerThread(handlers, probeStr, httpClient,
-          cliValues.config.noBrowser).start();
+      try {
+        XMLSerializer serializer = new XMLSerializer();
+
+        ProbeWrapper probe = serializer.unmarshal(probeStr);
+
+        // reuses the handlers and the httpClient. Both should be threadSafe
+        new ProbeHandlerThread(handlers, probe, httpClient, cliValues.config.noBrowser).start();
+      } catch (ProbeParseException e) {
+        LOGGER.log(Level.SEVERE, "Error parsing inbound probe payload.", e);
+      }
+
     }
 
   }
@@ -295,13 +302,10 @@ public class Responder {
   /**
    * Main entry point for Argo Responder.
    * 
-   * @param args
-   *          command line arguments
-   * @throws IOException
-   *           if bad things happen with the configuration files
-   * @throws ClassNotFoundException
-   *           if the classnames for the probe handlers are bad (usually a type
-   *           or classpath issue)
+   * @param args command line arguments
+   * @throws IOException if bad things happen with the configuration files
+   * @throws ClassNotFoundException if the classnames for the probe handlers are
+   *           bad (usually a type or classpath issue)
    */
   public static void main(String[] args) throws IOException,
       ClassNotFoundException {
