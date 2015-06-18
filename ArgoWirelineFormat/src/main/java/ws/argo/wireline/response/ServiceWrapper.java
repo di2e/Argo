@@ -16,49 +16,28 @@
 
 package ws.argo.wireline.response;
 
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.PropertyException;
-
-//import net.sf.json.JSONArray;
-//import net.sf.json.JSONObject;
-
-
-import org.apache.commons.codec.binary.Base64;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
-import ws.argo.wireline.response.xml.ObjectFactory;
-import ws.argo.wireline.response.xml.Services.Service;
-import ws.argo.wireline.response.xml.Services.Service.AccessPoints;
-import ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint;
-import ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint.Data;
-
 public class ServiceWrapper {
 
-  private static final Logger LOGGER             = Logger.getLogger(ServiceWrapper.class.getName());
+  private static final Logger   LOGGER             = Logger.getLogger(ServiceWrapper.class.getName());
 
-  public static final String  HUMAN_CONSUMABLE   = "HUMAN_CONSUMABLE";
-  public static final String  MACHINE_CONSUMABLE = "MACHINE_CONSUMABLE";
+  public static final String    HUMAN_CONSUMABLE   = "HUMAN_CONSUMABLE";
+  public static final String    MACHINE_CONSUMABLE = "MACHINE_CONSUMABLE";
 
-//  public Service              xmlService;
-  
-  public String id;
-  public String serviceContractId;
-  public String serviceName;
-  public String description;
-  public String contractDescription;
-  public String consumability;
-  public Integer ttl;
-  public ArrayList<AccessPoint> accessPoints = new ArrayList<AccessPoint>();
-  
+  // public Service xmlService;
+
+  public String                 id;
+  public String                 serviceContractId;
+  public String                 serviceName;
+  public String                 description;
+  public String                 contractDescription;
+  public String                 consumability;
+  public Integer                ttl;
+  public ArrayList<AccessPoint> accessPoints       = new ArrayList<AccessPoint>();
+
   public class AccessPoint {
     public String label;
     public String url;
@@ -81,10 +60,6 @@ public class ServiceWrapper {
   public int hashCode() {
     return this.getId().hashCode();
   }
-
-//  public Service getXmlService() {
-//    return xmlService;
-//  }
 
   public List<AccessPoint> getAccessPoints() {
     return accessPoints;
@@ -130,7 +105,7 @@ public class ServiceWrapper {
     ap.url = url;
     ap.dataType = dataType;
     ap.data = data;
-        
+
     accessPoints.add(ap);
 
   }
@@ -196,11 +171,10 @@ public class ServiceWrapper {
 
   public void setTtl(String ttlString) {
     try {
-      this.ttl = Integer.valueOf(this.ttl);
+      this.ttl = Integer.valueOf(ttlString);
     } catch (NumberFormatException e) {
-      LOGGER.warning("Error trying to format the string "+ ttlString + " into an Integer.");
+      LOGGER.warning("Error trying to format the string " + ttlString + " into an Integer.");
     }
   }
-
 
 }

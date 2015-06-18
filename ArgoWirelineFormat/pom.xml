@@ -8,105 +8,114 @@
 	</parent>
 	<artifactId>ArgoWirelineFormat</artifactId>
 	<name>Argo Wireline Protocol</name>
+	<groupId>ws.argo.wireline</groupId>
+	<version>0.3.0-SNAPSHOT</version>
 	<description>Encapsulated the json and xml protocols for the Argo probes and responses</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
 	</properties>
-    <dependencies>
-        <dependency>
-            <groupId>net.sf.json-lib</groupId>
-            <artifactId>json-lib</artifactId>
-            <version>2.4</version>
-            <classifier>jdk15</classifier>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-        </dependencies>
-    <build>
-        <plugins>
-            <!-- 
-            <plugin>
-                <groupId>com.google.code.maven-replacer-plugin</groupId>
-                <artifactId>replacer</artifactId>
-                <version>1.5.3</version>
-                <executions>
-                    <execution>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>replace</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <filesToInclude>${basedir}/src/**/*</filesToInclude>
-                    <inputFilePattern>(.*).template</inputFilePattern>
-                    <outputFilePattern>$1</outputFilePattern>
-                    <replacements>
-                        <replacement>
-                            <token>@ARGO_PROTOCOL_VERSION@</token>
-                            <value>${project.version}</value>
-                        </replacement>
-                    </replacements>
-                </configuration>
-            </plugin>
-            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18.1</version>
-                <configuration>
-                    <argLine>-DconfigFile=${basedir}/target/test-classes/config/responderConfig.prop</argLine>
-                    <systemProperties>
-                        <property>
-                            <name>configFile</name>
-                            <value>${basedir}/target/test-classes/config/responderConfig.prop</value>
-                        </property>
-                    </systemProperties>
-                </configuration>
-            </plugin>
-             -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>xjc-responseFormat</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <schemaDirectory>${basedir}/src/main/resources/responseFormat</schemaDirectory>
-                            <packageName>ws.argo.wireline.response.xml</packageName>
-                            <outputDirectory>${basedir}/src/main/java</outputDirectory>
-                            <clearOutputDir>false</clearOutputDir>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>xjc-probeFormat</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <schemaDirectory>${basedir}/src/main/resources/probeFormat</schemaDirectory>
-                            <packageName>ws.argo.wireline.probe.xml</packageName>
-                            <outputDirectory>${basedir}/src/main/java</outputDirectory>
-                            <clearOutputDir>false</clearOutputDir>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+	<dependencies>
+		<!-- <dependency> <groupId>net.sf.json-lib</groupId> <artifactId>json-lib</artifactId> 
+			<version>2.4</version> <classifier>jdk15</classifier> </dependency> -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.10</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.0.0</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<!-- <plugin> <groupId>com.google.code.maven-replacer-plugin</groupId> 
+				<artifactId>replacer</artifactId> <version>1.5.3</version> <executions> <execution> 
+				<phase>process-resources</phase> <goals> <goal>replace</goal> </goals> </execution> 
+				</executions> <configuration> <filesToInclude>${basedir}/src/**/*</filesToInclude> 
+				<inputFilePattern>(.*).template</inputFilePattern> <outputFilePattern>$1</outputFilePattern> 
+				<replacements> <replacement> <token>@ARGO_PROTOCOL_VERSION@</token> <value>${project.version}</value> 
+				</replacement> </replacements> </configuration> </plugin> <plugin> <groupId>org.apache.maven.plugins</groupId> 
+				<artifactId>maven-surefire-plugin</artifactId> <version>2.18.1</version> 
+				<configuration> <argLine>-DconfigFile=${basedir}/target/test-classes/config/responderConfig.prop</argLine> 
+				<systemProperties> <property> <name>configFile</name> <value>${basedir}/target/test-classes/config/responderConfig.prop</value> 
+				</property> </systemProperties> </configuration> </plugin> -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jaxb2-maven-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<id>xjc-responseFormat</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<schemaDirectory>${basedir}/src/main/resources/responseFormat/xml</schemaDirectory>
+							<packageName>ws.argo.wireline.response.xml</packageName>
+							<outputDirectory>${project.build.directory}/java-gen</outputDirectory>
+							<clearOutputDir>false</clearOutputDir>
+						</configuration>
+					</execution>
+					<execution>
+						<id>xjc-probeFormat</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<schemaDirectory>${basedir}/src/main/resources/probeFormat/xml</schemaDirectory>
+							<packageName>ws.argo.wireline.probe.xml</packageName>
+							<outputDirectory>${project.build.directory}/java-gen</outputDirectory>
+							<clearOutputDir>false</clearOutputDir>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.jsonschema2pojo</groupId>
+				<artifactId>jsonschema2pojo-maven-plugin</artifactId>
+				<version>0.4.11</version>
+				<configuration>
+					<sourceDirectory>${basedir}/src/main/resources/responseFormat/json</sourceDirectory>
+					<targetPackage>ws.argo.wireline.response.json</targetPackage>
+					<annotationStyle>gson</annotationStyle>
+					<generateBuilders>true</generateBuilders>
+					<includeToString>true</includeToString>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 
-
-        </plugins>
- 
-    </build>
-    <groupId>ws.argo.wireline</groupId>
-    <version>0.3.0-SNAPSHOT</version>
+	</build>
 </project>

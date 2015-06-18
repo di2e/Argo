@@ -50,16 +50,26 @@ public class ProbeWrapper {
   public static final String XML               = "XML";
   public static final String JSON              = "JSON";
 
-  public Probe               xmlProbe;
-  private ObjectFactory      xmlProbeFactory   = new ObjectFactory();
-
-  public ProbeWrapper(String probeID) {
-    xmlProbe = new ObjectFactory().createProbe();
-    setProbeID(probeID);
+  /*
+   * This is a wrapper class for the label, URL pair for a respondTo address
+   */
+  public class RespondToURL {
+    public String url;
+    public String label;
   }
 
-  private ProbeWrapper(Probe xmlProbe) {
-    this.xmlProbe = xmlProbe;
+  private ArrayList<RespondToURL> respondToURLs      = new ArrayList<RespondToURL>();
+  private ArrayList<String>       serviceContractIDs = new ArrayList<String>();
+  private ArrayList<String>       serviceInstanceIDs = new ArrayList<String>();
+
+  private String                  clientId;
+  private String                  id;
+  private String                  desVersion;
+  private String                  respondToPayloadType;
+
+  public ProbeWrapper(String probeID) {
+    setProbeId(probeID);
+    this.desVersion = PROBE_DES_VERSION;
   }
 
   /**
@@ -69,42 +79,65 @@ public class ProbeWrapper {
    * @return true if no service contract ID or service ID qualifiers.
    */
   public boolean isNaked() {
-    boolean emptyScids = xmlProbe.getScids() == null || xmlProbe.getScids().getServiceContractID().isEmpty();
-    boolean emptySiids = xmlProbe.getSiids() == null || xmlProbe.getSiids().getServiceInstanceID().isEmpty();
+    boolean emptyScids = serviceContractIDs.isEmpty();
+    boolean emptySiids = serviceInstanceIDs.isEmpty();
 
     return emptyScids && emptySiids;
   }
 
   // Getters and Setters
 
-  public String getProbeID() {
-    return xmlProbe.getId();
+  public String getProbeId() {
+    return id;
   }
 
-  public void setProbeID(String id) {
-    xmlProbe.setId(id);
+  public void setProbeId(String id) {
+    this.id = id;
+  }
+
+  public String getClientId() {
+    return clientId;
+  }
+
+  public void setClientId(String clientId) {
+    this.clientId = clientId;
+  }
+
+  public String getDESVersion() {
+    return desVersion;
   }
 
   public void setDESVersion(String version) {
-    xmlProbe.setDESVersion(version);
+    this.desVersion = version;
   }
 
-  public void setClientID(String clientID) {
-    xmlProbe.setClient(clientID);
+  public String getRespondToPayloadType() {
+    return this.respondToPayloadType;
   }
 
   public void setRespondToPayloadType(String respondToPayloadType) {
-    xmlProbe.setRespondToPayloadType(respondToPayloadType);
+    this.respondToPayloadType = respondToPayloadType;
   }
 
-  public void addRespondToURL(String label, String respondToURL) {
+  public ArrayList<RespondToURL> getRespondToURLs() {
+    return respondToURLs;
+  }
 
-    RespondTo rt = xmlProbeFactory.createProbeRaRespondTo();
-    rt.setLabel(label);
-    rt.setValue(respondToURL);
-    if (xmlProbe.getRa() == null)
-      xmlProbe.setRa(xmlProbeFactory.createProbeRa());
-    xmlProbe.getRa().getRespondTo().add(rt);
+  public List<String> getServiceContractIDs() {
+    return serviceContractIDs;
+  }
+
+  public List<String> getServiceInstanceIDs() {
+    return serviceInstanceIDs;
+  }
+
+  public void addRespondToURL(String label, String url) {
+
+    RespondToURL respondToURL = new RespondToURL();
+    respondToURL.label = label;
+    respondToURL.url = url;
+
+    respondToURLs.add(respondToURL);
 
   }
 
@@ -114,9 +147,9 @@ public class ProbeWrapper {
    * @param serviceContractID - the ID
    */
   public void addServiceContractID(String serviceContractID) {
-    if (xmlProbe.getScids() == null)
-      xmlProbe.setScids(xmlProbeFactory.createProbeScids());
-    xmlProbe.getScids().getServiceContractID().add(serviceContractID);
+
+    serviceContractIDs.add(serviceContractID);
+
   }
 
   /**
@@ -125,101 +158,19 @@ public class ProbeWrapper {
    * @param serviceInstanceID - the ID
    */
   public void addServiceInstanceID(String serviceInstanceID) {
-    if (xmlProbe.getSiids() == null)
-      xmlProbe.setSiids(xmlProbeFactory.createProbeSiids());
-    xmlProbe.getSiids().getServiceInstanceID().add(serviceInstanceID);
+
+    serviceInstanceIDs.add(serviceInstanceID);
+
   }
 
   /**
    * Returns the string form of the payload in XML.
    */
   public String asXML() {
-    StringWriter sw = new StringWriter();
-    try {
-      JAXBContext jaxbContext = JAXBContext.newInstance(Probe.class);
-      Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+    XMLSerializer serializer = new XMLSerializer();
 
-      // output pretty printed
-      jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+    return serializer.marshal(this);
 
-      jaxbMarshaller.marshal(xmlProbe, sw);
-    } catch (PropertyException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (JAXBException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
-    return sw.toString();
-
-  }
-
-  public List<String> getServiceContractIDs() {
-    return xmlProbe.getScids().getServiceContractID();
-  }
-
-  public List<String> getServiceInstanceIDs() {
-    return xmlProbe.getSiids().getServiceInstanceID();
-  }
-
-  public ArrayList<String> getRespondToURLs() {
-
-    ArrayList<String> respondToURLs = new ArrayList<String>();
-    for (RespondTo respondTo : xmlProbe.getRa().getRespondTo()) {
-      respondToURLs.add(respondTo.getValue());
-    }
-
-    return respondToURLs;
-  }
-
-  public String getRespondToPayloadType() {
-    return xmlProbe.getRespondToPayloadType();
-  }
-
-  /**
-   * Create a new ProbeWrapper from the wireline payload.
-   * 
-   * @param payload - the string serialized probe that came directly off the
-   *          wire. This should only be in XML
-   * @return the ProbeWrapper instance
-   * @throws ProbeParseException if there was an issue parsing the payload
-   */
-  public static ProbeWrapper fromWireline(String payload) throws ProbeParseException {
-    Probe xmlProbe = parseProbePayload(payload);
-    ProbeWrapper wrapper = new ProbeWrapper(xmlProbe);
-    return wrapper;
-  }
-
-  private static Probe parseProbePayload(String payload) throws ProbeParseException {
-
-    JAXBContext jaxbContext;
-    Probe probe = null;
-
-    try {
-      jaxbContext = JAXBContext.newInstance(Probe.class);
-      // StringReader sr = new StringReader(payload);
-      Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-
-      InputStream inputStream = new ByteArrayInputStream(payload.getBytes(Charset.forName("UTF-8")));
-
-      // XMLStreamReader xmlStreamReader =
-      // XMLInputFactory.newInstance().createXMLStreamReader(inputStream);
-
-      SAXParserFactory spf = SAXParserFactory.newInstance();
-      spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-      SAXParser sp = spf.newSAXParser();
-      XMLReader xmlReader = sp.getXMLReader();
-      InputSource inputSource = new InputSource(inputStream);
-      SAXSource saxSource = new SAXSource(xmlReader, inputSource);
-
-      probe = (Probe) jaxbUnmarshaller.unmarshal(saxSource);
-
-    } catch (JAXBException | FactoryConfigurationError | ParserConfigurationException | SAXException e) {
-      throw new ProbeParseException(e);
-    }
-
-    return probe;
   }
 
 }
