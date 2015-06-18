@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<services responseID="urn:uuid:9c6bd8aa-bf9b-45aa-9348-24897d89e86f" probeID="--PROBE ID--">
+    <service id="--SERVICE ID--" contractID="--CONTRACT ID--">
+        <serviceName>Some Service Name</serviceName>
+        <description>some service description</description>
+        <contractDescription>some contract description</contractDescription>
+        <consumability>MACHINE_CONSUMABLE</consumability>
+        <ttl>0</ttl>
+        <accessPoints>
+            <accessPoint label="internal">
+                <ipAddress>some ip</ipAddress>
+                <port>some port</port>
+                <url>some url</url>
+                <data type="basic 1">some data</data>
+            </accessPoint>
+        </accessPoints>
+    </service>
+    <service id="--SERVICE ID 2--" contractID="--CONTRACT ID 2--">
+        <serviceName>Some Service Name 2</serviceName>
+        <description>some service description 2</description>
+        <contractDescription>some contract description 2</contractDescription>
+        <consumability>MACHINE_CONSUMABLE</consumability>
+        <ttl>0</ttl>
+        <accessPoints>
+            <accessPoint label="internal">
+                <ipAddress>some ip</ipAddress>
+                <port>some port</port>
+                <url>some url</url>
+                <data type="basic 1">some data</data>
+            </accessPoint>
+            <accessPoint label="external">
+                <ipAddress>some ip 2</ipAddress>
+                <port>some port 2</port>
+                <url>some url 2</url>
+                <data type="basic 3">some data 2</data>
+            </accessPoint>
+        </accessPoints>
+    </service>
+</services>

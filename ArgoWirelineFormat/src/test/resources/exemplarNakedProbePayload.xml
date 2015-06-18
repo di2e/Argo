@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<probe id="--ID--" DESVersion="urn:uuid:918b5b45-1496-459e-8a6b-633dbc465380" client="yomama">
+    <respondToPayloadType>XML</respondToPayloadType>
+</probe>

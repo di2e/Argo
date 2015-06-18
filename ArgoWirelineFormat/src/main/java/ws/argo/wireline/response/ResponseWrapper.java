@@ -16,23 +16,12 @@
 
 package ws.argo.wireline.response;
 
-import java.io.StringWriter;
 import java.util.HashSet;
-import java.util.List;
 import java.util.UUID;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.PropertyException;
-
-import ws.argo.wireline.response.xml.ObjectFactory;
-import ws.argo.wireline.response.xml.Services;
-import ws.argo.wireline.response.xml.Services.Service;
-
 public class ResponseWrapper {
-  String                           probeID;
-  String                           responseID;
+  String                          probeID;
+  String                          responseID;
   private HashSet<ServiceWrapper> responses = new HashSet<ServiceWrapper>();
 
   /**
@@ -62,6 +51,10 @@ public class ResponseWrapper {
     return responseID;
   }
 
+  public void setResponseID(String responseId) {
+    this.responseID = responseId;
+  }
+
   public void addResponse(ServiceWrapper entry) {
     responses.add(entry);
   }
@@ -69,69 +62,22 @@ public class ResponseWrapper {
   public HashSet<ServiceWrapper> getServices() {
     return responses;
   }
-  
-//  /**
-//   * Return the XML string form of the Response payload.
-//   */
-//  public String toXML() {
-//    ObjectFactory of = new ObjectFactory();
-//    Services xmlServices = of.createServices();
-//
-//    xmlServices.setProbeID(getProbeID());
-//    xmlServices.setResponseID(getResponseID());
-//    
-//    List<Service> serviceList = xmlServices.getService();
-//
-//    for (ServiceWrapper infoBean : responses) {
-//      serviceList.add(infoBean.xmlService);
-//    }
-//
-//    StringWriter sw = new StringWriter();
-//    try {
-//      JAXBContext jaxbContext = JAXBContext.newInstance(Services.class);
-//      Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-//
-//      // output pretty printed
-//      jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-//
-//      jaxbMarshaller.marshal(xmlServices, sw);
-//    } catch (PropertyException e) {
-//      // TODO Auto-generated catch block
-//      e.printStackTrace();
-//    } catch (JAXBException e) {
-//      // TODO Auto-generated catch block
-//      e.printStackTrace();
-//    }
-//    return sw.toString();
-//  }
-//
-//  /**
-//   * Return the JSON string form of the Response payload.
-//   */
-//  public String toJSON() {
-//    JSONObject response = this.toJSONObject();
-//
-//    return response.toString(4);
-//  }
-//
-//  /**
-//   * Create the JSON Object for the payload.
-//   */
-//  public JSONObject toJSONObject() {
-//    JSONObject json = new JSONObject();
-//    JSONArray array = new JSONArray();
-//
-//    for (ServiceWrapper infoBean : responses) {
-//      array.add(infoBean.asJSONObject());
-//    }
-//
-//    json.put("responseID", this.responseID);
-//    json.put("probeID", this.probeID);
-//
-//    json.put("services", array);
-//
-//    return json;
-//
-//  }
 
+  /**
+   * Return the XML string form of the Response payload.
+   */
+  public String toXML() {
+    XMLSerializer serializer = new XMLSerializer();
+    return serializer.marshal(this);
+
+  }
+
+  /**
+   * Return the JSON string form of the Response payload.
+   */
+  public String toJSON() {
+    JSONSerializer serializer = new JSONSerializer();
+    return serializer.marshal(this);
+
+  }
 }

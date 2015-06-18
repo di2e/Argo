@@ -1,13 +1,30 @@
 package ws.argo.wireline.response;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.PropertyException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.transform.sax.SAXSource;
 
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+
+import ws.argo.wireline.probe.ProbeParseException;
+import ws.argo.wireline.probe.ProbeWrapper;
+import ws.argo.wireline.probe.xml.Probe;
 import ws.argo.wireline.response.ServiceWrapper.AccessPoint;
 import ws.argo.wireline.response.xml.ObjectFactory;
 import ws.argo.wireline.response.xml.Services;
@@ -17,16 +34,14 @@ import ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint.D
 
 public class XMLSerializer {
 
-  private ResponseWrapper response;
+  public XMLSerializer() {
 
-  public XMLSerializer(ResponseWrapper response) {
-    this.response = response;
   }
 
-  public String serialize() {
+  public String marshal(ResponseWrapper response) {
 
     Services xmlServices = this.composeResponseFromResponseWrapper(response);
-    
+
     StringWriter sw = new StringWriter();
     try {
       JAXBContext jaxbContext = JAXBContext.newInstance(Services.class);
@@ -71,7 +86,10 @@ public class XMLSerializer {
 
     xmlService.setId(service.getId());
     xmlService.setServiceName(service.getServiceName());
-    xmlService.setTtl(Integer.toString(service.getTtl().intValue()));
+    if (service.getTtl() != null)
+      xmlService.setTtl(Integer.toString(service.getTtl().intValue()));
+    else
+      xmlService.setTtl("0");
     xmlService.setConsumability(service.getConsumability());
     xmlService.setContractDescription(service.getContractDescription());
     xmlService.setDescription(service.getDescription());
@@ -99,6 +117,69 @@ public class XMLSerializer {
     }
     return xmlService;
 
+  }
+
+  public ResponseWrapper unmarshal(String payload) throws ResponseParseException {
+
+    return unmarshalXML(payload);
+
+  }
+
+  private ResponseWrapper unmarshalXML(String payload) throws ResponseParseException {
+
+    Services xmlServices = parseResponsePayload(payload);
+
+    ResponseWrapper response = new ResponseWrapper(xmlServices.getProbeID());
+    response.setResponseID(xmlServices.getResponseID());
+
+    for (Service xmlService : xmlServices.getService()) {
+      ServiceWrapper service = new ServiceWrapper(xmlService.getId());
+
+      service.setTtl(xmlService.getTtl());
+      service.setConsumability(xmlService.getConsumability());
+      service.setContractDescription(xmlService.getContractDescription());
+      service.setDescription(xmlService.getDescription());
+      service.setServiceContractID(xmlService.getContractID());
+      service.setServiceName(xmlService.getServiceName());
+
+      if (xmlService.getAccessPoints() != null) {
+        for (ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint ap : xmlService.getAccessPoints().getAccessPoint()) {
+          service.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), ap.getData().getType(), ap.getData().getValue());
+        }
+      }
+
+      response.addResponse(service);
+
+    }
+
+    return response;
+  }
+
+  private static Services parseResponsePayload(String payload) throws ResponseParseException {
+
+    JAXBContext jaxbContext;
+    Services services = null;
+
+    try {
+      jaxbContext = JAXBContext.newInstance(Services.class);
+      Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+
+      InputStream inputStream = new ByteArrayInputStream(payload.getBytes(Charset.forName("UTF-8")));
+
+      SAXParserFactory spf = SAXParserFactory.newInstance();
+      spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+      SAXParser sp = spf.newSAXParser();
+      XMLReader xmlReader = sp.getXMLReader();
+      InputSource inputSource = new InputSource(inputStream);
+      SAXSource saxSource = new SAXSource(xmlReader, inputSource);
+
+      services = (Services) jaxbUnmarshaller.unmarshal(saxSource);
+
+    } catch (JAXBException | FactoryConfigurationError | ParserConfigurationException | SAXException e) {
+      throw new ResponseParseException(e);
+    }
+
+    return services;
   }
 
 }
