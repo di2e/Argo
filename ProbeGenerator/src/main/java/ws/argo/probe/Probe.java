@@ -16,51 +16,48 @@
 
 package ws.argo.probe;
 
-import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 import org.apache.commons.validator.routines.UrlValidator;
 
-import ws.argo.wireline.probe.xml.ObjectFactory;
-import ws.argo.wireline.probe.xml.Probe.Ra.RespondTo;
+import ws.argo.wireline.probe.ProbeWrapper;
 
 public class Probe {
 
-  public static final String               PROBE_GENERTOR_CONTRACT_ID = "urn:uuid:918b5b45-1496-459e-8a6b-633dbc465380";
-
-  public static final String               XML                        = "XML";
-  public static final String               JSON                       = "JSON";
-
   // the default TTL for a probe is the max TTL of 255 - or the entire network
-  public int                               ttl                        = 255;
+  public int                 ttl                = 255;
 
-  public ArrayList<String>                 serviceInstanceIDs         = new ArrayList<String>();
+  public ArrayList<String>   serviceInstanceIDs = new ArrayList<String>();
 
-  private ws.argo.wireline.probe.xml.Probe xmlProbe;
-  private ObjectFactory                    xmlProbeFactory            = new ObjectFactory();
+  private ProbeWrapper       probe;
 
+  /**
+   * Create a new client-generated probe for sending out on the network.
+   * 
+   * @param respondToPayloadType - JSON or XML
+   * @throws UnsupportedPayloadType if the respondToPayloadType is not JSON or
+   *           XML
+   */
   public Probe(String respondToPayloadType) throws UnsupportedPayloadType {
-    xmlProbe = xmlProbeFactory.createProbe();
 
     UUID uuid = UUID.randomUUID();
     String probeID = "urn:uuid:" + uuid.toString();
-    xmlProbe.setId(probeID);
-    xmlProbe.setDESVersion(PROBE_GENERTOR_CONTRACT_ID);
-    if (respondToPayloadType == null
-        || respondToPayloadType.isEmpty()
-        || (!respondToPayloadType.equals(JSON) && !respondToPayloadType
-            .equals(XML)))
-      throw new UnsupportedPayloadType(
-          "Attempting to set payload type to: " + respondToPayloadType
-              + ". Cannot be null or empty and must be " + JSON + " or " + XML);
-    xmlProbe.setRespondToPayloadType(respondToPayloadType); // Should be XML
-    // or JSON
+
+    probe = new ProbeWrapper(probeID);
+
+    probe.setDESVersion(ProbeWrapper.PROBE_DES_VERSION);
+
+    // Sanity check on the payload type values. Should be XML or JSON
+    // If the probe goes out with a bad value here, then the Responder may have
+    // problems
+    if (respondToPayloadType == null || respondToPayloadType.isEmpty() || (!respondToPayloadType.equals(ProbeWrapper.JSON) && !respondToPayloadType.equals(ProbeWrapper.XML)))
+      throw new UnsupportedPayloadType("Attempting to set payload type to: " + respondToPayloadType + ". Cannot be null or empty and must be " + ProbeWrapper.JSON + " or " + ProbeWrapper.XML);
+
+    probe.setRespondToPayloadType(respondToPayloadType);
   }
 
   public int getHopLimit() {
@@ -72,52 +69,64 @@ public class Probe {
   }
 
   public String getProbeID() {
-    return xmlProbe.getId();
+    return probe.getProbeId();
   }
 
   public void setClientID(String clientID) {
-    xmlProbe.setClient(clientID);
+    probe.setClientId(clientID);
   }
 
+  /**
+   * Add a URL that specifies where the Responder should send the response.
+   * Provide a label as a hint to the Responder about why this URL was included.
+   * For example: give a "internal" label for a respondToURL that is only
+   * accessible from inside a NATed network.
+   * 
+   * @param label - hint about the URL
+   * @param respondToURL - the URL the responder will POST a payload to
+   * @throws MalformedURLException if the URL is bad
+   */
   public void addRespondToURL(String label, String respondToURL) throws MalformedURLException {
 
+    // Sanity check on the respondToURL
+    // The requirement for the respondToURL is a REST POST call, so that means
+    // only HTTP and HTTPS schemes.
+    // Localhost is allowed as well as a valid response destination
     String[] schemes = { "http", "https" };
     UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
-    if (!urlValidator.isValid(respondToURL)) {
+    if (!urlValidator.isValid(respondToURL))
       throw new MalformedURLException("The probe respondTo URL is invalid: " + respondToURL);
-    }
-    RespondTo rt = xmlProbeFactory.createProbeRaRespondTo();
-    rt.setLabel(label);
-    rt.setValue(respondToURL);
-    if (xmlProbe.getRa() == null)
-      xmlProbe.setRa(xmlProbeFactory.createProbeRa());
-    xmlProbe.getRa().getRespondTo().add(rt);
+
+    probe.addRespondToURL(label, respondToURL);
+
   }
 
+  /**
+   * Add a service contact ID to include in the probe.
+   * 
+   * @param serviceContractID - the ID
+   */
   public void addServiceContractID(String serviceContractID) {
-    if (xmlProbe.getScids() == null)
-      xmlProbe.setScids(xmlProbeFactory.createProbeScids());
-    xmlProbe.getScids().getServiceContractID().add(serviceContractID);
+    probe.addServiceContractID(serviceContractID);
   }
 
+  /**
+   * Add a service ID to include in the probe.
+   * 
+   * @param serviceInstanceID - the ID
+   */
   public void addServiceInstanceID(String serviceInstanceID) {
-    if (xmlProbe.getSiids() == null)
-      xmlProbe.setSiids(xmlProbeFactory.createProbeSiids());
-    xmlProbe.getSiids().getServiceInstanceID().add(serviceInstanceID);
+    probe.addServiceInstanceID(serviceInstanceID);
   }
 
+  /**
+   * Return the XML string of the probe. Probes are only serialized as XML.
+   * 
+   * @throws JAXBException if there is some issue building XML
+   */
   public String asXML() throws JAXBException {
 
-    StringWriter sw = new StringWriter();
-    JAXBContext jaxbContext = JAXBContext.newInstance(ws.argo.wireline.probe.xml.Probe.class);
-    Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-    // output pretty printed
-    jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-    jaxbMarshaller.marshal(xmlProbe, sw);
-
-    return sw.toString();
+    return probe.asXML();
   }
 
 }
