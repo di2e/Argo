@@ -11,6 +11,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -168,8 +169,8 @@ public class ProbeGeneratorTest {
     gen.sendProbe(probe);
   }
 
-  @After
-  public void closeProbeGenerator() {
+  @AfterClass
+  public static void closeProbeGenerator() {
     gen.close();
   }
 
