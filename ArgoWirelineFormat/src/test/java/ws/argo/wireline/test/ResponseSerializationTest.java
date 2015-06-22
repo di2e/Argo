@@ -45,6 +45,7 @@ public class ResponseSerializationTest {
 
   @BeforeClass
   public static void setupProbeGenerator() throws IOException {
+    System.out.println(System.getProperty("java.version"));
     readXMLFiles();
   }
 
@@ -231,13 +232,13 @@ public class ResponseSerializationTest {
   }
   
   @Test
-  public void testMarshallingJSONResponseWithMultipleServices() {
+  public void testMarshallingJSONResponseWithMultipleServices() throws IOException {
     ResponseWrapper response = createResponseWrapperWithMultipleServices();
 
     JSONSerializer serializer = new JSONSerializer();
 
     String payload = serializer.marshal(response);
-
+   
     assertTrue(payload.equals(testResponseJSONPayloadMultipleServices));
 
   }
