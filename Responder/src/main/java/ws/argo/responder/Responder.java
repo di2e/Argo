@@ -26,12 +26,11 @@ import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.bind.JAXBException;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -51,32 +50,36 @@ import ws.argo.wireline.probe.XMLSerializer;
 
 public class Responder {
 
-  private static final Logger                      LOGGER        = Logger.getLogger(Responder.class.getName());
+  private static final Logger                      LOGGER                 = Logger.getLogger(Responder.class.getName());
 
-  private static String                            ARGO_VERSION  = "0.3.0-SNAPSHOT";
+  private static String                            ARGO_VERSION           = "UNKNOWN";
 
-  private static ArrayList<ProbeHandlerPluginIntf> handlers      = new ArrayList<ProbeHandlerPluginIntf>();
+  private static ArrayList<ProbeHandlerPluginIntf> handlers               = new ArrayList<ProbeHandlerPluginIntf>();
 
-  NetworkInterface                                 ni            = null;
-  protected MulticastSocket                        inboundSocket = null;
+  // 30 second timeout - the processing loop will interrupt once every 30
+  // seconds to check
+  // to see if the loop should quit. This is for hygiene as well as
+  // unit/integration tests
+  private static int                               INBOUND_SOCKET_TIMEOUT = 30000;
+
+  // static flag to tell the processing loop to continue or not.
+  // this allows external control on the processing loop so you don't have to
+  // directly
+  // kill the process to stop a Responder - see inboundSocketTimeout
+  private static boolean                           SHOULD_RUN             = true;
+
+  NetworkInterface                                 ni                     = null;
+  protected MulticastSocket                        inboundSocket          = null;
   protected InetAddress                            maddress;
 
   protected CloseableHttpClient                    httpClient;
 
-  private ResponderCLIValues                       cliValues;
-
-  private static class ResponderCLIValues {
-    public ResponderCLIValues(ResponderConfigurationBean propsConfig) {
-      this.config = propsConfig;
-    }
-
-    public ResponderConfigurationBean config = new ResponderConfigurationBean();
-  }
+  private ResponderConfigurationBean               cliValues;
 
   private static class ResponderConfigurationBean {
 
-    public int                         multicastPort;
-    public String                      multicastAddress;
+    public int                         multicastPort     = 4003;
+    public String                      multicastAddress  = "230.0.0.1";
     public boolean                     noBrowser         = false;
     public ArrayList<AppHandlerConfig> appHandlerConfigs = new ArrayList<AppHandlerConfig>();
     public String                      networkInterface;
@@ -100,8 +103,7 @@ public class Responder {
      * java process thread. This ostensibly avoids leaving dangling resources.
      */
     public void run() {
-      LOGGER.info("Responder shutting down port "
-          + agent.cliValues.config.multicastPort);
+      LOGGER.info("Responder shutting down port " + agent.cliValues.multicastPort);
       if (agent.inboundSocket != null) {
         try {
           agent.inboundSocket.leaveGroup(agent.maddress);
@@ -114,7 +116,7 @@ public class Responder {
     }
   }
 
-  public Responder(ResponderCLIValues cliValues) {
+  public Responder(ResponderConfigurationBean cliValues) {
     this.cliValues = cliValues;
   }
 
@@ -130,13 +132,18 @@ public class Responder {
    * @param classname is the FQCN of the handler class
    * @param configFilename is the full path name of the config file name
    *          specific for the handler (could be any crazy format)
-   * @throws IOException if there is some issues with the config file
-   * @throws ClassNotFoundException if the FQCN is invalid
+   * @throws ResponderConfigException if there is some issues with the config
+   *           file
    */
-  public static void addHandler(String classname, String configFilename) throws IOException, ClassNotFoundException {
+  public static void addHandler(String classname, String configFilename) throws ResponderConfigException {
 
     ClassLoader cl = ClassLoader.getSystemClassLoader();
-    Class<?> handlerClass = cl.loadClass(classname);
+    Class<?> handlerClass;
+    try {
+      handlerClass = cl.loadClass(classname);
+    } catch (ClassNotFoundException e1) {
+      throw new ResponderConfigException("Error loading the handler class", e1);
+    }
     ProbeHandlerPluginIntf handler;
 
     try {
@@ -159,6 +166,86 @@ public class Responder {
   }
 
   /**
+   * This is the main run method for the Argo Responder. It starts up all the
+   * necessary machinery and enters the UDP receive loop.
+   * 
+   * @throws ResponderConfigException if bad things happen with the
+   *           configuration files and the content of the files. For example if
+   *           the classnames for the probe handlers are bad (usually a type or
+   *           classpath issue)
+   * @throws ResponderOperationException if some IOException or other
+   *           operational problem occurs
+   * 
+   */
+  public void run() throws ResponderConfigException, ResponderOperationException {
+
+    // load up the handler classes specified in the configuration parameters
+    // I hope the hander classes are in a jar file on the classpath
+    loadHandlerPlugins(cliValues.appHandlerConfigs);
+
+    if (!joinGroup()) {
+      LOGGER.severe("Responder shutting down: unable to join multicast group");
+      return;
+    }
+
+    DatagramPacket packet;
+    LOGGER.info("Responder started on " + cliValues.multicastAddress  + ":" + cliValues.multicastPort);
+
+    httpClient = HttpClients.createDefault();
+
+    LOGGER.fine("Starting Responder loop - infinite until process terminated");
+    // infinite loop until the responder is terminated
+    while (shouldRun()) {
+
+      byte[] buf = new byte[1024];
+      packet = new DatagramPacket(buf, buf.length);
+      LOGGER.fine("Waiting to recieve packet...");
+      try {
+        inboundSocket.receive(packet);
+
+        LOGGER.fine("Received packet");
+        LOGGER.fine("Packet contents:");
+
+        // Get the actual wireline payload
+        String probeStr = new String(packet.getData(), 0, packet.getLength());
+        LOGGER.fine(probeStr);
+
+        try {
+          XMLSerializer serializer = new XMLSerializer();
+
+          ProbeWrapper probe = serializer.unmarshal(probeStr);
+
+          // reuses the handlers and the httpClient. Both should be threadSafe
+          new ProbeHandlerThread(handlers, probe, httpClient, cliValues.noBrowser).start();
+        } catch (ProbeParseException e) {
+          LOGGER.log(Level.SEVERE, "Error parsing inbound probe payload.", e);
+        }
+      } catch (SocketTimeoutException toe) {
+        LOGGER.finest("Responder loop timeout fired.");
+      } catch (IOException e1) {
+        throw new ResponderOperationException("Error during responder wireline read loop.", e1);
+      }
+
+    }
+
+    LOGGER.info("Stopping responder through trigger.");
+
+  }
+
+  private void loadHandlerPlugins(ArrayList<AppHandlerConfig> configs) {
+
+    for (AppHandlerConfig appConfig : configs) {
+
+      try {
+        addHandler(appConfig.classname, appConfig.configFilename);
+      } catch (ResponderConfigException e) {
+        LOGGER.log(Level.SEVERE, "Error loading handler for " + appConfig.classname + ". Skipping handler", e);
+      }
+    }
+
+  }
+
+  /**
    * This method attempts to join the multicast group in a particular Network
    * Interface (NI). This is useful for when inbound multicast ONLY can occur on
    * a particular interface channel. However, if there is some issue with the NI
@@ -170,17 +257,15 @@ public class Responder {
    * 
    * @return true if the join was successful
    */
-  boolean joinGroup() {
+  private boolean joinGroup() {
     boolean success = true;
-    InetSocketAddress socketAddress = new InetSocketAddress(
-        cliValues.config.multicastAddress,
-        cliValues.config.multicastPort);
+    InetSocketAddress socketAddress = new InetSocketAddress(cliValues.multicastAddress, cliValues.multicastPort);
     try {
       // Setup for incoming multicast requests
-      maddress = InetAddress.getByName(cliValues.config.multicastAddress);
+      maddress = InetAddress.getByName(cliValues.multicastAddress);
 
-      if (cliValues.config.networkInterface != null) {
-        ni = NetworkInterface.getByName(cliValues.config.networkInterface);
+      if (cliValues.networkInterface != null) {
+        ni = NetworkInterface.getByName(cliValues.networkInterface);
       }
       if (ni == null) {
         InetAddress localhost = InetAddress.getLocalHost();
@@ -188,28 +273,22 @@ public class Responder {
         ni = NetworkInterface.getByInetAddress(localhost);
       }
 
-      LOGGER.info("Starting Responder:  Receiving mulitcast @ "
-          + cliValues.config.multicastAddress + ":"
-          + cliValues.config.multicastPort);
-      this.inboundSocket = new MulticastSocket(
-          cliValues.config.multicastPort);
+      LOGGER.info("Starting Responder:  Receiving mulitcast @ " + cliValues.multicastAddress + ":" + cliValues.multicastPort);
+      this.inboundSocket = new MulticastSocket(cliValues.multicastPort);
 
       if (ni == null) { // for some reason NI is still NULL. Not sure why
         // this happens.
         this.inboundSocket.joinGroup(maddress);
-        LOGGER
-            .warning("Unable to determine the network interface for the localhost address.  Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
-        LOGGER.info("Unknown network interface joined group "
-            + socketAddress.toString());
+        LOGGER.warning("Unable to determine the network interface for the localhost address.  Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
+        LOGGER.info("Unknown network interface joined group " + socketAddress.toString());
       } else {
         this.inboundSocket.joinGroup(socketAddress, ni);
-        LOGGER.info(ni.getName() + " joined group "
-            + socketAddress.toString());
+        this.inboundSocket.setSoTimeout(INBOUND_SOCKET_TIMEOUT);
+        LOGGER.info(ni.getName() + " joined group " + socketAddress.toString());
       }
     } catch (IOException e) {
       if (ni == null) {
-        LOGGER.log(Level.SEVERE,
-            "Error attempting to joint multicast address: ", e);
+        LOGGER.log(Level.SEVERE, "Error attempting to joint multicast address: ", e);
       } else {
         StringBuffer buf = new StringBuffer();
         try {
@@ -244,80 +323,25 @@ public class Responder {
   }
 
   /**
-   * This is the main run method for the Argo Responder. It starts up all the
-   * necessary machinery and enters the UDP receive loop.
-   * 
-   * @throws IOException if bad things happen with the configuration files
-   * @throws ClassNotFoundException if the classnames for the probe handlers are
-   *           bad (usually a type or classpath issue)
-   */
-  public void run() throws IOException, ClassNotFoundException {
-
-    // load up the handler classes specified in the configuration parameters
-    // I hope the hander classes are in a jar file on the classpath
-    loadHandlerPlugins(cliValues.config.appHandlerConfigs);
-
-    if (!joinGroup()) {
-      LOGGER.severe("Responder shutting down: unable to join multicast group");
-      return;
-    }
-
-    DatagramPacket packet;
-    LOGGER.info("Responder started on " + cliValues.config.multicastAddress
-        + ":" + cliValues.config.multicastPort);
-
-    httpClient = HttpClients.createDefault();
-
-    LOGGER.fine("Starting Responder loop - infinite until process terminated");
-    // infinite loop until the responder is terminated
-    while (true) {
-
-      byte[] buf = new byte[1024];
-      packet = new DatagramPacket(buf, buf.length);
-      LOGGER.fine("Waiting to recieve packet...");
-      inboundSocket.receive(packet);
-
-      LOGGER.fine("Received packet");
-      LOGGER.fine("Packet contents:");
-
-      // Get the actual wireline payload
-      String probeStr = new String(packet.getData(), 0, packet.getLength());
-      LOGGER.fine(probeStr);
-
-      try {
-        XMLSerializer serializer = new XMLSerializer();
-
-        ProbeWrapper probe = serializer.unmarshal(probeStr);
-
-        // reuses the handlers and the httpClient. Both should be threadSafe
-        new ProbeHandlerThread(handlers, probe, httpClient, cliValues.config.noBrowser).start();
-      } catch (ProbeParseException e) {
-        LOGGER.log(Level.SEVERE, "Error parsing inbound probe payload.", e);
-      }
-
-    }
-
-  }
-
-  /**
    * Main entry point for Argo Responder.
    * 
    * @param args command line arguments
-   * @throws IOException if bad things happen with the configuration files
-   * @throws ClassNotFoundException if the classnames for the probe handlers are
-   *           bad (usually a type or classpath issue)
+   * @throws ResponderConfigException if bad things happen with the
+   *           configuration files
+   * @throws ResponderOperationException if a runtime error occurs
    */
-  public static void main(String[] args) throws IOException,
-      ClassNotFoundException {
-
-    LOGGER.info("Starting Argo Responder daemon process.");
+  public static void main(String[] args) throws ResponderConfigException, ResponderOperationException {
 
     readVersionProperties();
 
-    ResponderCLIValues cliValues = parseCommandLine(args);
+    LOGGER.info("Starting Argo Responder daemon process. Version " + ARGO_VERSION);
 
-    if (cliValues == null)
+    ResponderConfigurationBean cliValues = parseCommandLine(args);
+
+    if (cliValues == null) {
+      LOGGER.log(Level.SEVERE, "Invalid Responder Configuration.  Terminating Responder process.");
       return;
+    }
 
     Responder responder = new Responder(cliValues);
 
@@ -329,8 +353,7 @@ public class Responder {
   }
 
   private static void readVersionProperties() {
-    InputStream is = Responder.class
-        .getResourceAsStream("/version.properties");
+    InputStream is = Responder.class.getResourceAsStream("/version.properties");
     if (is != null) {
       Properties p = new Properties();
       try {
@@ -345,9 +368,9 @@ public class Responder {
     }
   }
 
-  private static ResponderCLIValues parseCommandLine(String[] args) {
+  private static ResponderConfigurationBean parseCommandLine(String[] args) throws ResponderConfigException {
     CommandLineParser parser = new BasicParser();
-    ResponderCLIValues cliValues = null;
+    ResponderConfigurationBean cliValues = null;
 
     // Process the help option
     try {
@@ -371,30 +394,28 @@ public class Responder {
       LOGGER.log(Level.SEVERE, "Error parsing command line:  " + e.getLocalizedMessage());
     } catch (ParseException e) {
       LOGGER.log(Level.SEVERE, "Error parsing option.", e);
-    } catch (ResponderConfigException e) {
-      LOGGER.log(Level.SEVERE, "Error in Responder configuration.", e);
     }
 
     return cliValues;
   }
 
-  private static ResponderCLIValues processCommandLine(CommandLine cl)
+  private static ResponderConfigurationBean processCommandLine(CommandLine cl)
       throws ResponderConfigException {
 
     LOGGER.fine("Parsing command line values:");
 
     ResponderConfigurationBean propsConfig = new ResponderConfigurationBean();
-    ResponderCLIValues cliValues = new ResponderCLIValues(propsConfig);
 
     if (cl.hasOption("pf")) {
       String propsFilename = cl.getOptionValue("pf");
       try {
         propsConfig = processPropertiesValue(propsFilename, propsConfig);
-      } catch (Exception e) {
-        LOGGER.warning("Unable to read properties file named " + propsFilename + " due to " + e.toString() + " ");
+      } catch (ResponderConfigException e) {
+        LOGGER.log(Level.SEVERE, "Unable to read properties file named " + propsFilename + " due to:", e);
+        throw e;
       }
     } else {
-      LOGGER.warning("WARNING: no propoerties file specified.  Working off cli override arguments.");
+      LOGGER.warning("WARNING: no properties file specified.  Working off cli override arguments.");
     }
 
     // No browser option - if set then do not process naked probes
@@ -424,15 +445,7 @@ public class Responder {
       LOGGER.info("Overriding multicast address with command line value");
     }
 
-    return cliValues;
-
-  }
-
-  private void loadHandlerPlugins(ArrayList<AppHandlerConfig> configs) throws IOException, ClassNotFoundException {
-
-    for (AppHandlerConfig appConfig : configs) {
-      addHandler(appConfig.classname, appConfig.configFilename);
-    }
+    return propsConfig;
 
   }
 
@@ -440,11 +453,17 @@ public class Responder {
     Properties prop = new Properties();
 
     try {
-      prop.load(new FileInputStream(propertiesFilename));
+      InputStream is;
+      if (Responder.class.getResource(propertiesFilename) != null) {
+        is = Responder.class.getResourceAsStream(propertiesFilename);
+      } else {
+        is = new FileInputStream(propertiesFilename);
+      }
+      prop.load(is);
     } catch (FileNotFoundException e) {
-      throw new ResponderConfigException("Properties file exception:", e);
+      throw new ResponderConfigException(e.getLocalizedMessage(), e);
     } catch (IOException e) {
-      throw new ResponderConfigException("Properties file exception:", e);
+      throw new ResponderConfigException(e.getLocalizedMessage(), e);
     }
 
     try {
@@ -455,7 +474,7 @@ public class Responder {
       config.multicastPort = 4003;
     }
 
-    config.multicastAddress = prop.getProperty("multicastAddress");
+    config.multicastAddress = prop.getProperty("multicastAddress", "230.0.0.1");
 
     // handle the list of appHandler information
 
@@ -512,4 +531,13 @@ public class Responder {
 
     return options;
   }
+
+  private static boolean shouldRun() {
+    return SHOULD_RUN;
+  }
+
+  public static void stopResponder() {
+    SHOULD_RUN = false;
+  }
+
 }

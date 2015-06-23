@@ -13,5 +13,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # 
-xmlConfigFilename=/config/configFileProbeHandlerServiceList.xml
+xmlConfigFilename=/Users/jmsimpson/Documents/workspace/Argo/Responder/target/test-classes/config/configFileProbeHandlerServiceList.xml
 

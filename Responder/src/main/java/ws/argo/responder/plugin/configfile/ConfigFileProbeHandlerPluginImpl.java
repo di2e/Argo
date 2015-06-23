@@ -17,6 +17,7 @@
 package ws.argo.responder.plugin.configfile;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -24,10 +25,8 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.logging.Logger;
 
-import org.apache.commons.io.IOUtils;
-
 import ws.argo.responder.ProbeHandlerPluginIntf;
-import ws.argo.responder.test.ResponderProbeTest;
+import ws.argo.responder.ResponderConfigException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
@@ -116,7 +115,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
   /**
    * Initialize the handler.
    */
-  public void initializeWithPropertiesFilename(String filename) throws IOException {
+  public void initializeWithPropertiesFilename(String filename) throws ResponderConfigException {
 
     InputStream is;
     // try to load the properties file off the classpath first
@@ -124,10 +123,18 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
     if (ConfigFileProbeHandlerPluginImpl.class.getResource(filename) != null) {
       is = ConfigFileProbeHandlerPluginImpl.class.getResourceAsStream(filename);
     } else {
-      is = new FileInputStream(filename);
+      try {
+        is = new FileInputStream(filename);
+      } catch (FileNotFoundException e) {
+        throw new ResponderConfigException("Error loading handler config for " + this.getClass().getName(), e);
+      }
     }
 
-    config.load(is);
+    try {
+      config.load(is);
+    } catch (IOException e) {
+      throw new ResponderConfigException("Error loading handler config for " + this.getClass().getName(), e);
+    }
 
     // Launch the timer task that will look for changes to the config file
     configFileScan = new Timer();

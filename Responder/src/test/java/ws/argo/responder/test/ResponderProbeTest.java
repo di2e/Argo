@@ -2,6 +2,7 @@ package ws.argo.responder.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,12 +12,15 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.internal.runners.statements.Fail;
 
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeGenerator;
 import ws.argo.probe.UnsupportedPayloadType;
 import ws.argo.responder.test.listener.ResponseListener;
 import ws.argo.responder.Responder;
+import ws.argo.responder.ResponderConfigException;
+import ws.argo.responder.ResponderOperationException;
 import ws.argo.wireline.probe.ProbeWrapper;
 
 import com.sun.jersey.api.client.Client;
@@ -29,30 +33,34 @@ public class ResponderProbeTest {
   private static Thread      responderThread;
   static ProbeGenerator      gen = null;
 
-  private static String      nakedProbeResponseFromListener;
+  private static String      nakedProbeJSONResponseFromListener;
+  private static String nakedProbeXMLResponseFromListener;
 
   /**
    * reads in the test payload text to check responses against. better then
    * putting it in the source code.
    * 
-   * @throws IOException
-   *           if the resource is missing
+   * @throws IOException if the resource is missing
    */
   private static void readTargetXMLFiles() throws IOException {
     // Read the completely filled out probe test file for comparison
-    assertNotNull("targetProbeXML.xml file missing", ResponderProbeTest.class.getResource("/nakedProbeResponseFromListener.json"));
-    try (InputStream is = ResponderProbeTest.class .getResourceAsStream("/nakedProbeResponseFromListener.json")) {
-      nakedProbeResponseFromListener = IOUtils.toString(is, "UTF-8");
+    assertNotNull("nakedProbeJSONResponseFromListener.json file missing", ResponderProbeTest.class.getResource("/nakedProbeJSONResponseFromListener.json"));
+    try (InputStream is = ResponderProbeTest.class.getResourceAsStream("/nakedProbeJSONResponseFromListener.json")) {
+      nakedProbeJSONResponseFromListener = IOUtils.toString(is, "UTF-8");
     }
 
-    // Read the naked (minimally) filled out probe test file for comparison
-    // assertNotNull("targetNakedProbeXML.xml file missing",
-    // ProbeGeneratorTest.class.getResource("/targetNakedProbeXML.xml"));
-    // try (InputStream is =
-    // ProbeGeneratorTest.class.getResourceAsStream("/targetNakedProbeXML.xml"))
-    // {
-    // targetNakedProbeXML = IOUtils.toString(is, "UTF-8");
-    // }
+    // Read the completely filled out probe test file for comparison
+    assertNotNull("nakedProbeXMLResponseFromListener.json file missing", ResponderProbeTest.class.getResource("/nakedProbeXMLResponseFromListener.json"));
+    try (InputStream is = ResponderProbeTest.class.getResourceAsStream("/nakedProbeXMLResponseFromListener.json")) {
+      nakedProbeXMLResponseFromListener = IOUtils.toString(is, "UTF-8");
+    }
+
+  }
+
+  private static void startListener() throws IOException {
+    server = ResponseListener.startServer();
+  
+    target = Client.create().resource(ResponseListener.BASE_URI);
   }
 
   private static void startResponder() {
@@ -65,37 +73,46 @@ public class ResponderProbeTest {
       public void run() {
         try {
           Responder.main(args);
-        } catch (ClassNotFoundException | IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+        } catch (ResponderConfigException e) {
+          org.junit.Assert.fail(e.getLocalizedMessage());
+        } catch (ResponderOperationException e) {
+          org.junit.Assert.fail(e.getLocalizedMessage());
         }
       }
     };
     responderThread.start();
   }
 
-  private static void startListener() throws IOException {
-    server = ResponseListener.startServer();
-
-    target = Client.create().resource(ResponseListener.BASE_URI);
-  }
-
-  @AfterClass
-  public static void tearDown() throws Exception {
-    server.stop();
-  }
-
+  /**
+   * Start up the necessary gear to test Argo. Multiple process are involved
+   * here that use multicast networking UDP packets. Make sure that you can send
+   * multicast UDP to make these work. NOTE: Some CI servers (like Jenkins
+   * slaves) might not allow multicast for some reason
+   * 
+   * @throws IOException
+   * @throws InterruptedException - to support the Thread sleep function
+   */
   @BeforeClass
   public static void startupTheGear() throws IOException, InterruptedException {
     gen = new ProbeGenerator("230.0.0.1", 4003);
-
+  
     readTargetXMLFiles();
-
+  
     startResponder();
     startListener();
-
+  
     Thread.sleep(2000); // wait 2 seconds for everything to settle
+  
+  }
 
+  /**
+   * Turn off the test harness processes.
+   */
+  @AfterClass
+  public static void tearDown() {
+    server.stop();
+    Responder.stopResponder();
+    gen.close();
   }
 
   @Test
@@ -116,7 +133,7 @@ public class ResponderProbeTest {
 
     String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
 
-    assertEquals(nakedProbeResponseFromListener.length(), responseMsg.length());
+    assertTrue(responseMsg.equals(nakedProbeJSONResponseFromListener));
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
 
@@ -131,7 +148,7 @@ public class ResponderProbeTest {
 
     String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
 
-    assertEquals(nakedProbeResponseFromListener.length(), responseMsg.length());
+    assertTrue(responseMsg.equals(nakedProbeXMLResponseFromListener));
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
 

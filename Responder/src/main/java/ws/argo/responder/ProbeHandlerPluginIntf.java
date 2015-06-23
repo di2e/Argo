@@ -16,8 +16,6 @@
 
 package ws.argo.responder;
 
-import java.io.IOException;
-
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
 
@@ -35,5 +33,5 @@ public interface ProbeHandlerPluginIntf {
 
   public ResponseWrapper handleProbeEvent(ProbeWrapper payload);
 
-  public void initializeWithPropertiesFilename(String filename) throws IOException;
+  public void initializeWithPropertiesFilename(String filename) throws ResponderConfigException;
 }
