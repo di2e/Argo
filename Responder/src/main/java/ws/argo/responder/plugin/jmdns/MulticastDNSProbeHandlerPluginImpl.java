@@ -26,6 +26,7 @@ import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 
 import ws.argo.responder.ProbeHandlerPluginIntf;
+import ws.argo.responder.ResponderConfigException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
@@ -76,13 +77,12 @@ public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, Serv
   }
 
   @Override
-  public void initializeWithPropertiesFilename(String filename) throws IOException {
+  public void initializeWithPropertiesFilename(String filename) throws ResponderConfigException {
     LOGGER.info("Does not support loading props");
     try {
       initialize();
     } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      throw new ResponderConfigException("Error initializing handler.", e);
     }
   }
 

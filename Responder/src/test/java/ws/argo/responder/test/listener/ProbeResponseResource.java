@@ -68,9 +68,15 @@ public class ProbeResponseResource {
       cache.cache(new ExpiringService(service));
     }
 
-    return "Successfully cached services";
+    return "Successfully cached " + response.getServices().size() + " services";
   }
 
+  /**
+   * 
+   * @param probeResponseXML
+   * @return
+   * @throws ResponseParseException
+   */
   @POST
   @Path("/probeResponse")
   @Consumes("application/xml")
@@ -85,7 +91,7 @@ public class ProbeResponseResource {
       cache.cache(new ExpiringService(service));
     }
 
-    return "Successfully cached services";
+    return "Successfully cached " + response.getServices().size() + " services";
   }
 
   @GET
