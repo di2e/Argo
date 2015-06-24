@@ -16,32 +16,8 @@
 
 package ws.argo.wireline.probe;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.PropertyException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.transform.sax.SAXSource;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-
-import ws.argo.wireline.probe.xml.Probe;
-import ws.argo.wireline.probe.xml.ObjectFactory;
-import ws.argo.wireline.probe.xml.Probe.Ra.RespondTo;
 
 public class ProbeWrapper {
 

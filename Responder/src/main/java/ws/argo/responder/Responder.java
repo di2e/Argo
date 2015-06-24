@@ -332,6 +332,7 @@ public class Responder {
    */
   public static void main(String[] args) throws ResponderConfigException, ResponderOperationException {
 
+    startResponder();
     readVersionProperties();
 
     LOGGER.info("Starting Argo Responder daemon process. Version " + ARGO_VERSION);
@@ -456,8 +457,10 @@ public class Responder {
       InputStream is;
       if (Responder.class.getResource(propertiesFilename) != null) {
         is = Responder.class.getResourceAsStream(propertiesFilename);
+        LOGGER.info("Reading Responder properties file (" + propertiesFilename + ") from classpath.");
       } else {
         is = new FileInputStream(propertiesFilename);
+        LOGGER.info("Reading Responder properties file (" + propertiesFilename + ") from file system.");
       }
       prop.load(is);
     } catch (FileNotFoundException e) {
@@ -538,6 +541,10 @@ public class Responder {
 
   public static void stopResponder() {
     SHOULD_RUN = false;
+  }
+  
+  public static void startResponder() {
+    SHOULD_RUN = true;
   }
 
 }
