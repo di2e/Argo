@@ -28,23 +28,10 @@
 			<artifactId>commons-cli</artifactId>
 			<version>1.2</version>
 		</dependency>
-		<!-- 
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.3.1</version>
-		</dependency>
-		 -->
 		<dependency>
 			<groupId>ws.argo.probe</groupId>
 			<version>0.3.0-SNAPSHOT</version>
 			<artifactId>ProbeGenerator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -55,6 +42,12 @@
 			<groupId>javax.jmdns</groupId>
 			<artifactId>jmdns</artifactId>
 			<version>3.4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>

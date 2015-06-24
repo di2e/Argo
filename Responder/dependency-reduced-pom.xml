@@ -95,7 +95,7 @@
               <transformers>
                 <transformer>
                   <manifestEntries>
-                    <Main-Class>net.di2e.rtsd.Responder.Responder</Main-Class>
+                    <Main-Class>ws.argo.responder.Responder</Main-Class>
                   </manifestEntries>
                 </transformer>
               </transformers>
@@ -106,20 +106,8 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>jaxb2-maven-plugin</artifactId>
-        <version>1.5</version>
+        <version>1.6</version>
         <executions>
-          <execution>
-            <id>xjc</id>
-            <goals>
-              <goal>xjc</goal>
-            </goals>
-            <configuration>
-              <schemaDirectory>${basedir}/src/main/resources/responseFormat</schemaDirectory>
-              <packageName>ws.argo.Responder.response.xml</packageName>
-              <outputDirectory>${basedir}/src/main/java</outputDirectory>
-              <clearOutputDir>false</clearOutputDir>
-            </configuration>
-          </execution>
           <execution>
             <id>xjc-configFileFormat</id>
             <goals>
@@ -127,8 +115,8 @@
             </goals>
             <configuration>
               <schemaDirectory>${basedir}/src/main/resources/configFileFormat</schemaDirectory>
-              <packageName>ws.argo.Responder.plugin.configFile.xml</packageName>
-              <outputDirectory>${basedir}/src/main/java</outputDirectory>
+              <packageName>ws.argo.responder.plugin.configfile.xml</packageName>
+              <outputDirectory>${project.build.directory}/java-gen</outputDirectory>
               <clearOutputDir>false</clearOutputDir>
             </configuration>
           </execution>

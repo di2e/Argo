@@ -16,32 +16,17 @@
 
 package ws.argo.responder.test.listener;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
-import org.xml.sax.SAXException;
 
 import ws.argo.wireline.response.JSONSerializer;
 import ws.argo.wireline.response.ResponseParseException;
 import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
 import ws.argo.wireline.response.XMLSerializer;
-import ws.argo.wireline.response.xml.Services;
-import ws.argo.wireline.response.xml.Services.Service;
-import ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint;
-import ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint.Data;
 
 @Path("/listener")
 public class ProbeResponseResource {
@@ -49,10 +34,10 @@ public class ProbeResponseResource {
   private static ResponseCache cache = new ResponseCache();
 
 /**
- * 
- * @param probeResponseJSON
- * @return
- * @throws ResponseParseException
+ * Inbound JSON responses get processed here.
+ * @param probeResponseJSON - the actual wireline response payload
+ * @return some innocuous string
+ * @throws ResponseParseException if the wireline payload is malformed in some way
  */
   @POST
   @Path("/probeResponse")
@@ -72,10 +57,10 @@ public class ProbeResponseResource {
   }
 
   /**
-   * 
-   * @param probeResponseXML
-   * @return
-   * @throws ResponseParseException
+   * Inbound XML responses get processed here.
+   * @param probeResponseXML - the actual wireline response payload
+   * @return some innocuous string
+   * @throws ResponseParseException  if the wireline payload is malformed in some way
    */
   @POST
   @Path("/probeResponse")
