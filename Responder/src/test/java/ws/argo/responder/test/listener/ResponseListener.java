@@ -23,14 +23,26 @@ import com.sun.jersey.api.core.ResourceConfig;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 
+import ws.argo.responder.Responder;
+
 import javax.ws.rs.core.UriBuilder;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/**
+ * The ResponseListener is a client used in testing the Responder.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponseListener {
+
+  private static final Logger LOGGER = Logger.getLogger(Responder.class.getName());
 
   private static int getPort(int defaultPort) {
     // grab port from environment, otherwise fall back to default port 9998
@@ -38,7 +50,9 @@ public class ResponseListener {
     if (null != httpPort) {
       try {
         return Integer.parseInt(httpPort);
-      } catch (NumberFormatException e) {}
+      } catch (NumberFormatException e) {
+        LOGGER.log(Level.INFO, "Error in port number format", e);
+      }
     }
     return defaultPort;
   }
@@ -49,6 +63,13 @@ public class ResponseListener {
 
   public static final URI BASE_URI = getBaseURI();
 
+  /**
+   * Start the ResponseListener client. This largely includes starting at
+   * Grizzly 2 server.
+   * 
+   * @return a new HttpServer
+   * @throws IOException if something goes wrong creating the http server
+   */
   public static HttpServer startServer() throws IOException {
     ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.Responder.test.listener");
 
@@ -61,13 +82,4 @@ public class ResponseListener {
     return httpServer;
   }
 
-  public static void main(String[] args) throws IOException {
-    // Grizzly 2 initialization
-    HttpServer httpServer = startServer();
-    System.out.println(String.format("Jersey app started with WADL available at "
-        + "%sapplication.wadl\nHit enter to stop it...",
-        BASE_URI));
-    System.in.read();
-    httpServer.stop();
-  }
 }
