@@ -44,7 +44,6 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import ws.argo.responder.plugin.configfile.ConfigFileProbeHandlerPluginImpl;
 import ws.argo.wireline.probe.ProbeParseException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.XMLSerializer;
@@ -119,7 +118,6 @@ public class Responder {
    * Create a new instance of a Responder.
    * 
    * @param cliValues - the list of command line arguments
-   * @param shutdownHook - the registered shutdown hook
    */
   public Responder(ResponderConfigurationBean cliValues) {
     this.cliValues = cliValues;
@@ -170,9 +168,6 @@ public class Responder {
     handlers.add(handler);
   }
 
-  // public static void addHandler(ProbeHandlerPluginIntf plugin) {
-  // handlers.add(plugin);
-  // }
 
   /**
    * Close the socket and tell the processing loop to terminate. This is a
