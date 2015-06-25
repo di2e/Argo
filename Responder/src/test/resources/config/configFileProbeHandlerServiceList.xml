@@ -1,50 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <servicesConfiguration>
-    <service id="urn:uuid:87362eb4-043b-4c75-b7e3-73462a7e9fce" contractID="urn:uuid:dbbc5efa-42e3-418c-a753-d2f3392ada07">
-        
-        <!-- description block crap -->
-        <description>This is an awesome service.  The scope of its awesomeness is hard to describe</description>
-        <serviceName>A very short name for Service Instance 1</serviceName>
-        <contractDescription>A short description of Contract 1</contractDescription>
-        <consumability>HUMAN_CONSUMABLE</consumability>
-        <ttl>0</ttl>
-    
-        <accessPoints>
-            <accessPoint label="external">
-                <ipAddress></ipAddress>
-                <port></port>
-                <url>http://192.168.0.51:8080/MyAwesomeService/index.jsp</url>
-                <data type="text"><![CDATA[This is some CDATA text]]></data>
-            </accessPoint>
-        </accessPoints>
-    </service>
+	<service id="urn:uuid:87362eb4-043b-4c75-b7e3-73462a7e9fce" contractID="urn:uuid:dbbc5efa-42e3-418c-a753-d2f3392ada07">
+
+		<!-- description block crap -->
+		<description>This is an awesome service. The scope of its awesomeness is hard to describe</description>
+		<serviceName>A very short name for Service Instance 1</serviceName>
+		<contractDescription>A short description of Contract 1</contractDescription>
+		<consumability>HUMAN_CONSUMABLE</consumability>
+		<ttl>0</ttl>
+
+		<accessPoints>
+			<accessPoint label="external">
+				<ipAddress></ipAddress>
+				<port></port>
+				<url>http://192.168.0.51:8080/MyAwesomeService/index.jsp</url>
+				<data type="text"><![CDATA[This is some CDATA text]]></data>
+			</accessPoint>
+		</accessPoints>
+	</service>
 
 
-    <service id="urn:uuid:bd61b54b-93d1-4c9a-81b7-c189c383f459" contractID="urn:uuid:4de22333-17ef-4028-b25c-6869ba080c08">
+	<service id="urn:uuid:bd61b54b-93d1-4c9a-81b7-c189c383f459" contractID="urn:uuid:4de22333-17ef-4028-b25c-6869ba080c08">
 
-        <!-- description block crap -->
-        <description>This is another awesome service.  The scope of its awesomeness is eclipsed only by the other awesome service</description>
-        <serviceName>A very short name for Service Instance 2</serviceName>
-        <contractDescription>A short description of Contract 2</contractDescription>
-        <consumability>MACHINE_CONSUMABLE</consumability>
-        <ttl>10</ttl>
-    
-        <accessPoints>
-            <accessPoint label="internal">
-                <ipAddress>192.168.0.51</ipAddress>
-                <port>8080</port>
-                <url>http://192.168.0.51:8080/AnotherAwesomeService/operation</url>
-                <data type="image"><![CDATA[Some image data]]></data>
-            </accessPoint>
-            <accessPoint label="external">
-                <ipAddress></ipAddress>
-                <port></port>
-                <url>http://205.215.0.51:8080/AnotherAwesomeService/operation</url>
-                <data type="text"><![CDATA[This is some CDATA text]]></data>
-            </accessPoint>
-        </accessPoints>
+		<!-- description block crap -->
+		<description>This is another awesome service. The scope of its awesomeness is eclipsed only by the other awesome service</description>
+		<serviceName>A very short name for Service Instance 2</serviceName>
+		<contractDescription>A short description of Contract 2</contractDescription>
+		<consumability>MACHINE_CONSUMABLE</consumability>
+		<ttl>10</ttl>
+
+		<accessPoints>
+			<accessPoint label="internal">
+				<ipAddress>192.168.0.51</ipAddress>
+				<port>8080</port>
+				<url>http://192.168.0.51:8080/AnotherAwesomeService/operation</url>
+				<data type="image"><![CDATA[Some image data]]></data>
+			</accessPoint>
+			<accessPoint label="external">
+				<ipAddress></ipAddress>
+				<port></port>
+				<url>http://205.215.0.51:8080/AnotherAwesomeService/operation</url>
+				<data type="text"><![CDATA[This is some CDATA text]]></data>
+			</accessPoint>
+		</accessPoints>
 
 
-    </service>
+	</service>
 </servicesConfiguration>

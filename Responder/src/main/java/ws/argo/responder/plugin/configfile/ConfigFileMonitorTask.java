@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Jeff Simpson.
+ *
+ * Licensed under the MIT License, (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ws.argo.responder.plugin.configfile;
 
 import java.io.File;
@@ -22,6 +38,20 @@ import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service.Acc
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service.AccessPoints.AccessPoint.Data;
 import ws.argo.wireline.response.ServiceWrapper;
 
+/**
+ * The ConfigFileMonitorTask will periodically check to see if the config file
+ * it's looking at has changed. This is in support of having a running responder
+ * where the administrator changes the config file and doens't want to restart
+ * the responder. This class will pick up those changes and then re-initialize
+ * the ConfigFile handler plugin with the new configuration atomically.
+ * 
+ * This class also will read the config file initially - there is no other
+ * mechanism to read the config file.
+ * 
+ * @see ConfigFileProbeHandlerPluginImpl
+ * @author jmsimpson
+ *
+ */
 public class ConfigFileMonitorTask extends TimerTask {
 
   private static final Logger      LOGGER       = Logger.getLogger(ConfigFileMonitorTask.class.getName());
