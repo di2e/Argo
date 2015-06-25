@@ -29,6 +29,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,31 +51,37 @@ import ws.argo.wireline.probe.XMLSerializer;
 
 public class Responder {
 
-  private static final Logger                      LOGGER                 = Logger.getLogger(Responder.class.getName());
+  private static final String               VERSION_PROPERTIES = "/version.properties";
 
-  private static String                            ARGO_VERSION           = "UNKNOWN";
+  private static final Logger               LOGGER             = Logger.getLogger(Responder.class.getName());
 
-  private static ArrayList<ProbeHandlerPluginIntf> handlers               = new ArrayList<ProbeHandlerPluginIntf>();
+  private static String                     ARGO_VERSION       = "UNKNOWN";
+
+  private ArrayList<ProbeHandlerPluginIntf> handlers           = new ArrayList<ProbeHandlerPluginIntf>();
 
   // 30 second timeout - the processing loop will interrupt once every 30
-  // seconds to check
-  // to see if the loop should quit. This is for hygiene as well as
-  // unit/integration tests
-  private static int                               INBOUND_SOCKET_TIMEOUT = 30000;
+  // seconds to check to see if the loop should quit. This is for hygiene as
+  // well as unit/integration tests
+  // private static int INBOUND_SOCKET_TIMEOUT = 30000;
 
-  // static flag to tell the processing loop to continue or not.
+  // flag to tell the processing loop to continue or not.
   // this allows external control on the processing loop so you don't have to
   // directly
   // kill the process to stop a Responder - see inboundSocketTimeout
-  private static boolean                           SHOULD_RUN             = true;
+  private boolean                           shouldRun          = true;
 
-  NetworkInterface                                 ni                     = null;
-  protected MulticastSocket                        inboundSocket          = null;
-  protected InetAddress                            maddress;
+  private NetworkInterface                  ni                 = null;
+  protected MulticastSocket                 inboundSocket      = null;
+  protected InetAddress                     maddress;
 
-  protected CloseableHttpClient                    httpClient;
+  protected CloseableHttpClient             httpClient;
 
-  private ResponderConfigurationBean               cliValues;
+  private ResponderConfigurationBean        cliValues;
+
+  private ResponderShutdown                 shutdownHook;
+
+  // This id is for internal reporting and logging reasons
+  private String                            runtimeId;
 
   private static class ResponderConfigurationBean {
 
@@ -96,6 +103,7 @@ public class Responder {
 
     public ResponderShutdown(Responder agent) {
       this.agent = agent;
+      agent.setShutdownHook(this);
     }
 
     /**
@@ -103,24 +111,24 @@ public class Responder {
      * java process thread. This ostensibly avoids leaving dangling resources.
      */
     public void run() {
-      LOGGER.info("Responder shutting down port " + agent.cliValues.multicastPort);
-      if (agent.inboundSocket != null) {
-        try {
-          agent.inboundSocket.leaveGroup(agent.maddress);
-        } catch (IOException e) {
-          LOGGER.log(Level.SEVERE, "Error leaving multicast group", e);
-        }
-        agent.inboundSocket.close();
-
-      }
+      agent.shutdown();
     }
   }
 
+  /**
+   * Create a new instance of a Responder.
+   * 
+   * @param cliValues - the list of command line arguments
+   * @param shutdownHook - the registered shutdown hook
+   */
   public Responder(ResponderConfigurationBean cliValues) {
     this.cliValues = cliValues;
+    httpClient = HttpClients.createDefault();
+    UUID uuid = UUID.randomUUID();
+    runtimeId = uuid.toString();
   }
 
-  public static ArrayList<ProbeHandlerPluginIntf> getHandlers() {
+  public ArrayList<ProbeHandlerPluginIntf> getHandlers() {
     return handlers;
   }
 
@@ -135,7 +143,7 @@ public class Responder {
    * @throws ResponderConfigException if there is some issues with the config
    *           file
    */
-  public static void addHandler(String classname, String configFilename) throws ResponderConfigException {
+  public void addHandler(String classname, String configFilename) throws ResponderConfigException {
 
     ClassLoader cl = ClassLoader.getSystemClassLoader();
     Class<?> handlerClass;
@@ -150,10 +158,11 @@ public class Responder {
       handler = (ProbeHandlerPluginIntf) handlerClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
       LOGGER.warning("Could not create an instance of the configured handler class - " + classname);
-      LOGGER.warning("Using default handler");
-      LOGGER.fine("The issue was:");
-      LOGGER.fine(e.getMessage());
-      handler = new ConfigFileProbeHandlerPluginImpl();
+      throw new ResponderConfigException("Error instantiating the handler class " + classname, e);
+      // LOGGER.warning("Using default handler");
+      // LOGGER.fine("The issue was:");
+      // LOGGER.fine(e.getMessage());
+      // handler = new ConfigFileProbeHandlerPluginImpl();
     }
 
     handler.initializeWithPropertiesFilename(configFilename);
@@ -161,41 +170,63 @@ public class Responder {
     handlers.add(handler);
   }
 
-  public static void addHandler(ProbeHandlerPluginIntf plugin) {
-    handlers.add(plugin);
+  // public static void addHandler(ProbeHandlerPluginIntf plugin) {
+  // handlers.add(plugin);
+  // }
+
+  /**
+   * Close the socket and tell the processing loop to terminate. This is a
+   * forced shutdown rather then a natural shutdown. A natural shutdown happens
+   * when the shutdown hook fires when the VM exists. This method forces all
+   * that to happen. This is done to allow multiple Responders to be created and
+   * destroyed during a single VM session. Necessary for various testing and
+   * management procedures.
+   */
+  public void stopResponder() {
+    LOGGER.info("Force shutdown of Responder ID = " + runtimeId);
+    shouldRun = false;
+    shutdownHook.run();
+    Runtime.getRuntime().removeShutdownHook(shutdownHook);
+  }
+
+  /**
+   * This will shutdown the listening socket and remove the responder from the
+   * multicast group. Part of the natural lifecycle. It also will end the run
+   * loop of the responder automatically - it will interrupt any read operation
+   * going on and exit the run loop.
+   */
+  public void shutdown() {
+    LOGGER.info("Responder shutting down port " + cliValues.multicastPort + " ID = " + runtimeId);
+    if (inboundSocket != null) {
+      try {
+        inboundSocket.leaveGroup(maddress);
+      } catch (IOException e) {
+        LOGGER.log(Level.SEVERE, "Error leaving multicast group", e);
+      }
+      inboundSocket.close();
+
+    }
+  }
+
+  public void setShutdownHook(ResponderShutdown shutdownHook) {
+    this.shutdownHook = shutdownHook;
   }
 
   /**
    * This is the main run method for the Argo Responder. It starts up all the
    * necessary machinery and enters the UDP receive loop.
    * 
-   * @throws ResponderConfigException if bad things happen with the
-   *           configuration files and the content of the files. For example if
-   *           the classnames for the probe handlers are bad (usually a type or
-   *           classpath issue)
    * @throws ResponderOperationException if some IOException or other
    *           operational problem occurs
    * 
    */
-  public void run() throws ResponderConfigException, ResponderOperationException {
-
-    // load up the handler classes specified in the configuration parameters
-    // I hope the hander classes are in a jar file on the classpath
-    loadHandlerPlugins(cliValues.appHandlerConfigs);
-
-    if (!joinGroup()) {
-      LOGGER.severe("Responder shutting down: unable to join multicast group");
-      return;
-    }
+  public void run() throws ResponderOperationException {
 
     DatagramPacket packet;
-    LOGGER.info("Responder started on " + cliValues.multicastAddress  + ":" + cliValues.multicastPort);
-
-    httpClient = HttpClients.createDefault();
 
     LOGGER.fine("Starting Responder loop - infinite until process terminated");
     // infinite loop until the responder is terminated
-    while (shouldRun()) {
+    while (shouldRun) {
 
       byte[] buf = new byte[1024];
       packet = new DatagramPacket(buf, buf.length);
@@ -223,16 +254,17 @@ public class Responder {
       } catch (SocketTimeoutException toe) {
         LOGGER.finest("Responder loop timeout fired.");
       } catch (IOException e1) {
-        throw new ResponderOperationException("Error during responder wireline read loop.", e1);
+        if (shouldRun)
+          throw new ResponderOperationException("Error during responder wireline read loop.", e1);
       }
 
     }
 
-    LOGGER.info("Stopping responder through trigger.");
+    LOGGER.info("Stopping responder through trigger ID = " + runtimeId);
 
   }
 
-  private void loadHandlerPlugins(ArrayList<AppHandlerConfig> configs) {
+  private void loadHandlerPlugins(ArrayList<AppHandlerConfig> configs) throws ResponderConfigException {
 
     for (AppHandlerConfig appConfig : configs) {
 
@@ -242,6 +274,11 @@ public class Responder {
         LOGGER.log(Level.SEVERE, "Error loading handler for " + appConfig.classname + ". Skipping handler", e);
       }
     }
+
+    // make sure we have at least 1 active handler. If not, then fail the
+    // responder process
+    if (getHandlers().isEmpty())
+      throw new ResponderConfigException("No responders created successfully on initialization.");
 
   }
 
@@ -283,7 +320,7 @@ public class Responder {
         LOGGER.info("Unknown network interface joined group " + socketAddress.toString());
       } else {
         this.inboundSocket.joinGroup(socketAddress, ni);
-        this.inboundSocket.setSoTimeout(INBOUND_SOCKET_TIMEOUT);
+        // this.inboundSocket.setSoTimeout(INBOUND_SOCKET_TIMEOUT);
         LOGGER.info(ni.getName() + " joined group " + socketAddress.toString());
       }
     } catch (IOException e) {
@@ -332,7 +369,23 @@ public class Responder {
    */
   public static void main(String[] args) throws ResponderConfigException, ResponderOperationException {
 
-    startResponder();
+    Responder responder = initialize(args);
+    if (responder != null)
+      responder.run();
+
+  }
+
+  /**
+   * Create a new Responder given the command line arguments.
+   * 
+   * @param args - command line arguments
+   * @return the new Responder instance or null if something wonky happened
+   * @throws ResponderConfigException if bad things happen with the
+   *           configuration files and the content of the files. For example if
+   *           the classnames for the probe handlers are bad (usually a type or
+   *           classpath issue)
+   */
+  public static Responder initialize(String[] args) throws ResponderConfigException {
     readVersionProperties();
 
     LOGGER.info("Starting Argo Responder daemon process. Version " + ARGO_VERSION);
@@ -341,31 +394,42 @@ public class Responder {
 
     if (cliValues == null) {
       LOGGER.log(Level.SEVERE, "Invalid Responder Configuration.  Terminating Responder process.");
-      return;
+      return null;
     }
 
     Responder responder = new Responder(cliValues);
 
+    // load up the handler classes specified in the configuration parameters
+    // I hope the hander classes are in a jar file on the classpath
+    responder.loadHandlerPlugins(cliValues.appHandlerConfigs);
+
     LOGGER.info("Responder registering shutdown hook.");
-    Runtime.getRuntime().addShutdownHook(new ResponderShutdown(responder));
+    ResponderShutdown hook = new ResponderShutdown(responder);
+    Runtime.getRuntime().addShutdownHook(hook);
 
-    responder.run();
+    if (!responder.joinGroup()) {
+      LOGGER.severe("Unable to join multicast group. Terminating Responder process.");
+      return null;
+    }
 
+    LOGGER.info("Responder started on " + cliValues.multicastAddress + ":" + cliValues.multicastPort + " ID = " + responder.runtimeId);
+
+    return responder;
   }
 
   private static void readVersionProperties() {
-    InputStream is = Responder.class.getResourceAsStream("/version.properties");
+    InputStream is = Responder.class.getResourceAsStream(VERSION_PROPERTIES);
     if (is != null) {
       Properties p = new Properties();
       try {
         p.load(is);
         ARGO_VERSION = p.getProperty("argo-version");
       } catch (IOException e) {
-        LOGGER.warning("Cannot load the version.properties file");
+        LOGGER.warning("Cannot load the file " + VERSION_PROPERTIES);
       }
 
     } else {
-      LOGGER.warning("Cannot open the version.properties file");
+      LOGGER.warning("Cannot load the file " + VERSION_PROPERTIES);
     }
   }
 
@@ -533,18 +597,6 @@ public class Responder {
         .create("nb"));
 
     return options;
-  }
-
-  private static boolean shouldRun() {
-    return SHOULD_RUN;
-  }
-
-  public static void stopResponder() {
-    SHOULD_RUN = false;
-  }
-  
-  public static void startResponder() {
-    SHOULD_RUN = true;
   }
 
 }

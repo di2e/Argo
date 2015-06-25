@@ -31,10 +31,19 @@ import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
 
-// This default probe handler will load up a list of IP addresses and port number associates
-// with a service contract ID (like a UUID)
 
-// This handler will read a config xml file which lists the services that it can respond with
+/**
+ * This default probe handler will load up a list of IP addresses and port
+ * number associated with a service contract ID (like a UUID).
+ * <p>
+ * This handler will read a config xml file which lists the services that it can
+ * respond with.
+ * 
+ * @see ConfigFileMonitorTask
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf {
 
   private static final Logger LOGGER      = Logger.getLogger(ConfigFileProbeHandlerPluginImpl.class.getName());

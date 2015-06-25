@@ -17,38 +17,40 @@ import com.sun.jersey.api.client.WebResource;
 
 public abstract class ResponderProbeTest {
 
+  static Responder             responder;
   private static HttpServer       server;
   protected static WebResource    target;
   private static Thread           responderThread;
   protected static ProbeGenerator gen = null;
 
-//  /**
-//   * reads in the test payload text to check responses against. better then
-//   * putting it in the source code.
-//   * 
-//   * @throws IOException if the resource is missing
-//   */
-//  protected void readTargetXMLFiles() throws IOException {
-//  }
+  // /**
+  // * reads in the test payload text to check responses against. better then
+  // * putting it in the source code.
+  // *
+  // * @throws IOException if the resource is missing
+  // */
+  // protected void readTargetXMLFiles() throws IOException {
+  // }
 
   private static void startListener() throws IOException {
     server = ResponseListener.startServer();
     target = Client.create().resource(ResponseListener.BASE_URI);
   }
 
-  private static void startResponder() {
+  private static void startResponder() throws ResponderConfigException {
 
     String configFileProp = System.getProperty("configFile");
     System.out.println("****** Testing configFile = " + configFileProp);
     final String[] args = { "-pf", configFileProp };
 
+    responder = Responder.initialize(args);
+
     responderThread = new Thread("Argo Responder") {
       public void run() {
         try {
-          Responder.main(args);
+          responder.run();
+
           System.out.println("Argo Responder ended");
-        } catch (ResponderConfigException e) {
-          org.junit.Assert.fail(e.getLocalizedMessage());
         } catch (ResponderOperationException e) {
           org.junit.Assert.fail(e.getLocalizedMessage());
         }
@@ -65,15 +67,16 @@ public abstract class ResponderProbeTest {
    * 
    * @throws IOException
    * @throws InterruptedException - to support the Thread sleep function
+   * @throws ResponderConfigException 
    */
   @BeforeClass
-  public static void startupTheGear() throws IOException, InterruptedException {
+  public static void startupTheGear() throws IOException, InterruptedException, ResponderConfigException {
     gen = new ProbeGenerator("230.0.0.1", 4003);
 
     startResponder();
     startListener();
 
-    Thread.sleep(2000); // wait 2 seconds for everything to settle
+    Thread.sleep(1000); // wait 2 seconds for everything to settle
 
   }
 
@@ -84,12 +87,11 @@ public abstract class ResponderProbeTest {
    */
   @AfterClass
   public static void tearDown() throws InterruptedException {
-//    Thread.sleep(5000); // wait 5 seconds for everything to settle
+    // Thread.sleep(5000); // wait 5 seconds for everything to settle
 
-    Responder.stopResponder();
+    responder.stopResponder();
     gen.close();
     server.stop();
-    System.out.println("Cleaned up AFTER tests");
   }
 
 }
