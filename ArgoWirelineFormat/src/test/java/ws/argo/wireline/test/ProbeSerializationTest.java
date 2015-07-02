@@ -121,7 +121,7 @@ public class ProbeSerializationTest {
   }
   
   @Test 
-  public void testMarshallingFullProbe() {
+  public void testMarshallingFullProbe() throws ProbeParseException {
     ProbeWrapper probe = new ProbeWrapper("--ID--");
     probe.setClientId("yomama");
     probe.setRespondToPayloadType(ProbeWrapper.XML);
@@ -136,69 +136,67 @@ public class ProbeSerializationTest {
 
     String payload = serializer.marshal(probe);
     
-    assertTrue(payload.equals(exemplarFullProbePayload));
+    ProbeWrapper parsedProbe = serializer.unmarshal(payload);
+    ProbeWrapper knownGoodProbe = serializer.unmarshal(exemplarFullProbePayload);
+    
+    assertTrue(parsedProbe.equals(knownGoodProbe));
+//    assertTrue(payload.equals(exemplarFullProbePayload));
+    
+  }
+  
+  @Test
+  public void testEqualityWithSomeNullValues() {
+    
+    ProbeWrapper probe1 = new ProbeWrapper("--ID--");
+    probe1.setClientId("yomama");
+    probe1.setRespondToPayloadType(ProbeWrapper.XML);
+    probe1.addRespondToURL(null, "http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");
+    probe1.addRespondToURL("external", "http://2.2.2.2:80/AsynchListener/api/responseHandler/probeResponse");
+    probe1.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925a");
+    probe1.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925b");
+    probe1.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925c");
+    probe1.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
+
+    ProbeWrapper probe2 = new ProbeWrapper("--ID--");
+    probe2.setClientId("yomama");
+    probe2.setRespondToPayloadType(ProbeWrapper.XML);
+    probe2.addRespondToURL("internal", "http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");
+    probe2.addRespondToURL(null, "http://2.2.2.2:80/AsynchListener/api/responseHandler/probeResponse");
+    probe2.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925a");
+    probe2.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925b");
+    probe2.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925c");
+    probe2.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
+
+    assertFalse(probe1.equals(probe2));
     
   }
 
-  // @SuppressWarnings("unused")
-  // @Test
-  // public void testBasicResponseXMLPayload() {
+  @Test
+  public void testEqualityWithSomeLeadingAndTrailingSpaces() {
+    
+    ProbeWrapper probe1 = new ProbeWrapper("--ID--");
+    probe1.setClientId("  yomama");
+    probe1.setRespondToPayloadType(ProbeWrapper.XML);
+    probe1.addRespondToURL("internal", "http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");
+    probe1.addRespondToURL("external", "http://2.2.2.2:80/AsynchListener/api/responseHandler/probeResponse  ");
+    probe1.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925a  ");
+    probe1.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925b");
+    probe1.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925c");
+    probe1.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
 
-  // ResponseWrapper response = new ResponseWrapper("this is a probe id");
-  //
-  // ServiceWrapper service = new ServiceWrapper("this is a service id");
-  // service.setConsumability(ServiceWrapper.HUMAN_CONSUMABLE);
-  // service.setContractDescription("this is a contract description");
-  // service.setDescription("this is a description");
-  // service.setServiceContractID("this is a service contract id");
-  // service.setServiceName("this is a service name");
-  // service.setTtl(0);
-  //
-  // service.addAccessPoint("label 1", "some IP address", "some port",
-  // "some URL", "some datatype", "some data");
-  // service.addAccessPoint("label 2", "some IP address", "some port",
-  // "some URL", "some datatype", "some data");
-  //
-  // response.addResponse(service);
-  //
-  // XMLSerializer serializer = new XMLSerializer(response);
-  //
-  //
-  //
-  // String responseString = serializer.marshal();
+    ProbeWrapper probe2 = new ProbeWrapper("--ID--");
+    probe2.setClientId("yomama  ");
+    probe2.setRespondToPayloadType(ProbeWrapper.XML);
+    probe2.addRespondToURL("internal", "  http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");
+    probe2.addRespondToURL("external", "http://2.2.2.2:80/AsynchListener/api/responseHandler/probeResponse");
+    probe2.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925a");
+    probe2.addServiceContractID("  uuid:03d55093-a954-4667-b682-8116c417925b");
+    probe2.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925c");
+    probe2.addServiceInstanceID("  uuid:03d55093-a954-4667-b682-8116c417925d");
 
-  // Do some assertion here
+    assertFalse(probe1.equals(probe2));
+    
+  }
 
-  // }
-
-  // @SuppressWarnings("unused")
-  // @Test
-  // public void testBasicResponseJSONPayload() {
-
-  // ResponseWrapper response = new ResponseWrapper("this is a probe id");
-  //
-  // ServiceWrapper service = new ServiceWrapper("this is a service id");
-  // service.setConsumability(ServiceWrapper.HUMAN_CONSUMABLE);
-  // service.setContractDescription("this is a contract description");
-  // service.setDescription("this is a description");
-  // service.setServiceContractID("this is a service contract id");
-  // service.setServiceName("this is a service name");
-  // service.setTtl(0);
-  //
-  // service.addAccessPoint("label 1", "some IP address", "some port",
-  // "some URL", "some datatype", "some data");
-  // service.addAccessPoint("label 2", "some IP address", "some port",
-  // "some URL", "some datatype", "some data");
-  //
-  // response.addResponse(service);
-  //
-  // JSONSerializer serializer = new JSONSerializer(response);
-  //
-  //
-  // String responseString = serializer.serialize();
-  //
-  // Do some assertion here
-
-  // }
-
+  
 }

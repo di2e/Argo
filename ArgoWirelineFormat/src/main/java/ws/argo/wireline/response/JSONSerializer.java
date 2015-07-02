@@ -24,6 +24,16 @@ public class JSONSerializer {
     return jsonString;
   }
 
+  public String marshalService(ServiceWrapper service) {
+    Gson gson = new Gson();
+
+    Service jsonService = composeServiceFromServiceWrapper(service);
+
+    String jsonString = gson.toJson(jsonService);
+
+    return jsonString;
+  }
+
   private Response composeResponseFromResponseWrapper(ResponseWrapper response) {
 
     Response jsonResponse = new Response();
@@ -75,11 +85,18 @@ public class JSONSerializer {
 
   public ResponseWrapper unmarshal(String payload) throws ResponseParseException {
 
-    return unmarshalJSON(payload);
+    return unmarshalResponseJSON(payload);
 
   }
 
-  private ResponseWrapper unmarshalJSON(String payload) {
+  public ServiceWrapper unmarshalService(String payload) throws ResponseParseException {
+
+    return unmarshalServiceJSON(payload);
+
+  }
+
+  
+  private ResponseWrapper unmarshalResponseJSON(String payload) {
     Gson gson = new Gson();
 
     Response jsonResponse = gson.fromJson(payload, Response.class);
@@ -88,18 +105,7 @@ public class JSONSerializer {
     response.setResponseID(jsonResponse.getResponseID());
     
     for (Service jsonService : jsonResponse.getServices()) {
-      ServiceWrapper service = new ServiceWrapper(jsonService.getId());
-      if (jsonService.getConsumability() != null)
-        service.setConsumability(jsonService.getConsumability().name());
-      service.setDescription(jsonService.getDescription());
-      service.setContractDescription(jsonService.getContractDescription());
-      service.setServiceContractID(jsonService.getContractId());
-      service.setServiceName(jsonService.getServiceName());
-      service.setTtl(jsonService.getTtl());
-      
-      for (ws.argo.wireline.response.json.AccessPoint ap : jsonService.getAccessPoints()) {
-        service.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), ap.getDataType(), ap.getData());
-      }
+      ServiceWrapper service = createServiceWrapperFromService(jsonService);
       
       response.addResponse(service);
       
@@ -108,5 +114,32 @@ public class JSONSerializer {
     return response;
 
   }
+  
+  private ServiceWrapper unmarshalServiceJSON(String payload) {
+    Gson gson = new Gson();
+
+    Service jsonService = gson.fromJson(payload, Service.class);
+    
+    ServiceWrapper service = createServiceWrapperFromService(jsonService);
+    
+    return service;
+  }
+
+  private ServiceWrapper createServiceWrapperFromService(Service jsonService) {
+    ServiceWrapper service = new ServiceWrapper(jsonService.getId());
+    if (jsonService.getConsumability() != null)
+      service.setConsumability(jsonService.getConsumability().name());
+    service.setDescription(jsonService.getDescription());
+    service.setContractDescription(jsonService.getContractDescription());
+    service.setServiceContractID(jsonService.getContractId());
+    service.setServiceName(jsonService.getServiceName());
+    service.setTtl(jsonService.getTtl());
+    
+    for (ws.argo.wireline.response.json.AccessPoint ap : jsonService.getAccessPoints()) {
+      service.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), ap.getDataType(), ap.getData());
+    }
+    return service;
+  }
+
 
 }

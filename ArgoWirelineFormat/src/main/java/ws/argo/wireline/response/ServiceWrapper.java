@@ -17,10 +17,11 @@
 package ws.argo.wireline.response;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class ServiceWrapper {
+public class ServiceWrapper implements Comparable<ServiceWrapper> {
 
   private static final Logger   LOGGER             = Logger.getLogger(ServiceWrapper.class.getName());
 
@@ -38,13 +39,69 @@ public class ServiceWrapper {
   public Integer                ttl;
   public ArrayList<AccessPoint> accessPoints       = new ArrayList<AccessPoint>();
 
-  public class AccessPoint {
+  public class AccessPoint implements Comparable<AccessPoint> {
     public String label;
     public String url;
     public String ipAddress;
     public String port;
     public String dataType;
     public String data;
+
+    @Override
+    public int hashCode() {
+      StringBuffer buf = new StringBuffer();
+
+      buf.append(getLabel().trim());
+      buf.append(getUrl().trim());
+      buf.append(getIpAddress().trim());
+      buf.append(getPort().trim());
+      buf.append(getDataType().trim());
+      buf.append(getData().trim());
+      return buf.toString().hashCode();
+    }
+
+    @Override
+    public int compareTo(AccessPoint ap) {
+      if (ap == this)
+        return 0;
+      if (ap.hashCode() > this.hashCode()) {
+        return 1;
+      } else {
+        return -1;
+      }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) return true;
+      return this.hashCode() == obj.hashCode();
+    }
+
+    public String getLabel() {
+      return label != null ? label : "";
+    }
+
+    public String getUrl() {
+      return url != null ? url : "";
+    }
+
+    public String getIpAddress() {
+      return ipAddress != null ? ipAddress : "";
+    }
+
+    public String getPort() {
+      return port != null ? port : "";
+    }
+
+    public String getDataType() {
+      return dataType != null ? dataType : "";
+    }
+
+    public String getData() {
+      return data != null ? data : "";
+    }
+    
+    
   }
 
   /**
@@ -59,6 +116,59 @@ public class ServiceWrapper {
 
   public int hashCode() {
     return this.getId().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this)
+      return true;
+    if (!(obj instanceof ServiceWrapper))
+      return false;
+  
+    ServiceWrapper svc = (ServiceWrapper) obj;
+  
+    if (!svc.getId().trim().equals(this.getId().trim()))
+      return false;
+    if (!svc.getServiceName().trim().equals(this.getServiceName().trim()))
+      return false;
+    if (!svc.getServiceContractID().trim().equals(this.getServiceContractID().trim()))
+      return false;
+    if (!svc.getDescription().trim().equals(this.getDescription().trim()))
+      return false;
+    if (!svc.getContractDescription().trim().equals(this.getContractDescription().trim()))
+      return false;
+    if (!svc.getConsumability().trim().equals(this.getConsumability().trim()))
+      return false;
+    if (!svc.getTtl().equals(this.getTtl()))
+      return false;
+  
+    
+    List<AccessPoint> apl1 = new ArrayList<AccessPoint>(this.getAccessPoints());
+    List<AccessPoint> apl2 = new ArrayList<AccessPoint>(svc.getAccessPoints());
+  
+    if (apl1.size() != apl2.size())
+      return false;
+  
+    Collections.sort(apl1);
+    Collections.sort(apl2);
+  
+    for (int i=0; i<apl1.size(); i++) {
+      if (!apl1.get(i).equals(apl2.get(i)))
+        return false;     
+    }
+  
+    return true;
+  }
+
+  @Override
+  public int compareTo(ServiceWrapper o) {
+    if (o == this)
+      return 0;
+    if (o.hashCode() > this.hashCode()) {
+      return 1;
+    } else {
+      return -1;
+    }
   }
 
   public List<AccessPoint> getAccessPoints() {
@@ -111,7 +221,7 @@ public class ServiceWrapper {
   }
 
   public String getId() {
-    return id;
+    return id != null ? id : "";
   }
 
   public void setId(String id) {
@@ -119,7 +229,7 @@ public class ServiceWrapper {
   }
 
   public String getServiceContractID() {
-    return serviceContractId;
+    return serviceContractId != null ? serviceContractId : "";
   }
 
   public void setServiceContractID(String serviceContractID) {
@@ -127,7 +237,7 @@ public class ServiceWrapper {
   }
 
   public String getServiceName() {
-    return this.serviceName;
+    return serviceName != null ? serviceName : ""; 
   }
 
   public void setServiceName(String serviceName) {
@@ -135,7 +245,7 @@ public class ServiceWrapper {
   }
 
   public String getDescription() {
-    return this.description;
+    return description != null ? description : "";
   }
 
   public void setDescription(String description) {
@@ -143,7 +253,7 @@ public class ServiceWrapper {
   }
 
   public String getContractDescription() {
-    return this.contractDescription;
+    return contractDescription != null ? contractDescription : "";
   }
 
   public void setContractDescription(String contractDescription) {
@@ -151,7 +261,7 @@ public class ServiceWrapper {
   }
 
   public String getConsumability() {
-    return this.consumability;
+    return consumability != null ? consumability : "";
   }
 
   public void setConsumability(String consumability) {
@@ -162,6 +272,8 @@ public class ServiceWrapper {
    * Return the Time To Live (network hops).
    */
   public Integer getTtl() {
+    if (ttl == null)
+      return 0;
     return ttl;
   }
 
