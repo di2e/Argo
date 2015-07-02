@@ -27,6 +27,12 @@ public class ProbeGeneratorTest {
   public static String  targetXML           = "";
   public static String  targetNakedProbeXML = "";
 
+  /**
+   * Start up a ProbeGenerator for the harness and read in the XML files used in
+   * the evaluation.
+   * 
+   * @throws IOException if something goes wrong reading the XML files
+   */
   @BeforeClass
   public static void setupProbeGenerator() throws IOException {
     gen = new ProbeGenerator("230.0.0.1", 4003);
@@ -38,7 +44,7 @@ public class ProbeGeneratorTest {
    * reads in the test payload text to check responses against. better then
    * putting it in the source code.
    * 
-   * @throws IOException
+   * @throws IOException if something goes wrong reading the XML files
    */
   private static void readTargetXMLFiles() throws IOException {
     // Read the completely filled out probe test file for comparison

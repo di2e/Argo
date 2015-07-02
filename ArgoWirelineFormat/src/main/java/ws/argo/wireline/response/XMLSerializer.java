@@ -22,9 +22,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import ws.argo.wireline.probe.ProbeParseException;
-import ws.argo.wireline.probe.ProbeWrapper;
-import ws.argo.wireline.probe.xml.Probe;
 import ws.argo.wireline.response.ServiceWrapper.AccessPoint;
 import ws.argo.wireline.response.xml.ObjectFactory;
 import ws.argo.wireline.response.xml.Services;
@@ -59,6 +56,30 @@ public class XMLSerializer {
       e.printStackTrace();
     }
     return sw.toString();
+  }
+  
+  public String marshalService(ServiceWrapper service) {
+    
+    Service xmlService = composeServiceFromServiceWrapper(service);
+    
+    StringWriter sw = new StringWriter();
+    try {
+      JAXBContext jaxbContext = JAXBContext.newInstance(Service.class);
+      Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+      // output pretty printed
+      jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+      jaxbMarshaller.marshal(xmlService, sw);
+    } catch (PropertyException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (JAXBException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return sw.toString();
+    
   }
 
   private Services composeResponseFromResponseWrapper(ResponseWrapper response) {
@@ -121,38 +142,58 @@ public class XMLSerializer {
 
   public ResponseWrapper unmarshal(String payload) throws ResponseParseException {
 
-    return unmarshalXML(payload);
+    Services xmlServices = parseResponsePayload(payload);
+
+    ResponseWrapper response = constructResponseWrapperFromResponse(xmlServices);
+
+    return response;
 
   }
 
-  private ResponseWrapper unmarshalXML(String payload) throws ResponseParseException {
+  public ServiceWrapper unmarshalService(String payload) throws ResponseParseException {
 
-    Services xmlServices = parseResponsePayload(payload);
+    Service xmlService = parseServicePayload(payload);
+
+    ServiceWrapper service = constructServiceWrapperFromService(xmlService);
+
+    return service;
+
+  }
+
+  private ResponseWrapper constructResponseWrapperFromResponse(Services xmlServices) {
 
     ResponseWrapper response = new ResponseWrapper(xmlServices.getProbeID());
     response.setResponseID(xmlServices.getResponseID());
 
     for (Service xmlService : xmlServices.getService()) {
-      ServiceWrapper service = new ServiceWrapper(xmlService.getId());
-
-      service.setTtl(xmlService.getTtl());
-      service.setConsumability(xmlService.getConsumability());
-      service.setContractDescription(xmlService.getContractDescription());
-      service.setDescription(xmlService.getDescription());
-      service.setServiceContractID(xmlService.getContractID());
-      service.setServiceName(xmlService.getServiceName());
-
-      if (xmlService.getAccessPoints() != null) {
-        for (ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint ap : xmlService.getAccessPoints().getAccessPoint()) {
-          service.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), ap.getData().getType(), ap.getData().getValue());
-        }
-      }
+      ServiceWrapper service = constructServiceWrapperFromService(xmlService);
 
       response.addResponse(service);
 
     }
 
     return response;
+
+  }
+
+  private ServiceWrapper constructServiceWrapperFromService(Service xmlService) {
+    ServiceWrapper service = new ServiceWrapper(xmlService.getId());
+
+    service.setTtl(xmlService.getTtl());
+    service.setConsumability(xmlService.getConsumability());
+    service.setContractDescription(xmlService.getContractDescription());
+    service.setDescription(xmlService.getDescription());
+    service.setServiceContractID(xmlService.getContractID());
+    service.setServiceName(xmlService.getServiceName());
+
+    if (xmlService.getAccessPoints() != null) {
+      for (ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint ap : xmlService.getAccessPoints().getAccessPoint()) {
+        service.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), ap.getData().getType(), ap.getData().getValue());
+      }
+    }
+
+    return service;
+
   }
 
   private static Services parseResponsePayload(String payload) throws ResponseParseException {
@@ -180,6 +221,33 @@ public class XMLSerializer {
     }
 
     return services;
+  }
+
+  private static Service parseServicePayload(String payload) throws ResponseParseException {
+
+    JAXBContext jaxbContext;
+    Service service = null;
+
+    try {
+      jaxbContext = JAXBContext.newInstance(Service.class);
+      Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+
+      InputStream inputStream = new ByteArrayInputStream(payload.getBytes(Charset.forName("UTF-8")));
+
+      SAXParserFactory spf = SAXParserFactory.newInstance();
+      spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+      SAXParser sp = spf.newSAXParser();
+      XMLReader xmlReader = sp.getXMLReader();
+      InputSource inputSource = new InputSource(inputStream);
+      SAXSource saxSource = new SAXSource(xmlReader, inputSource);
+
+      service = (Service) jaxbUnmarshaller.unmarshal(saxSource);
+
+    } catch (JAXBException | FactoryConfigurationError | ParserConfigurationException | SAXException e) {
+      throw new ResponseParseException(e);
+    }
+
+    return service;
   }
 
 }

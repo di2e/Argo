@@ -16,7 +16,10 @@
 
 package ws.argo.wireline.response;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 public class ResponseWrapper {
@@ -35,6 +38,46 @@ public class ResponseWrapper {
     this.responseID = "urn:uuid:" + uuid.toString();
   }
 
+  @Override
+  public int hashCode() {
+    return responseID.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this)
+      return true;
+    if (!(obj instanceof ResponseWrapper))
+      return false;
+
+    ResponseWrapper resp = (ResponseWrapper) obj;
+
+    if (!resp.getResponseID().trim().equals(this.getResponseID().trim()))
+      return false;
+    if (!resp.getProbeID().trim().equals(this.getProbeID().trim()))
+      return false;
+
+    if (resp.numberOfServices() != this.numberOfServices())
+      return false;
+
+    List<ServiceWrapper> svcs1 = new ArrayList<ServiceWrapper>(this.getServices());
+    List<ServiceWrapper> svcs2 = new ArrayList<ServiceWrapper>(resp.getServices());
+
+    if (svcs1.size() != svcs2.size())
+      return false;
+
+    Collections.sort(svcs1);
+    Collections.sort(svcs2);
+
+    for (int i = 0; i < svcs1.size(); i++) {
+      if (!svcs1.get(i).equals(svcs2.get(i)))
+        return false;
+    }
+
+    return true;
+
+  }
+
   public boolean isEmpty() {
     return responses.isEmpty();
   }
@@ -44,11 +87,11 @@ public class ResponseWrapper {
   }
 
   public String getProbeID() {
-    return probeID;
+    return probeID != null ? probeID : "";
   }
 
   public String getResponseID() {
-    return responseID;
+    return responseID != null ? responseID : "";
   }
 
   public void setResponseID(String responseId) {

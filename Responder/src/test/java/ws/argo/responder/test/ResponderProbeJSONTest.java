@@ -46,7 +46,7 @@ public class ResponderProbeJSONTest extends ResponderProbeTest {
     System.out.println("Getting testNakedProbeJSON cached responses from listener");
 
     String responseMsg = target.path("listener/responses").get(String.class);
-    assertEquals(nakedProbeJSONResponseFromListener.length(), responseMsg.length());
+    assertEquals(nakedProbeJSONResponseFromListener, responseMsg);
 
     String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);

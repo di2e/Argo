@@ -150,10 +150,6 @@
 	</repositories>
 	
 	<distributionManagement>
-        <site>
-            <id>github-project-site</id>
-            <url>gitsite:git@github.com/di2e/argo.git</url>
-        </site>
 		<snapshotRepository>
 			<uniqueVersion>false</uniqueVersion>
 			<id>DI2ENexus</id>
