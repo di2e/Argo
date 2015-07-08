@@ -203,12 +203,13 @@ public class ProbeHandlerThread extends Thread {
             LOGGER.fine("Response includes " + response.numberOfServices());
             Iterator<RespondToURL> respondToURLs = probe.getRespondToURLs().iterator();
 
-            RespondToURL respondToURL = respondToURLs.next();
-            boolean processRespondToURL = true;
-            while (processRespondToURL) {
+            if (respondToURLs.hasNext()) {
+              RespondToURL respondToURL = respondToURLs.next();
               // we are ignoring the label for now
               boolean success = sendResponse(respondToURL.url, probe.getRespondToPayloadType(), response);
-              processRespondToURL = !success;
+              if (!success) {
+                LOGGER.warning("Issue sending response to " + respondToURL.url);
+              }
             }
 
           } else {

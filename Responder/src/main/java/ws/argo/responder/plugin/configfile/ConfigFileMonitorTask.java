@@ -45,6 +45,7 @@ import ws.argo.wireline.response.ServiceWrapper;
  * the responder. This class will pick up those changes and then re-initialize
  * the ConfigFile handler plugin with the new configuration atomically.
  * 
+ * <p>
  * This class also will read the config file initially - there is no other
  * mechanism to read the config file.
  * 

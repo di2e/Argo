@@ -249,8 +249,9 @@ public class Responder {
       } catch (SocketTimeoutException toe) {
         LOGGER.finest("Responder loop timeout fired.");
       } catch (IOException e1) {
-        if (shouldRun)
+        if (shouldRun) {
           throw new ResponderOperationException("Error during responder wireline read loop.", e1);
+        }
       }
 
     }
@@ -272,8 +273,9 @@ public class Responder {
 
     // make sure we have at least 1 active handler. If not, then fail the
     // responder process
-    if (getHandlers().isEmpty())
+    if (getHandlers().isEmpty()) {
       throw new ResponderConfigException("No responders created successfully on initialization.");
+    }
 
   }
 
@@ -365,8 +367,9 @@ public class Responder {
   public static void main(String[] args) throws ResponderConfigException, ResponderOperationException {
 
     Responder responder = initialize(args);
-    if (responder != null)
+    if (responder != null) {
       responder.run();
+    }
 
   }
 

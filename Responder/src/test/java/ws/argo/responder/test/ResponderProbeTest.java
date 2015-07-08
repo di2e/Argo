@@ -65,9 +65,9 @@ public abstract class ResponderProbeTest {
    * multicast UDP to make these work. NOTE: Some CI servers (like Jenkins
    * slaves) might not allow multicast for some reason
    * 
-   * @throws IOException
+   * @throws IOException if something goes wrong starting the responder or listener
    * @throws InterruptedException - to support the Thread sleep function
-   * @throws ResponderConfigException 
+   * @throws ResponderConfigException if there is some issue in the Responder configuration
    */
   @BeforeClass
   public static void startupTheGear() throws IOException, InterruptedException, ResponderConfigException {
@@ -76,7 +76,7 @@ public abstract class ResponderProbeTest {
     startResponder();
     startListener();
 
-    Thread.sleep(1000); // wait 2 seconds for everything to settle
+    Thread.sleep(1000); // wait a seconds for everything to settle
 
   }
 
@@ -87,7 +87,6 @@ public abstract class ResponderProbeTest {
    */
   @AfterClass
   public static void tearDown() throws InterruptedException {
-    // Thread.sleep(5000); // wait 5 seconds for everything to settle
 
     responder.stopResponder();
     gen.close();

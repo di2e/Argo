@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package ws.argo.responder.test.listener;
+package ws.argo.CLClient.listener;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,7 +57,16 @@ public class ResponseListener {
   }
 
   private static URI getBaseURI() {
-    return UriBuilder.fromUri("http://localhost/").port(getPort(9998)).build();
+    InetAddress localAddr;
+    String addr;
+    try {
+      localAddr = InetAddress.getLocalHost();
+      addr = localAddr.getHostAddress();
+    } catch (UnknownHostException e) {
+      LOGGER.warning("Issues finding ip address of locahost.  Using string 'localhost' for listener address binding");
+      addr = "localhost";
+    }
+    return UriBuilder.fromUri("http://" + addr + "/").port(getPort(9998)).build();
   }
 
   public static final URI BASE_URI = getBaseURI();
@@ -68,7 +79,7 @@ public class ResponseListener {
    * @throws IOException if something goes wrong creating the http server
    */
   public static HttpServer startServer() throws IOException {
-    ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.responder.test.listener");
+    ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.CLClient.listener");
 
     System.out.println("Starting grizzly2...");
     HttpServer httpServer = GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
