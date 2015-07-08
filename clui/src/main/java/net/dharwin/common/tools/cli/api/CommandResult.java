@@ -38,7 +38,7 @@ public class CommandResult {
 	
 	/**
 	 * Get the status code.
-	 * @return
+	 * @return the status code
 	 */
 	public int getStatusCode() {
 		return _statusCode;
@@ -46,7 +46,7 @@ public class CommandResult {
 	
 	/**
 	 * Get the result type.
-	 * @return
+	 * @return result type
 	 */
 	public CommandResultType getType() {
 		return _type;

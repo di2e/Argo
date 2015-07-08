@@ -19,7 +19,7 @@ public class Console {
 	
 	/**
 	 * Set whether or not to print the log level before each message.
-	 * @param print
+	 * @param print flag to print or not
 	 */
 	public static void setPrintLogLevel(boolean print) {
 		_printLogLevel = print;
@@ -27,7 +27,7 @@ public class Console {
 	
 	/**
 	 * Set the log level threshold.
-	 * @param level
+	 * @param level logging level
 	 */
 	public static void setLevel(ConsoleLevel level) {
 		_level = level;

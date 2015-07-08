@@ -111,7 +111,7 @@ public class CLIContext {
 	
 	/**
 	 * Get the embedded property file. If none should be used, specify null.
-	 * @return
+	 * @return null at the moment
 	 */
 	protected String getEmbeddedPropertiesFilename() {
 		return null;
@@ -119,7 +119,7 @@ public class CLIContext {
 	
 	/**
 	 * Get the external property file. If none should be used, specify null.
-	 * @return
+	 * @return null at the moment
 	 */
 	protected File getExternalPropertiesFile() {
 		return null;
@@ -176,6 +176,7 @@ public class CLIContext {
 	/**
 	 * Get the boolean value, or the defaultValue if not found.
 	 * @param key The key to search for.
+	 * @param defaultValue the default value
 	 * @return The value, or defaultValue if not found.
 	 */
 	public boolean getBoolean(String key, boolean defaultValue) {
@@ -205,6 +206,7 @@ public class CLIContext {
 	/**
 	 * Get the integer value, or the defaultValue if not found.
 	 * @param key The key to search for.
+   * @param defaultValue the default value
 	 * @return The value, or defaultValue if not found.
 	 */
 	public int getInteger(String key, int defaultValue) {
