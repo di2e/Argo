@@ -29,11 +29,11 @@ import ws.argo.wireline.probe.ProbeWrapper;
 public class Probe {
 
   // the default TTL for a probe is the max TTL of 255 - or the entire network
-  public int                 ttl                = 255;
+  public int ttl = 255;
 
-  public ArrayList<String>   serviceInstanceIDs = new ArrayList<String>();
+  public ArrayList<String> serviceInstanceIDs = new ArrayList<String>();
 
-  private ProbeWrapper       probe;
+  private ProbeWrapper probe;
 
   /**
    * Create a new client-generated probe for sending out on the network.
@@ -51,13 +51,7 @@ public class Probe {
 
     probe.setDESVersion(ProbeWrapper.PROBE_DES_VERSION);
 
-    // Sanity check on the payload type values. Should be XML or JSON
-    // If the probe goes out with a bad value here, then the Responder may have
-    // problems
-    if (respondToPayloadType == null || respondToPayloadType.isEmpty() || (!respondToPayloadType.equals(ProbeWrapper.JSON) && !respondToPayloadType.equals(ProbeWrapper.XML)))
-      throw new UnsupportedPayloadType("Attempting to set payload type to: " + respondToPayloadType + ". Cannot be null or empty and must be " + ProbeWrapper.JSON + " or " + ProbeWrapper.XML);
-
-    probe.setRespondToPayloadType(respondToPayloadType);
+    setRespondToPayloadType(respondToPayloadType);
   }
 
   public int getHopLimit() {
@@ -74,6 +68,16 @@ public class Probe {
 
   public void setClientID(String clientID) {
     probe.setClientId(clientID);
+  }
+
+  public void setRespondToPayloadType(String respondToPayloadType) throws UnsupportedPayloadType {
+    // Sanity check on the payload type values. Should be XML or JSON
+    // If the probe goes out with a bad value here, then the Responder may have
+    // problems
+    if (respondToPayloadType == null || respondToPayloadType.isEmpty() || (!respondToPayloadType.equals(ProbeWrapper.JSON) && !respondToPayloadType.equals(ProbeWrapper.XML)))
+      throw new UnsupportedPayloadType("Attempting to set payload type to: " + respondToPayloadType + ". Cannot be null or empty and must be " + ProbeWrapper.JSON + " or " + ProbeWrapper.XML);
+
+    probe.setRespondToPayloadType(respondToPayloadType);
   }
 
   /**
