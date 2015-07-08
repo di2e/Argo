@@ -1,10 +1,8 @@
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	attributeFormDefault="unqualified" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
 	<xs:element name="servicesConfiguration">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element name="service" maxOccurs="unbounded"
-					minOccurs="0">
+				<xs:element name="service" maxOccurs="unbounded" minOccurs="0">
 					<xs:complexType>
 						<xs:sequence>
 							<xs:element type="xs:string" name="serviceName" />
@@ -15,8 +13,7 @@
 							<xs:element name="accessPoints">
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="accessPoint" maxOccurs="unbounded"
-											minOccurs="1">
+										<xs:element name="accessPoint" maxOccurs="unbounded" minOccurs="1">
 											<xs:complexType>
 												<xs:sequence>
 													<xs:element type="xs:string" name="ipAddress" />
@@ -26,15 +23,13 @@
 														<xs:complexType>
 															<xs:simpleContent>
 																<xs:extension base="xs:string">
-																	<xs:attribute type="xs:string" name="type"
-																		use="optional" />
+																	<xs:attribute type="xs:string" name="type" use="optional" />
 																</xs:extension>
 															</xs:simpleContent>
 														</xs:complexType>
 													</xs:element>
 												</xs:sequence>
-												<xs:attribute type="xs:string" name="label"
-													use="optional" />
+												<xs:attribute type="xs:string" name="label" use="optional" />
 											</xs:complexType>
 										</xs:element>
 									</xs:sequence>

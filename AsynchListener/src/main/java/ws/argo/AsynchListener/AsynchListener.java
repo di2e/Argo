@@ -16,32 +16,19 @@
 
 package ws.argo.AsynchListener;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.apache.commons.io.IOUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
+import ws.argo.AsynchListener.ResponseCache.ExpiringService;
 import ws.argo.AsynchListener.ResponseCache.ResponseCache;
-import ws.argo.AsynchListener.ResponseCache.ServiceInfoBean;
+import ws.argo.wireline.response.JSONSerializer;
+import ws.argo.wireline.response.ResponseParseException;
+import ws.argo.wireline.response.ResponseWrapper;
+import ws.argo.wireline.response.ServiceWrapper;
+import ws.argo.wireline.response.XMLSerializer;
 
 
 @Path("responseHandler")
@@ -60,7 +47,7 @@ public class AsynchListener {
 	@Path("/responses")
 	@Produces("application/json")
 	public String getResponses() {
-		return cache.toJSON();
+		return cache.asJSON();
 	}
 	
 	@GET
@@ -71,63 +58,55 @@ public class AsynchListener {
 		return "Cleared Cache";
 	}
 	
-	@GET
-	@Path("/contracts")
-	@Produces("application/json")
-	public String getContracts() {
-		return cache.toContractJSON();
-	
-	}
-	
-	@POST
-	@Path("/probeResponse")
-	@Consumes("application/json")
-	public String handleJSONProbeResponse(String probeResponseJSON) throws SAXException, IOException {
-		System.out.println("handling JSON probe response: "+probeResponseJSON);
-		
-		ArrayList<ServiceInfoBean> serviceList = parseProbeResponseJSON(probeResponseJSON);
-		
-		cache.cacheAll(serviceList);
-		
-		return "Asynch Listener Cached "+serviceList.size()+" services from probe response\n";
-	}
-	
-	
-	@POST
-	@Path("/probeResponse")
-	@Consumes("application/xml")
-	public String handleXMLProbeResponse(String probeResponseXML) throws SAXException, IOException {
-		System.out.println("handling XML probe response: "+probeResponseXML);
-		
-//		ArrayList<ServiceInfoBean> serviceList = parseProbeResponseXML(probeResponseXML);
+  @POST
+  @Path("/probeResponse")
+  @Consumes("application/json")
+  public String handleJSONProbeResponse(String probeResponseJSON) throws ResponseParseException {
+    System.out.println("Listener receiving JSON probe response: " + probeResponseJSON);
+    
+    JSONSerializer serializer = new JSONSerializer();
+    
+    ResponseWrapper response = serializer.unmarshal(probeResponseJSON);
+    
+    for (ServiceWrapper service : response.getServices()) {
+      cache.cache(new ExpiringService(service));
+    }
+
+    return "Successfully cached " + response.getServices().size() + " services";
+  }
+  
+  
+//	@POST
+//	@Path("/probeResponse")
+//	@Consumes("application/json")
+//	public String handleJSONProbeResponse(String probeResponseJSON) throws SAXException, IOException {
+//		System.out.println("handling JSON probe response: "+probeResponseJSON);
+//		
+//		ArrayList<ExpiringService> serviceList = parseProbeResponseJSON(probeResponseJSON);
 //		
 //		cache.cacheAll(serviceList);
-		
-		return "Asynch Listener currently does not handle XML probe responses\n";
-	}
+//		
+//		
+//		return "Asynch Listener Cached "+serviceList.size()+" services from probe response\n";
+//	}
 	
-	@SuppressWarnings("unchecked")
-	private ArrayList<ServiceInfoBean> parseProbeResponseJSON(String jsonString) throws SAXException, IOException {
-		ArrayList<ServiceInfoBean> serviceList = new ArrayList<ServiceInfoBean>();
-		
-		JSONObject repsonseJSON = JSONObject.fromObject(jsonString);
-		
-		JSONArray responses = (JSONArray) repsonseJSON.get("services");
-		
-		Iterator<Object> it = responses.iterator();
-		
-		while (it.hasNext()) {
-			JSONObject serviceInfo = (JSONObject) it.next();
-			
-			ServiceInfoBean config = new ServiceInfoBean(serviceInfo);
-			
-			serviceList.add(config);
-		}
-		
-		
-		return serviceList;
-	}
 	
+  @POST
+  @Path("/probeResponse")
+  @Consumes("application/xml")
+  public String handleXMLProbeResponse(String probeResponseXML) throws ResponseParseException {
+    System.out.println("Listener receiving XML probe response: " + probeResponseXML);
+
+    XMLSerializer serializer = new XMLSerializer();
+    
+    ResponseWrapper response = serializer.unmarshal(probeResponseXML);
+    
+    for (ServiceWrapper service : response.getServices()) {
+      cache.cache(new ExpiringService(service));
+    }
+
+    return "Successfully cached " + response.getServices().size() + " services";
+  }
 
 	
 }

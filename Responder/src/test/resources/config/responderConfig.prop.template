@@ -16,7 +16,7 @@
 
 multicastPort=4003
 multicastAddress=230.0.0.1
-probeHandlerClassname.1=ws.argo.Responder.plugin.configFile.ConfigFileProbeHandlerPluginImpl
+probeHandlerClassname.1=ws.argo.responder.plugin.configfile.ConfigFileProbeHandlerPluginImpl
 probeHandlerConfigFilename.1=@INSTALL_DIR@/config/configFileProbeHandlerConfig.prop
 #
 # Uncomment to enable Argo to discovery mDNS services as well
@@ -26,5 +26,5 @@ probeHandlerConfigFilename.1=@INSTALL_DIR@/config/configFileProbeHandlerConfig.p
 # multicast-multicast (mDNS) protocol.  Perhaps we can do some link-local leader election in a later
 # release.
 #
-#probeHandlerClassname.2=ws.argo.Responder.plugin.jmdns.MulticastDNSProbeHandlerPluginImpl
+#probeHandlerClassname.2=ws.argo.responder.plugin.jmdns.MulticastDNSProbeHandlerPluginImpl
 #probeHandlerConfigFilename.2=

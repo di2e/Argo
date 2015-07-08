@@ -6,7 +6,7 @@
 		<artifactId>Argo</artifactId>
 		<version>0.3.0-SNAPSHOT</version>
 	</parent>
-	<groupId>ws.argo.ProbeGenerator</groupId>
+	<groupId>ws.argo.probe</groupId>
 	<version>0.3.0-SNAPSHOT</version>
 	<artifactId>ProbeGenerator</artifactId>
 	<dependencies>
@@ -17,9 +17,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-			<version>2.2.12</version>
+			<groupId>ws.argo.wireline</groupId>
+			<artifactId>ArgoWirelineFormat</artifactId>
+			<version>0.3.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-validator</groupId>
@@ -30,35 +30,7 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.4</version>
-            <scope>test</scope>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<build>
-		<plugins>
-			<!-- JAXB xjc plugin that invokes the xjc compiler to compile XML schema 
-				into Java classes. -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>jaxb2-maven-plugin</artifactId>
-				<version>1.5</version>
-				<executions>
-					<execution>
-						<id>xjc</id>
-						<goals>
-							<goal>xjc</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<!-- The schema directory or xsd files. -->
-					<schemaDirectory>${basedir}/src/main/resources</schemaDirectory>
-					<!-- The package in which the source files will be generated. -->
-					<packageName>ws.argo.ProbeGenerator.xml</packageName>
-					<!-- The working directory to create the generated java source files. -->
-					<outputDirectory>${basedir}/src/main/java</outputDirectory>
-					<clearOutputDir>false</clearOutputDir>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>

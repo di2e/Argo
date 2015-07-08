@@ -1,0 +1,14 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "http://www.argo.ws/schemas/argoResponse.jsonschema",
+    "description": "The JSON wireline payload for Argo responses",
+    
+    "type": "object",
+    "properties": {
+        "responseID": { "type": "string" },
+        "probeID": { "type": "string" },
+        "services": { "type": "array", "items" : { "$ref": "service.jsonschema" } }
+    },
+    "required": ["responseID", "probeID", "services"]
+
+}

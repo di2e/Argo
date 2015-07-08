@@ -1,3 +1,9 @@
 # Maven
+.classpath
+.checkstyle
+.project
+.DS_Store
 log/
 target/
+.settings/
+
