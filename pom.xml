@@ -15,7 +15,7 @@
 		<module>BrowserWeb</module>
 		<module>build-tools</module>
 		<module>CLClient</module>
-        <module>cli-api</module>
+        <module>clui</module>
 		<module>ArgoWirelineFormat</module>
 	</modules>
 	<licenses>

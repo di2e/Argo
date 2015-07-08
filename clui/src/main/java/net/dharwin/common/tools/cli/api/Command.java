@@ -30,7 +30,7 @@ public abstract class Command<T extends CLIContext> {
 	 * Executes the command. The command line arguments contains all of
 	 * the key-value pairs and switches, but does not include the command name
 	 * that came from the original arguments.
-	 * @param args The command line arguments.
+	 * @param context the context object from the application
 	 * @return The result of the execution of this command.
 	 */
 	public CommandResult execute(T context) {
@@ -62,7 +62,6 @@ public abstract class Command<T extends CLIContext> {
 	/**
 	 * Execute the command.
 	 * @param context The context in which the command is being executed.
-	 * @param args The command line arguments.
 	 * @return The command result.
 	 */
 	protected abstract CommandResult innerExecute(T context);

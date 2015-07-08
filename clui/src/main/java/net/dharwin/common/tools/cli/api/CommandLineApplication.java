@@ -54,7 +54,6 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	
 	/**
 	 * Initialize the application. This loads the known commands.
-	 * @param startupArgs The startup args.
 	 * @throws CLIInitException Thrown when commands fail to properly load.
 	 */
 	public CommandLineApplication() throws CLIInitException {
@@ -70,7 +69,7 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	/**
 	 * Start the application. This will continuously loop until
 	 * the user exits the application.
-	 * @param args 
+	 * @param args the java command line arguments
 	 */
 	public void start(String[] args) {
 		setDefaultLogLevel();
