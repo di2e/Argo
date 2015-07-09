@@ -9,6 +9,12 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 
+/**
+ * Class to test multicast comms in target network.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class MCastMultihomeResponderThread extends Thread {
 
   InetSocketAddress saddr;
@@ -18,6 +24,12 @@ public class MCastMultihomeResponderThread extends Thread {
   Integer           mport;
   String            addrsDisplayString = null;
 
+  /**
+   * Class to test multicast comms in target network.
+   * 
+   * @author jmsimpson
+   *
+   */
   public MCastMultihomeResponderThread(NetworkInterface n, String maddr, Integer mport) {
     this.ni = n;
     this.maddr = maddr;

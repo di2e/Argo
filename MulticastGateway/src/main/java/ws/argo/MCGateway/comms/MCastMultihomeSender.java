@@ -8,6 +8,12 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 
+/**
+ * Class to test multicast comms in target network.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class MCastMultihomeSender extends MCastMultihome {
   Integer numMsgs;
 

@@ -11,6 +11,12 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Random;
 
+/**
+ * Class to test multicast comms in target network.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class MCastMultihomeSenderThread extends Thread {
 
   InetSocketAddress saddr;
@@ -21,6 +27,12 @@ public class MCastMultihomeSenderThread extends Thread {
   Integer           numMsgs;
   String            addrsDisplayString;
 
+  /**
+   * Class to test multicast comms in target network.
+   * 
+   * @author jmsimpson
+   *
+   */
   public MCastMultihomeSenderThread(NetworkInterface n, String maddr, Integer mport, Integer numMsgs) {
     this.ni = n;
     this.maddr = maddr;

@@ -6,11 +6,23 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 
+/**
+ * Class to test multicast comms in target network.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class MulticastResponder {
 
   static String multicastGroup = "230.0.0.1";
   // static String multicastGroup = "FF0E::230:1";
 
+  /**
+   * Run testing responder.
+   * 
+   * @param args command line arguments
+   * @throws IOException if something goes wrong
+   */
   @SuppressWarnings("resource")
   public static void main(String[] args) throws IOException {
 

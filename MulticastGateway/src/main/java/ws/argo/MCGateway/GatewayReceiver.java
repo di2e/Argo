@@ -272,6 +272,12 @@ public class GatewayReceiver {
 
   }
 
+  /**
+   * Shutdown hood for the GatewayReceiver.
+   * 
+   * @author jmsimpson
+   *
+   */
   public static class GatewayReceiverShutdown extends Thread {
     GatewayReceiver agent;
 
