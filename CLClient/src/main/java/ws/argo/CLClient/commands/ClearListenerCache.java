@@ -6,6 +6,13 @@ import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
 
+/**
+ * This command will send a REST call the the embedded JAX-RS server to clear
+ * the cache of the response listener.
+ * 
+ * @author jmsimpson
+ *
+ */
 @CLICommand(name = "clear", description = "clear the response listener cache.")
 public class ClearListenerCache extends Command<ArgoClientContext> {
 

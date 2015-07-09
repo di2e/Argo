@@ -13,6 +13,11 @@ import ws.argo.CLClient.ArgoClientContext;
 import ws.argo.probe.Probe;
 import ws.argo.probe.UnsupportedPayloadType;
 
+/**
+ * 
+ * @author jmsimpson
+ *
+ */
 @CLICommand(name = "modify", description = "modify an existing probe.")
 public class ModifyProbe extends Command<ArgoClientContext> {
 

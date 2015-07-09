@@ -16,8 +16,21 @@ import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeGenerator;
 
+/**
+ * The ArgoClientContext class encapsulated any state that the
+ * {@link ArgoClient} needs to operate at runtime. Specifically it stores setup
+ * probes and the network interface list.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ArgoClientContext extends CLIContext {
 
+  /**
+   * Create a new instance of the ArgoClientContext with its parent CL UI app.
+   * 
+   * @param app its parent CL UI app
+   */
   public ArgoClientContext(CommandLineApplication<? extends CLIContext> app) {
     super(app);
     this.put("probes", new HashMap<String, Probe>());

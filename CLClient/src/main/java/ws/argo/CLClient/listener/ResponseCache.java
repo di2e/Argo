@@ -39,6 +39,12 @@ public class ResponseCache {
 
   private HashMap<String, ExpiringService> cache = new HashMap<String, ExpiringService>();
 
+  /**
+   * Basic ArrayList cache.
+   * 
+   * @author jmsimpson
+   *
+   */
   private class Cache {
     public ArrayList<ServiceWrapper> cache = new ArrayList<ServiceWrapper>();
   }

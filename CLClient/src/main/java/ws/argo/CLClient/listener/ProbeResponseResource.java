@@ -29,27 +29,36 @@ import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
 import ws.argo.wireline.response.XMLSerializer;
 
+/**
+ * This is the CL UI probe listener resource used by the JAX-RS container. It
+ * provides the REST API for the "respondTo" URL used in the probes.
+ * 
+ * @author jmsimpson
+ *
+ */
 @Path("/listener")
 public class ProbeResponseResource {
 
   private static ResponseCache cache = new ResponseCache();
 
-/**
- * Inbound JSON responses get processed here.
- * @param probeResponseJSON - the actual wireline response payload
- * @return some innocuous string
- * @throws ResponseParseException if the wireline payload is malformed in some way
- */
+  /**
+   * Inbound JSON responses get processed here.
+   * 
+   * @param probeResponseJSON - the actual wireline response payload
+   * @return some innocuous string
+   * @throws ResponseParseException if the wireline payload is malformed in some
+   *           way
+   */
   @POST
   @Path("/probeResponse")
   @Consumes("application/json")
   public String handleJSONProbeResponse(String probeResponseJSON) throws ResponseParseException {
     System.out.println("Listener receiving JSON probe response: " + probeResponseJSON);
-    
+
     JSONSerializer serializer = new JSONSerializer();
-    
+
     ResponseWrapper response = serializer.unmarshal(probeResponseJSON);
-    
+
     for (ServiceWrapper service : response.getServices()) {
       cache.cache(new ExpiringService(service));
     }
@@ -62,9 +71,11 @@ public class ProbeResponseResource {
 
   /**
    * Inbound XML responses get processed here.
+   * 
    * @param probeResponseXML - the actual wireline response payload
    * @return some innocuous string
-   * @throws ResponseParseException  if the wireline payload is malformed in some way
+   * @throws ResponseParseException if the wireline payload is malformed in some
+   *           way
    */
   @POST
   @Path("/probeResponse")
@@ -72,9 +83,9 @@ public class ProbeResponseResource {
   public String handleXMLProbeResponse(String probeResponseXML) throws ResponseParseException {
 
     XMLSerializer serializer = new XMLSerializer();
-    
+
     ResponseWrapper response = serializer.unmarshal(probeResponseXML);
-    
+
     for (ServiceWrapper service : response.getServices()) {
       cache.cache(new ExpiringService(service));
     }
@@ -99,6 +110,5 @@ public class ProbeResponseResource {
     cache = new ResponseCache();
     return "Cleared Cache";
   }
-
 
 }
