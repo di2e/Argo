@@ -5,19 +5,19 @@ import java.net.NetworkInterface;
 
 public class MCastMultihomeResponder extends MCastMultihome {
 
-	public static void main(String[] args) throws IOException {
-		MCastMultihomeResponder r = new MCastMultihomeResponder();
-		r.run(args);
-	}
+  public static void main(String[] args) throws IOException {
+    MCastMultihomeResponder r = new MCastMultihomeResponder();
+    r.run(args);
+  }
 
-	@Override
-	void launchOnNetowrkInterface(NetworkInterface xface) {
-		System.out.println("Launching Responder for " + xface.getName());
-		new MCastMultihomeResponderThread(xface, this.maddr, this.mport).start();
-	}
+  @Override
+  void launchOnNetowrkInterface(NetworkInterface xface) {
+    System.out.println("Launching Responder for " + xface.getName());
+    new MCastMultihomeResponderThread(xface, this.maddr, this.mport).start();
+  }
 
-	@Override
-	String lauchHeaderTitleString() {
-		return "Launching the MCast Multihome Responder";
-	}
+  @Override
+  String lauchHeaderTitleString() {
+    return "Launching the MCast Multihome Responder";
+  }
 }
