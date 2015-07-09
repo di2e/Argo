@@ -54,22 +54,47 @@ public class Probe {
     setRespondToPayloadType(respondToPayloadType);
   }
 
+  /**
+   * get the hop limit or TTL for the probe.
+   */
   public int getHopLimit() {
     return ttl;
   }
 
+  /**
+   * set the hop limit or TTL for the probe.
+   * 
+   * @param limit an integer from 0 to 255
+   */
   public void setHopLimit(int limit) {
     this.ttl = limit;
   }
 
+  /**
+   * get the probe ID.
+   * 
+   * @return the probe ID
+   */
   public String getProbeID() {
     return probe.getProbeId();
   }
 
+  /**
+   * set the client ID. The client ID can be used be a responder for whatever
+   * reason it deems necessary.
+   * 
+   * @param clientID the client identifier
+   */
   public void setClientID(String clientID) {
     probe.setClientId(clientID);
   }
 
+  /**
+   * set the payload type for the response from the Responder.  It only support XML and JSON.
+   * 
+   * @param respondToPayloadType a payload type string - XML or JSON
+   * @throws UnsupportedPayloadType if you don't pass in XML or JSON
+   */
   public void setRespondToPayloadType(String respondToPayloadType) throws UnsupportedPayloadType {
     // Sanity check on the payload type values. Should be XML or JSON
     // If the probe goes out with a bad value here, then the Responder may have

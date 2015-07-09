@@ -17,6 +17,7 @@
 		<module>CLClient</module>
         <module>clui</module>
 		<module>ArgoWirelineFormat</module>
+		<module>DemoWebClient</module>
 	</modules>
 	<licenses>
 		<license>
