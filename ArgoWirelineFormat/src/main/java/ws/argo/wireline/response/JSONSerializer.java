@@ -9,11 +9,25 @@ import ws.argo.wireline.response.json.Service.Consumability;
 
 import com.google.gson.Gson;
 
+/**
+ * /** The JSONSerializer provides the translation between the ResponseWrapper
+ * and the wireline strings. It can both marshall and unmarshall wireline
+ * protocol from the domain objects.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class JSONSerializer {
 
   public JSONSerializer() {
   }
 
+  /**
+   * Translate the ResponseWrapper into the wireline string. See {@link ResponseWrapper}
+   * 
+   * @param response the instance of the ResponseWrapper
+   * @return the wireline string
+   */
   public String marshal(ResponseWrapper response) {
     Gson gson = new Gson();
 
@@ -24,6 +38,12 @@ public class JSONSerializer {
     return jsonString;
   }
 
+  /**
+   * Translate the ServiceWrapper into the wireline string.  See {@link ServiceWrapper}
+   * 
+   * @param service the instance of the ServiceWrapper
+   * @return the wireline string
+   */
   public String marshalService(ServiceWrapper service) {
     Gson gson = new Gson();
 
@@ -83,19 +103,32 @@ public class JSONSerializer {
 
   }
 
+  /**
+   * Translate the wireline string into an instance of a ResponseWrapper object.
+   * 
+   * @param payload the wireline string
+   * @return a new instance of a {@line ResponseWrapper}.
+   * @throws ResponseParseException if some issues occurred parsing the response
+   */
   public ResponseWrapper unmarshal(String payload) throws ResponseParseException {
 
     return unmarshalResponseJSON(payload);
 
   }
 
+  /**
+   * Translate the wireline string to an instance of a ServiceWrapper object.
+   * 
+   * @param payload the wireline string
+   * @return a new instance of a {@line ServiceWrapper}.
+   * @throws ResponseParseException if some issues occurred parsing the response
+   */
   public ServiceWrapper unmarshalService(String payload) throws ResponseParseException {
 
     return unmarshalServiceJSON(payload);
 
   }
 
-  
   private ResponseWrapper unmarshalResponseJSON(String payload) {
     Gson gson = new Gson();
 
@@ -103,25 +136,25 @@ public class JSONSerializer {
 
     ResponseWrapper response = new ResponseWrapper(jsonResponse.getProbeID());
     response.setResponseID(jsonResponse.getResponseID());
-    
+
     for (Service jsonService : jsonResponse.getServices()) {
       ServiceWrapper service = createServiceWrapperFromService(jsonService);
-      
+
       response.addResponse(service);
-      
+
     }
 
     return response;
 
   }
-  
+
   private ServiceWrapper unmarshalServiceJSON(String payload) {
     Gson gson = new Gson();
 
     Service jsonService = gson.fromJson(payload, Service.class);
-    
+
     ServiceWrapper service = createServiceWrapperFromService(jsonService);
-    
+
     return service;
   }
 
@@ -134,12 +167,11 @@ public class JSONSerializer {
     service.setServiceContractID(jsonService.getContractId());
     service.setServiceName(jsonService.getServiceName());
     service.setTtl(jsonService.getTtl());
-    
+
     for (ws.argo.wireline.response.json.AccessPoint ap : jsonService.getAccessPoints()) {
       service.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), ap.getDataType(), ap.getData());
     }
     return service;
   }
-
 
 }

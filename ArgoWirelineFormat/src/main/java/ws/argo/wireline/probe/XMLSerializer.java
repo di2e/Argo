@@ -42,6 +42,14 @@ import ws.argo.wireline.probe.xml.ObjectFactory;
 import ws.argo.wireline.probe.xml.Probe;
 import ws.argo.wireline.probe.xml.Probe.Ra.RespondTo;
 
+/**
+ * The XMLSerializer provides the translation between the ProbeWrapper and the
+ * wireline strings. It can both marshall and unmarshall wireline protocol from
+ * the domain objects.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class XMLSerializer {
 
   private ObjectFactory xmlProbeFactory = new ObjectFactory();
@@ -49,6 +57,13 @@ public class XMLSerializer {
   public XMLSerializer() {
   }
 
+  /**
+   * Translate the ProbeWrapper object into the wireline string. See
+   * {@link ProbeWrapper}.
+   * 
+   * @param probe the instance of the ProbeWrapper
+   * @return the wireline string
+   */
   public String marshal(ProbeWrapper probe) {
 
     Probe xmlProbe = this.composeProbeFromProbeWrapper(probe);

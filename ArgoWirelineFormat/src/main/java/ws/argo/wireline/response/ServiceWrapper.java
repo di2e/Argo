@@ -21,12 +21,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * The ServiceWrapper is effectively an Argo domain class. It is the
+ * intermediary data encapsulation object representation of a service (which is
+ * usually wrapped up in a response). The domain services generally do not have
+ * any domain specific behavior so this class is almost behavior-free.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ServiceWrapper implements Comparable<ServiceWrapper> {
 
-  private static final Logger   LOGGER             = Logger.getLogger(ServiceWrapper.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(ServiceWrapper.class.getName());
 
-  public static final String    HUMAN_CONSUMABLE   = "HUMAN_CONSUMABLE";
-  public static final String    MACHINE_CONSUMABLE = "MACHINE_CONSUMABLE";
+  public static final String HUMAN_CONSUMABLE   = "HUMAN_CONSUMABLE";
+  public static final String MACHINE_CONSUMABLE = "MACHINE_CONSUMABLE";
 
   // public Service xmlService;
 
@@ -37,8 +46,14 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
   public String                 contractDescription;
   public String                 consumability;
   public Integer                ttl;
-  public ArrayList<AccessPoint> accessPoints       = new ArrayList<AccessPoint>();
+  public ArrayList<AccessPoint> accessPoints = new ArrayList<AccessPoint>();
 
+  /**
+   * This is a convenience class for encapsulating access points.
+   * 
+   * @author jmsimpson
+   *
+   */
   public class AccessPoint implements Comparable<AccessPoint> {
     public String label;
     public String url;
@@ -73,7 +88,8 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
 
     @Override
     public boolean equals(Object obj) {
-      if (obj == this) return true;
+      if (obj == this)
+        return true;
       return this.hashCode() == obj.hashCode();
     }
 
@@ -100,8 +116,7 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
     public String getData() {
       return data != null ? data : "";
     }
-    
-    
+
   }
 
   /**
@@ -124,9 +139,9 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
       return true;
     if (!(obj instanceof ServiceWrapper))
       return false;
-  
+
     ServiceWrapper svc = (ServiceWrapper) obj;
-  
+
     if (!svc.getId().trim().equals(this.getId().trim()))
       return false;
     if (!svc.getServiceName().trim().equals(this.getServiceName().trim()))
@@ -141,22 +156,21 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
       return false;
     if (!svc.getTtl().equals(this.getTtl()))
       return false;
-  
-    
+
     List<AccessPoint> apl1 = new ArrayList<AccessPoint>(this.getAccessPoints());
     List<AccessPoint> apl2 = new ArrayList<AccessPoint>(svc.getAccessPoints());
-  
+
     if (apl1.size() != apl2.size())
       return false;
-  
+
     Collections.sort(apl1);
     Collections.sort(apl2);
-  
-    for (int i=0; i<apl1.size(); i++) {
+
+    for (int i = 0; i < apl1.size(); i++) {
       if (!apl1.get(i).equals(apl2.get(i)))
-        return false;     
+        return false;
     }
-  
+
     return true;
   }
 
@@ -205,8 +219,7 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
    * @param data - totally free-form data (it's BASE64 encoded in both the XML
    *          and JSON)
    */
-  public void addAccessPoint(String label, String ip, String port,
-      String url, String dataType, String data) {
+  public void addAccessPoint(String label, String ip, String port, String url, String dataType, String data) {
 
     AccessPoint ap = new AccessPoint();
     ap.label = label;
@@ -237,7 +250,7 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
   }
 
   public String getServiceName() {
-    return serviceName != null ? serviceName : ""; 
+    return serviceName != null ? serviceName : "";
   }
 
   public void setServiceName(String serviceName) {
@@ -281,6 +294,13 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
     this.ttl = ttl;
   }
 
+  /**
+   * Set the Time To Live (TTL) for the services. This method takes a string and
+   * is provided as a convenience for developers (like me) that just wnat to jam
+   * the string into the wrapper and let it worry about converting it.
+   * 
+   * @param ttlString
+   */
   public void setTtl(String ttlString) {
     try {
       this.ttl = Integer.valueOf(ttlString);

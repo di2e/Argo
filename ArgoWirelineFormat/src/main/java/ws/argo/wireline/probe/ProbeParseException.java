@@ -1,14 +1,20 @@
 package ws.argo.wireline.probe;
 
+/**
+ * Exception to indicate that a parsing problem happened with wireline probes.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ProbeParseException extends Exception {
 
   /**
-   * 
+   * Auto generated.
    */
   private static final long serialVersionUID = 7415856451120137226L;
 
   public ProbeParseException() {
-    // TODO Auto-generated constructor stub
+   
   }
 
   public ProbeParseException(String message) {
