@@ -60,7 +60,7 @@
 
   function getIPAddressInformation() {
 	  $.ajax({
-          url: "/BrowserWeb/api/controller/ipAddrInfo",
+          url: "/ArgoWebClient/api/controller/ipAddrInfo",
           data: { },
           async: false,
           success: function( data ) {
@@ -74,7 +74,7 @@
 
   function launchProbe() {
 	  $.ajax({
-		  url: "/BrowserWeb/api/controller/launchProbe",
+		  url: "/ArgoWebClient/api/controller/launchProbe",
 		  data: { },
 		  async: false,
 		  success: function( data ) {
@@ -128,7 +128,7 @@
 		  
   function getServices() {
 	  $.ajax({
-		  url: "/BrowserWeb/api/controller/responses",
+		  url: "/ArgoWebClient/api/controller/responses",
 		  data: { },
 		  success: function( data ) {
 			  //alert("got services");
