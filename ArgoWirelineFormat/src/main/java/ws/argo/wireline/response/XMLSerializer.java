@@ -29,12 +29,27 @@ import ws.argo.wireline.response.xml.Services.Service;
 import ws.argo.wireline.response.xml.Services.Service.AccessPoints;
 import ws.argo.wireline.response.xml.Services.Service.AccessPoints.AccessPoint.Data;
 
+/**
+ * /** The XMLSerializer provides the translation between the ResponseWrapper
+ * and the wireline strings. It can both marshall and unmarshall wireline
+ * protocol from the domain objects.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class XMLSerializer {
 
   public XMLSerializer() {
 
   }
 
+  /**
+   * Translate a ResponseWrapper into the wireline string. See
+   * {@link ResponseWrapper}
+   * 
+   * @param response the ResponseWrapper instance
+   * @return the wireline string
+   */
   public String marshal(ResponseWrapper response) {
 
     Services xmlServices = this.composeResponseFromResponseWrapper(response);
@@ -57,11 +72,18 @@ public class XMLSerializer {
     }
     return sw.toString();
   }
-  
+
+  /**
+   * Translate the ServiceWrapper into the wireline string. See
+   * {@link ServiceWrapper}
+   * 
+   * @param service the instance of the ServiceWrapper
+   * @return the wireline string
+   */
   public String marshalService(ServiceWrapper service) {
-    
+
     Service xmlService = composeServiceFromServiceWrapper(service);
-    
+
     StringWriter sw = new StringWriter();
     try {
       JAXBContext jaxbContext = JAXBContext.newInstance(Service.class);
@@ -79,7 +101,7 @@ public class XMLSerializer {
       e.printStackTrace();
     }
     return sw.toString();
-    
+
   }
 
   private Services composeResponseFromResponseWrapper(ResponseWrapper response) {
@@ -140,6 +162,13 @@ public class XMLSerializer {
 
   }
 
+  /**
+   * Translate the wireline string into an instance of a ResponseWrapper object.
+   * 
+   * @param payload the wireline string
+   * @return a new instance of a {@line ResponseWrapper}.
+   * @throws ResponseParseException if some issues occurred parsing the response
+   */
   public ResponseWrapper unmarshal(String payload) throws ResponseParseException {
 
     Services xmlServices = parseResponsePayload(payload);
@@ -150,6 +179,13 @@ public class XMLSerializer {
 
   }
 
+  /**
+   * Translate the wireline string to an instance of a ServiceWrapper object.
+   * 
+   * @param payload the wireline string
+   * @return a new instance of a {@line ServiceWrapper}.
+   * @throws ResponseParseException if some issues occurred parsing the response
+   */
   public ServiceWrapper unmarshalService(String payload) throws ResponseParseException {
 
     Service xmlService = parseServicePayload(payload);
