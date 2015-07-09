@@ -20,19 +20,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import ws.argo.wireline.response.ResponseWrapper;
-import ws.argo.wireline.response.ServiceWrapper;
-import ws.argo.wireline.response.ServiceWrapper.AccessPoint;
-
+/**
+ * The ProbeWrapper is effectively an Argo domain class. It is the intermediary
+ * data encapsulation object representation of a probe. The domain probes
+ * generally do not have any domain specific behavior so this class is
+ * behavior-free.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ProbeWrapper {
 
   public static final String PROBE_DES_VERSION = "urn:uuid:918b5b45-1496-459e-8a6b-633dbc465380";
 
-  public static final String XML               = "XML";
-  public static final String JSON              = "JSON";
+  public static final String XML  = "XML";
+  public static final String JSON = "JSON";
 
-  /*
-   * This is a wrapper class for the label, URL pair for a respondTo address
+  /**
+   * This is a wrapper class for the label, URL pair for a respondTo address.
    */
   public class RespondToURL implements Comparable<RespondToURL> {
     public String url;
@@ -91,10 +96,10 @@ public class ProbeWrapper {
   private ArrayList<String>       serviceContractIDs = new ArrayList<String>();
   private ArrayList<String>       serviceInstanceIDs = new ArrayList<String>();
 
-  private String                  clientId;
-  private String                  id;
-  private String                  desVersion;
-  private String                  respondToPayloadType;
+  private String clientId;
+  private String id;
+  private String desVersion;
+  private String respondToPayloadType;
 
   public ProbeWrapper(String probeID) {
     setProbeId(probeID);
@@ -138,15 +143,13 @@ public class ProbeWrapper {
         return false;
     }
 
-    String scids1;
-    String scids2;
-
     StringBuffer buf = new StringBuffer();
 
     for (String scid : this.getServiceContractIDs()) {
       buf.append(scid);
     }
 
+    String scids1;
     scids1 = buf.toString();
 
     buf = new StringBuffer();
@@ -155,13 +158,11 @@ public class ProbeWrapper {
       buf.append(scid);
     }
 
+    String scids2;
     scids2 = buf.toString();
 
     if (!scids1.equals(scids2))
       return false;
-
-    String siids1;
-    String siids2;
 
     buf = new StringBuffer();
 
@@ -169,6 +170,7 @@ public class ProbeWrapper {
       buf.append(siid);
     }
 
+    String siids1;
     siids1 = buf.toString();
 
     buf = new StringBuffer();
@@ -177,6 +179,7 @@ public class ProbeWrapper {
       buf.append(siid);
     }
 
+    String siids2;
     siids2 = buf.toString();
 
     if (!siids1.equals(siids2))
@@ -209,7 +212,7 @@ public class ProbeWrapper {
   }
 
   public String getClientId() {
-    //clientID can be null
+    // clientID can be null
     return clientId;
   }
 
@@ -245,6 +248,12 @@ public class ProbeWrapper {
     return serviceInstanceIDs;
   }
 
+  /**
+   * Add a response URL to the probe.
+   * 
+   * @param label the string label for the respondTo address
+   * @param url the actual URL string
+   */
   public void addRespondToURL(String label, String url) {
 
     RespondToURL respondToURL = new RespondToURL();

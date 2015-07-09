@@ -22,6 +22,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * The ResponseWrapper is effectively an Argo domain class. It is the
+ * intermediary data encapsulation object representation of a response. The
+ * domain responses generally do not have any domain specific behavior so this
+ * class is almost behavior-free.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponseWrapper {
   String                          probeID;
   String                          responseID;

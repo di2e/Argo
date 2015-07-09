@@ -6,6 +6,13 @@ import java.util.List;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+/**
+ * NOTE: This is an experimental class at the moment. Its purpose is to help
+ * parse the actual command line arguments from the java command line.
+ * 
+ * @author jmsimpson
+ *
+ */
 @Parameters(commandDescription = "command line arguments")
 public class JavaCommandLineArguments {
 

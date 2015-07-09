@@ -4,15 +4,15 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>ws.argo</groupId>
-    <artifactId>Argo</artifactId>
+    <artifactId>DemoWebClient</artifactId>
     <version>0.3.0-SNAPSHOT</version>
   </parent>
   <groupId>ws.argo.Browser</groupId>
-  <artifactId>BrowserWeb</artifactId>
+  <artifactId>ArgoWebClient</artifactId>
   <version>0.3.0-SNAPSHOT</version>
   <packaging>war</packaging>
-  <name>BrowserWeb Webapp</name>
-  <url>http://maven.apache.org</url>
+  <name>Argo Client Webapp</name>
+  <url>http://www.argo.ws</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	<maven.compiler.source>1.7</maven.compiler.source>
@@ -44,6 +44,6 @@
   </dependencies>
 
   <build>
-    <finalName>BrowserWeb</finalName>
+    <finalName>ArgoWebClient</finalName>
   </build>
 </project>

@@ -1,9 +1,15 @@
 package ws.argo.wireline.response;
 
+/**
+ * Exception to indicate that a parsing problem happened with wireline responses.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponseParseException extends Exception {
 
   /**
-   * 
+   * auto generated.
    */
   private static final long serialVersionUID = 5368454292780751828L;
 

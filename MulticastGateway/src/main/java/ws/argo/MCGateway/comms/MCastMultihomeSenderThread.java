@@ -11,97 +11,107 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Random;
 
+/**
+ * Class to test multicast comms in target network.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class MCastMultihomeSenderThread extends Thread {
 
-	InetSocketAddress saddr;
-	NetworkInterface ni;
-	MulticastSocket socket = null;
-	String maddr;
-	Integer mport;
-	Integer numMsgs;
-	String addrsDisplayString;
-	
-	public MCastMultihomeSenderThread(NetworkInterface n, String maddr, Integer mport, Integer numMsgs) {
-		this.ni = n;
-		this.maddr = maddr;
-		this.mport = mport;
-		this.numMsgs = numMsgs;
-	}
-	
-	String nicAddrDisplayString() {
-		
-		if (addrsDisplayString != null)
-			return addrsDisplayString;
-		
-		Enumeration<InetAddress> addrs = this.ni.getInetAddresses();
-		StringBuffer buf = new StringBuffer();
-		buf.append("[");
-		while (addrs.hasMoreElements()) {
-            InetAddress addr = addrs.nextElement();
-            buf.append(addr.toString()).append(" ");
-        }
-		buf.append("]");
+  InetSocketAddress saddr;
+  NetworkInterface  ni;
+  MulticastSocket   socket = null;
+  String            maddr;
+  Integer           mport;
+  Integer           numMsgs;
+  String            addrsDisplayString;
 
-		addrsDisplayString = buf.toString();
-		
-		return addrsDisplayString;
-		
-	}
-	
-	
-	@Override
-	public void run() {
+  /**
+   * Class to test multicast comms in target network.
+   * 
+   * @author jmsimpson
+   *
+   */
+  public MCastMultihomeSenderThread(NetworkInterface n, String maddr, Integer mport, Integer numMsgs) {
+    this.ni = n;
+    this.maddr = maddr;
+    this.mport = mport;
+    this.numMsgs = numMsgs;
+  }
 
-		MulticastSocket socket = null;
-		try {
-			socket = new MulticastSocket();
-			socket.setNetworkInterface(ni);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-        InetAddress group = null;
-		try {
-			group = InetAddress.getByName(maddr);
-		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+  String nicAddrDisplayString() {
 
-		Integer msgNum = 0;
-		
-        while (this.numMsgs <= 0 || msgNum < this.numMsgs) { //if limit of numMsgs is 0 (or less) then loop forever other wise stop on numMsgs
-	        try {
-	            byte[] buf = new byte[512];
-	            
-	            String displayName = socket.getNetworkInterface().getDisplayName();
-	            int index = socket.getNetworkInterface().getIndex();
+    if (addrsDisplayString != null)
+      return addrsDisplayString;
 
-	            String dString = "This is a message sent over "+displayName+"["+index+"]:"+group.toString()+" responding at "+nicAddrDisplayString()+" on "+ new Date().toString();
-	            
-	            buf = dString.getBytes();
+    Enumeration<InetAddress> addrs = this.ni.getInetAddresses();
+    StringBuffer buf = new StringBuffer();
+    buf.append("[");
+    while (addrs.hasMoreElements()) {
+      InetAddress addr = addrs.nextElement();
+      buf.append(addr.toString()).append(" ");
+    }
+    buf.append("]");
 
-	            DatagramPacket packet;
-	            packet = new DatagramPacket(buf, buf.length, group, mport);
-	            socket.send(packet);
-	            
-	            System.out.println("Sent: "+dString);
+    addrsDisplayString = buf.toString();
 
-	            try {
-	            	int secs = 1+(new Random()).nextInt(4);
-	                Thread.sleep(secs*1000);
-	            } catch (InterruptedException e) { }
-	            msgNum++;
-	        }
-	        catch (IOException e) {
-	            e.printStackTrace();
-	        }
-	    }
-	    
-        
+    return addrsDisplayString;
 
-	}
+  }
 
-	
+  @Override
+  public void run() {
+
+    MulticastSocket socket = null;
+    try {
+      socket = new MulticastSocket();
+      socket.setNetworkInterface(ni);
+    } catch (IOException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+
+    InetAddress group = null;
+    try {
+      group = InetAddress.getByName(maddr);
+    } catch (UnknownHostException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+
+    Integer msgNum = 0;
+
+    while (this.numMsgs <= 0 || msgNum < this.numMsgs) { // if limit of numMsgs
+                                                         // is 0 (or less) then
+                                                         // loop forever other
+                                                         // wise stop on numMsgs
+      try {
+        byte[] buf = new byte[512];
+
+        String displayName = socket.getNetworkInterface().getDisplayName();
+        int index = socket.getNetworkInterface().getIndex();
+
+        String dString = "This is a message sent over " + displayName + "[" + index + "]:" + group.toString() + " responding at " + nicAddrDisplayString() + " on " + new Date().toString();
+
+        buf = dString.getBytes();
+
+        DatagramPacket packet;
+        packet = new DatagramPacket(buf, buf.length, group, mport);
+        socket.send(packet);
+
+        System.out.println("Sent: " + dString);
+
+        try {
+          int secs = 1 + (new Random()).nextInt(4);
+          Thread.sleep(secs * 1000);
+        } catch (InterruptedException e) {}
+        msgNum++;
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+  }
+
 }

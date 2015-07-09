@@ -16,6 +16,13 @@
 
 package ws.argo.responder;
 
+/**
+ * ResponderConfigException is an exception that can occur if the Responder is
+ * provided bad configuration parameters.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponderConfigException extends Exception {
 
   private static final long serialVersionUID = -9173901238723611205L;

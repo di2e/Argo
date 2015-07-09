@@ -10,13 +10,12 @@
 	<modules>
 		<module>Responder</module>
 		<module>ProbeGenerator</module>
-		<module>AsynchListener</module>
 		<module>MulticastGateway</module>
-		<module>BrowserWeb</module>
 		<module>build-tools</module>
 		<module>CLClient</module>
         <module>clui</module>
 		<module>ArgoWirelineFormat</module>
+		<module>DemoWebClient</module>
 	</modules>
 	<licenses>
 		<license>

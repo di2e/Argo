@@ -48,15 +48,24 @@ import ws.argo.wireline.probe.ProbeParseException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.XMLSerializer;
 
+/**
+ * This is the main class for the Responder system. It will start up the
+ * multicast socket and begin listening for incoming probes. If it gets a well
+ * formed probe, it will launch a {@link ProbeHandlerThread}. This allows the
+ * Responder to process as many probes as possible.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class Responder {
 
-  private static final String               VERSION_PROPERTIES = "/version.properties";
+  private static final String VERSION_PROPERTIES = "/version.properties";
 
-  private static final Logger               LOGGER             = Logger.getLogger(Responder.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(Responder.class.getName());
 
-  private static String                     ARGO_VERSION       = "UNKNOWN";
+  private static String ARGO_VERSION = "UNKNOWN";
 
-  private ArrayList<ProbeHandlerPluginIntf> handlers           = new ArrayList<ProbeHandlerPluginIntf>();
+  private ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
 
   // 30 second timeout - the processing loop will interrupt once every 30
   // seconds to check to see if the loop should quit. This is for hygiene as
@@ -67,21 +76,27 @@ public class Responder {
   // this allows external control on the processing loop so you don't have to
   // directly
   // kill the process to stop a Responder - see inboundSocketTimeout
-  private boolean                           shouldRun          = true;
+  private boolean shouldRun = true;
 
-  private NetworkInterface                  ni                 = null;
-  protected MulticastSocket                 inboundSocket      = null;
-  protected InetAddress                     maddress;
+  private NetworkInterface  ni            = null;
+  protected MulticastSocket inboundSocket = null;
+  protected InetAddress     maddress;
 
-  protected CloseableHttpClient             httpClient;
+  protected CloseableHttpClient httpClient;
 
-  private ResponderConfigurationBean        cliValues;
+  private ResponderConfigurationBean cliValues;
 
-  private ResponderShutdown                 shutdownHook;
+  private ResponderShutdown shutdownHook;
 
   // This id is for internal reporting and logging reasons
-  private String                            runtimeId;
+  private String runtimeId;
 
+  /**
+   * Utility class to encaptulate some of the Responder configuration.
+   * 
+   * @author jmsimpson
+   *
+   */
   private static class ResponderConfigurationBean {
 
     public int                         multicastPort     = 4003;
@@ -92,11 +107,23 @@ public class Responder {
 
   }
 
+  /**
+   * Utility class to encaptulate some of the Responder configuration.
+   * 
+   * @author jmsimpson
+   *
+   */
   private static class AppHandlerConfig {
     public String classname;
     public String configFilename;
   }
 
+  /**
+   * Shutdown hook handler for the Responder.  See {@linkplain Runtime#addShutdownHook(Thread)}.
+   * 
+   * @author jmsimpson
+   *
+   */
   public static class ResponderShutdown extends Thread {
     Responder agent;
 
@@ -167,7 +194,6 @@ public class Responder {
 
     handlers.add(handler);
   }
-
 
   /**
    * Close the socket and tell the processing loop to terminate. This is a
@@ -347,9 +373,7 @@ public class Responder {
         }
         buf.append("v:" + this.ni.isVirtual() + ") ");
 
-        LOGGER.severe(ni.getName() + " " + buf.toString()
-            + ": could not join group " + socketAddress.toString()
-            + " --> " + e.toString());
+        LOGGER.severe(ni.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString() + " --> " + e.toString());
       }
       success = false;
     }
@@ -462,8 +486,7 @@ public class Responder {
     return cliValues;
   }
 
-  private static ResponderConfigurationBean processCommandLine(CommandLine cl)
-      throws ResponderConfigException {
+  private static ResponderConfigurationBean processCommandLine(CommandLine cl) throws ResponderConfigException {
 
     LOGGER.fine("Parsing command line values:");
 
@@ -573,8 +596,7 @@ public class Responder {
     Options options = new Options();
 
     options.addOption("h", false, "display help for the Responder daemon");
-    options.addOption("v", false,
-        "display version for the Responder daemon");
+    options.addOption("v", false, "display version for the Responder daemon");
     options.addOption(OptionBuilder.withArgName("networkInterface name")
         .hasArg()
         .withDescription("network interface name to listen on")
