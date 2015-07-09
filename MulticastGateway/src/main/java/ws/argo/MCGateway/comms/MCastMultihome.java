@@ -18,6 +18,12 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+/**
+ * Class to test multicast comms in target network.
+ * 
+ * @author jmsimpson
+ *
+ */
 public abstract class MCastMultihome {
   private static final Logger LOGGER = Logger.getLogger(MCastMultihome.class.getName());
   protected static Options    options;

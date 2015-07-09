@@ -7,12 +7,21 @@ import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.util.Date;
 
+/**
+ * Class to test multicast comms in target network.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class MulticastSenderThread implements Runnable {
 
   // static String multicastGroup = "239.255.0.1";
   static String multicastGroup = "230.0.0.2";
   // static String multicastGroup = "FF0E::230:1";
 
+  /**
+   * Run the sender thread.
+   */
   @SuppressWarnings("resource")
   public void run() {
     // TODO Auto-generated method stub

@@ -3,6 +3,12 @@ package ws.argo.MCGateway.comms;
 import java.io.IOException;
 import java.net.NetworkInterface;
 
+/**
+ * Class to test multicast comms in target network.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class MCastMultihomeResponder extends MCastMultihome {
 
   public static void main(String[] args) throws IOException {

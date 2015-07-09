@@ -187,6 +187,12 @@ public class GatewaySender {
     }
   }
 
+  /**
+   * Shutdown hood for the GatewaySender.
+   * 
+   * @author jmsimpson
+   *
+   */
   public static class GatewaySenderShutdown extends Thread {
     GatewaySender agent;
 
