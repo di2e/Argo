@@ -36,16 +36,28 @@ import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.ProbeWrapper.RespondToURL;
 import ws.argo.wireline.response.ResponseWrapper;
 
+/**
+ * The ProbeHandlerThread is the worker thread for the {@link Responder}. The
+ * Responder will launch a new ProbeHandlerThread with it receives a probe off
+ * the wire. It will run through all of the probe handlers and process any
+ * positive hits that it gets. It then compiles the results (discovered
+ * Services), packages them up in a response and sends the response back to the
+ * list of respondTo addresses in the probe. If it fails on one respondTo
+ * address, the it will just move to the next (if there is one).
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ProbeHandlerThread extends Thread {
 
-  private static final Logger       LOGGER            = Logger.getLogger(ProbeHandlerThread.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(ProbeHandlerThread.class.getName());
 
   // 5 minutes
-  private static final long         probeCacheTimeout = 5 * 60 * 1000;
+  private static final long probeCacheTimeout = 5 * 60 * 1000;
 
-  private static Map<String, Long>  handledProbes     = new ConcurrentHashMap<String, Long>();
+  private static Map<String, Long> handledProbes = new ConcurrentHashMap<String, Long>();
 
-  protected CloseableHttpClient     httpClient;
+  protected CloseableHttpClient httpClient;
 
   ArrayList<ProbeHandlerPluginIntf> handlers;
   ProbeWrapper                      probe;
@@ -119,13 +131,11 @@ public class ProbeHandlerThread extends Thread {
 
         int statusCode = httpResponse.getStatusLine().getStatusCode();
         if (statusCode > 300) {
-          throw new RuntimeException("Failed : HTTP error code : "
-              + httpResponse.getStatusLine().getStatusCode());
+          throw new RuntimeException("Failed : HTTP error code : " + httpResponse.getStatusLine().getStatusCode());
         }
 
         if (statusCode != 204) {
-          BufferedReader br = new BufferedReader(new InputStreamReader(
-              (httpResponse.getEntity().getContent())));
+          BufferedReader br = new BufferedReader(new InputStreamReader((httpResponse.getEntity().getContent())));
 
           LOGGER.fine("Successful response from response target - " + respondToURL);
           String output;
