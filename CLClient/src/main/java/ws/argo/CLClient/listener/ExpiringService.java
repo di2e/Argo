@@ -20,12 +20,21 @@ import java.util.Date;
 
 import ws.argo.wireline.response.ServiceWrapper;
 
+/**
+ * The ExpiringService is a wrapper on a {@link ServiceWrapper} that will tell
+ * the listener cache if its expired. Expiring services out of a cache is not an
+ * Argo specific domain behavior and therefore that behavior is not in the Argo
+ * domain classes.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ExpiringService {
 
   static final long ONE_MINUTE_IN_MILLIS = 60000;
 
-  ServiceWrapper    service;
-  public Date       cacheStartTime       = new Date();
+  ServiceWrapper service;
+  public Date    cacheStartTime = new Date();
 
   public ExpiringService(ServiceWrapper service) {
     this.service = service;

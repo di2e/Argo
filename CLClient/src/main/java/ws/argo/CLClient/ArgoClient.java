@@ -16,6 +16,13 @@ import net.dharwin.common.tools.cli.api.exceptions.CLIInitException;
 import ws.argo.CLClient.listener.ResponseListener;
 import ws.argo.probe.ProbeGenerator;
 
+/**
+ * The ArgoClient represents the command line client for sending probes and
+ * receiving responses from Argo Responders on the reachable network.
+ * 
+ * @author jmsimpson
+ *
+ */
 @CLIEntry
 public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 

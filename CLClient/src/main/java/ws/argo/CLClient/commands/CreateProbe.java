@@ -17,10 +17,25 @@ import ws.argo.probe.Probe;
 import ws.argo.probe.UnsupportedPayloadType;
 import ws.argo.wireline.probe.ProbeWrapper;
 
+/**
+ * This class will create a new probe that the CL UI can use over and over again when sending probes.
+ *
+ * <p>
+ * The command structure is:
+ * create
+ *   -n : for future reference and use with 'send' command>.
+ *   -cid --clientID : sets the client ID in the probe.
+ *   -scids --serviceContractIDs : takes a whitespace separated list strings to use as contract IDs
+ *   -siids --serviceInstanceIDs : takes a whitespace separated list strings to use as instance IDs
+ *   -ptype --respondToPayloadType : sets the respondTo payload type.  Must be JSON or XML or and error happens.
+ *
+ * @author jmsimpson
+ *
+ */
 @CLICommand(name = "create", description = "Create a new probe")
 public class CreateProbe extends Command<ArgoClientContext> {
 
-  @Parameter(names = { "-n", "--name" }, description = "name of the probe.", required = true)
+  @Parameter(names = { "-n", "--name" }, description = "name of the probe for future reference.", required = true)
   private String _probeName;
 
   @Parameter(names = { "-cid", "--clientID" }, description = "cleint ID for the probe", required = false)

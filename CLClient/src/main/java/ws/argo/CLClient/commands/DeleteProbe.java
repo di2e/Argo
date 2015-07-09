@@ -9,6 +9,11 @@ import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
 import ws.argo.probe.Probe;
 
+/**
+ * 
+ * @author jmsimpson
+ *
+ */
 @CLICommand(name = "delete", description = "deletes an existing probe")
 public class DeleteProbe extends Command<ArgoClientContext> {
 
