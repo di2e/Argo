@@ -47,24 +47,25 @@ import javax.xml.bind.JAXBException;
 public class ProbeGenerator {
 
   private static final String DEFAULT_ARGO_GROUP = "230.0.0.1";
-  private static final int    DEFAULT_ARGO_PORT  = 4003;
 
-  private static final Logger LOGGER             = Logger.getLogger(ProbeGenerator.class.getName());
+  private static final int DEFAULT_ARGO_PORT = 4003;
 
-  public String               multicastAddress;
-  public int                  multicastPort;
-  protected MulticastSocket   outboundSocket     = null;
-  private boolean             readyToSend        = false;
+  private static final Logger LOGGER = Logger.getLogger(ProbeGenerator.class.getName());
+
+  public String multicastAddress;
+
+  public int multicastPort;
+
+  protected MulticastSocket outboundSocket = null;
+
+  private boolean readyToSend = false;
 
   /**
    * Create a new ProbeGenerator.
    * 
-   * @param multicastAddress
-   *          the multicast group
-   * @param multicastPort
-   *          the port
-   * @param niName
-   *          the Network Interface name
+   * @param multicastAddress the multicast group
+   * @param multicastPort the port
+   * @param niName the Network Interface name
    */
   public ProbeGenerator(String multicastAddress, int multicastPort, String niName) {
     this.multicastAddress = multicastAddress;
@@ -76,10 +77,23 @@ public class ProbeGenerator {
 
   }
 
+  /**
+   * Create a ProbeGenerator that will attach to the specified interface.
+   * 
+   * @param niName - the name of the NetworkInterface - see
+   *          {@linkplain NetworkInterface#getByName(String)}
+   * @throws IOException if something goes wrong at the network layer
+   */
   public ProbeGenerator(String niName) throws IOException {
     this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT, niName);
   }
 
+  /**
+   * Create a ProbeGenerator that connects to the network interface associated
+   * with localhost - see {@linkplain InetAddress#getLocalHost()}.
+   * 
+   * @throws IOException if something goes wrong at the network layer
+   */
   public ProbeGenerator() throws IOException {
     this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT);
   }
@@ -87,10 +101,8 @@ public class ProbeGenerator {
   /**
    * Create a new ProbeGenerator.
    * 
-   * @param multicastAddress
-   *          the multicast group
-   * @param multicastPort
-   *          the port
+   * @param multicastAddress the multicast group
+   * @param multicastPort the port
    */
   public ProbeGenerator(String multicastAddress, int multicastPort) {
     this.multicastAddress = multicastAddress;
@@ -112,8 +124,7 @@ public class ProbeGenerator {
    * in the OS. This can happen with you have VPN clients or hypervisors running
    * on the host OS ... so look out.
    * 
-   * @param niName
-   *          the name of the Network Interface
+   * @param niName the name of the Network Interface
    * @return true if the join was successful
    */
   boolean joinGroup(String niName) {
@@ -128,8 +139,7 @@ public class ProbeGenerator {
         ni = NetworkInterface.getByName(niName);
       if (ni == null) {
         InetAddress localhost = InetAddress.getLocalHost();
-        LOGGER.fine("Network Interface name not specified.  Using the NI for localhost "
-            + localhost.getHostAddress());
+        LOGGER.fine("Network Interface name not specified.  Using the NI for localhost " + localhost.getHostAddress());
         ni = NetworkInterface.getByInetAddress(localhost);
       }
 
@@ -172,9 +182,7 @@ public class ProbeGenerator {
         }
         buf.append("v:" + ni.isVirtual() + ") ");
 
-        LOGGER.severe(ni.getName() + " " + buf.toString()
-            + ": could not join group " + socketAddress.toString()
-            + " --> " + e.toString());
+        LOGGER.severe(ni.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString() + " --> " + e.toString());
       }
       success = false;
     }
@@ -184,11 +192,9 @@ public class ProbeGenerator {
   /**
    * Actually send the probe out on the wire.
    * 
-   * @param probe
-   *          the Probe instance that has been pre-configured
-   * @throws IOException
-   *           if this instance of the ProbeGenerator is not ready to send
-   *           because it did not join the multicast group successfully
+   * @param probe the Probe instance that has been pre-configured
+   * @throws IOException if this instance of the ProbeGenerator is not ready to
+   *           send because it did not join the multicast group successfully
    */
   public void sendProbe(Probe probe) throws IOException {
 
