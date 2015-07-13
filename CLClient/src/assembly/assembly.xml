@@ -31,7 +31,7 @@
 		</fileSet>
 		<fileSet>
 			<directory>${basedir}/target/</directory>
-			<outputDirectory>/responder/lib</outputDirectory>
+			<outputDirectory>/client/lib</outputDirectory>
 			<includes>
 				<include>*.jar</include>
 			</includes>

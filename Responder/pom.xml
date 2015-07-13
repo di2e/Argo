@@ -10,7 +10,7 @@
 	<artifactId>Responder</artifactId>
 	<version>0.3.0-SNAPSHOT</version>
 	<name>Responder</name>
-	<url>http://maven.apache.org</url>
+	<url>http://www.argo.ws</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.7</maven.compiler.source>
@@ -29,11 +29,6 @@
 			<version>1.2</version>
 		</dependency>
 		<dependency>
-			<groupId>ws.argo.probe</groupId>
-			<version>0.3.0-SNAPSHOT</version>
-			<artifactId>ProbeGenerator</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.4</version>
@@ -44,11 +39,22 @@
 			<version>3.4.1</version>
 		</dependency>
 		<dependency>
+		  <groupId>ws.argo.wireline</groupId>
+		  <artifactId>ArgoWirelineFormat</artifactId>
+		  <version>0.3.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- <dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0.1</version>
+            <scope>test</scope>
+		</dependency> -->
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-grizzly2</artifactId>
@@ -61,12 +67,12 @@
 			<version>${jersey-version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>javax.ws.rs</groupId>
-			<artifactId>javax.ws.rs-api</artifactId>
-			<version>2.0.1</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>ws.argo.probe</groupId>
+            <version>0.3.0-SNAPSHOT</version>
+            <artifactId>ProbeGenerator</artifactId>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 	<build>
 		<plugins>

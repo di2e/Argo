@@ -6,11 +6,9 @@
     <version>0.3.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>ws.argo.responder</groupId>
-  <artifactId>Responder</artifactId>
-  <name>Responder</name>
-  <version>0.3.0-SNAPSHOT</version>
-  <url>http://www.argo.ws</url>
+  <artifactId>CLClient</artifactId>
+  <name>Command Line Client</name>
+  <description>Argo Command Line client that can operate as a listener as well as a probe generator</description>
   <build>
     <pluginManagement>
       <plugins>
@@ -70,19 +68,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.18.1</version>
-        <configuration>
-          <argLine>-DconfigFile=${basedir}/target/test-classes/config/responderConfig.prop</argLine>
-          <systemProperties>
-            <property>
-              <name>configFile</name>
-              <value>${basedir}/target/test-classes/config/responderConfig.prop</value>
-            </property>
-          </systemProperties>
-        </configuration>
-      </plugin>
-      <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.3</version>
         <executions>
@@ -95,29 +80,21 @@
               <transformers>
                 <transformer>
                   <manifestEntries>
-                    <Main-Class>ws.argo.responder.Responder</Main-Class>
+                    <Main-Class>net.dharwin.common.tools.cli.api.EntryPoint</Main-Class>
                   </manifestEntries>
                 </transformer>
+                <transformer />
               </transformers>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>jaxb2-maven-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
-          <execution>
-            <id>xjc-configFileFormat</id>
-            <goals>
-              <goal>xjc</goal>
-            </goals>
-            <configuration>
-              <schemaDirectory>${basedir}/src/main/resources/configFileFormat</schemaDirectory>
-              <packageName>ws.argo.responder.plugin.configfile.xml</packageName>
-              <outputDirectory>${project.build.directory}/java-gen</outputDirectory>
-              <clearOutputDir>false</clearOutputDir>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>
@@ -159,50 +136,6 @@
         <exclusion>
           <artifactId>hamcrest-core</artifactId>
           <groupId>org.hamcrest</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-grizzly2</artifactId>
-      <version>1.19</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>grizzly-http</artifactId>
-          <groupId>org.glassfish.grizzly</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>grizzly-http-server</artifactId>
-          <groupId>org.glassfish.grizzly</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jersey-server</artifactId>
-          <groupId>com.sun.jersey</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-      <version>1.19</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>jersey-core</artifactId>
-          <groupId>com.sun.jersey</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>ws.argo.probe</groupId>
-      <artifactId>ProbeGenerator</artifactId>
-      <version>0.3.0-SNAPSHOT</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-validator</artifactId>
-          <groupId>commons-validator</groupId>
         </exclusion>
       </exclusions>
     </dependency>

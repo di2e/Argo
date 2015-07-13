@@ -26,6 +26,16 @@ import org.apache.commons.validator.routines.UrlValidator;
 
 import ws.argo.wireline.probe.ProbeWrapper;
 
+/**
+ * This class represents a Probe that will be sent from a client. It's a wrapper
+ * on ProbeWrapper class (which is a little weird but work with me).
+ * 
+ * <p>
+ * The client should not know anything about any other intermediary classes.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class Probe {
 
   // the default TTL for a probe is the max TTL of 255 - or the entire network
@@ -44,14 +54,19 @@ public class Probe {
    */
   public Probe(String respondToPayloadType) throws UnsupportedPayloadType {
 
-    UUID uuid = UUID.randomUUID();
-    String probeID = "urn:uuid:" + uuid.toString();
+    String probeID = createProbeID();
 
     probe = new ProbeWrapper(probeID);
 
     probe.setDESVersion(ProbeWrapper.PROBE_DES_VERSION);
 
     setRespondToPayloadType(respondToPayloadType);
+  }
+
+  private String createProbeID() {
+    UUID uuid = UUID.randomUUID();
+    String probeID = "urn:uuid:" + uuid.toString();
+    return probeID;
   }
 
   /**
@@ -90,7 +105,8 @@ public class Probe {
   }
 
   /**
-   * set the payload type for the response from the Responder.  It only support XML and JSON.
+   * set the payload type for the response from the Responder. It only support
+   * XML and JSON.
    * 
    * @param respondToPayloadType a payload type string - XML or JSON
    * @throws UnsupportedPayloadType if you don't pass in XML or JSON
@@ -156,6 +172,17 @@ public class Probe {
   public String asXML() throws JAXBException {
 
     return probe.asXML();
+  }
+
+  /**
+   * This method can recreate the Probe ID. It's used when you are going to
+   * reuse the probe but need a new ID (or else the responders will reject the
+   * probe as it has already processed one with the same id).
+   */
+  public void recreateProbeID() {
+    String probeID = createProbeID();
+
+    probe.setProbeId(probeID);
   }
 
 }

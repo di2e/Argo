@@ -18,7 +18,7 @@ import ws.argo.probe.Probe;
 @CLICommand(name = "send", description = "send the probe")
 public class SendProbe extends Command<ArgoClientContext> {
 
-  @Parameter(description="list of probe names")
+  @Parameter(description = "list of probe names")
   public List<String> _probeNames = new ArrayList<>();
 
   @Override
@@ -54,10 +54,9 @@ public class SendProbe extends Command<ArgoClientContext> {
     return CommandResult.OK;
   }
 
-
-
   private CommandResult sendProbe(ArgoClientContext context, String probeName, Probe probe) {
     try {
+      probe.recreateProbeID();
       context.getProbeGenerator().sendProbe(probe);
       Console.info("Sent probe " + probeName);
     } catch (IOException e) {
@@ -67,5 +66,5 @@ public class SendProbe extends Command<ArgoClientContext> {
     }
     return CommandResult.OK;
   }
-  
+
 }
