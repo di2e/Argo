@@ -24,7 +24,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
   @Test
   public void testContractID1JSON() throws UnsupportedPayloadType, InterruptedException, ProbeGeneratorException, MalformedURLException {
     final String targetContractId = "urn:uuid:dbbc5efa-42e3-418c-a753-d2f3392ada07";
-    JsonArray serviceArray = probeForContractID(targetContractId, ProbeWrapper.JSON);
+    JsonArray serviceArray = probeForContractID(targetContractId, Probe.JSON);
 
     assertEquals(1, serviceArray.size());
 
@@ -41,7 +41,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
   @Test
   public void testContractID1XML() throws UnsupportedPayloadType, IOException, InterruptedException, ProbeGeneratorException {
     final String targetContractId = "urn:uuid:dbbc5efa-42e3-418c-a753-d2f3392ada07";
-    JsonArray serviceArray = probeForContractID(targetContractId, ProbeWrapper.XML);
+    JsonArray serviceArray = probeForContractID(targetContractId, Probe.XML);
 
     assertEquals(1, serviceArray.size());
 
@@ -59,7 +59,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
   @Test
   public void testContractID2JSON() throws UnsupportedPayloadType, InterruptedException, ProbeGeneratorException, MalformedURLException {
     final String targetContractId = "urn:uuid:4de22333-17ef-4028-b25c-6869ba080c08";
-    JsonArray serviceArray = probeForContractID(targetContractId, ProbeWrapper.JSON);
+    JsonArray serviceArray = probeForContractID(targetContractId, Probe.JSON);
 
     assertEquals(1, serviceArray.size());
 
@@ -78,7 +78,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
   @Test
   public void testContractID2XML() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeGeneratorException {
     final String targetContractId = "urn:uuid:4de22333-17ef-4028-b25c-6869ba080c08";
-    JsonArray serviceArray = probeForContractID(targetContractId, ProbeWrapper.XML);
+    JsonArray serviceArray = probeForContractID(targetContractId, Probe.XML);
 
     assertEquals(1, serviceArray.size());
 
@@ -97,7 +97,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
   @Test
   public void testUnknownContractID() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeGeneratorException {
     final String targetContractId = "nonexistent contract id";
-    JsonArray serviceArray = probeForContractID(targetContractId,ProbeWrapper.JSON);
+    JsonArray serviceArray = probeForContractID(targetContractId,Probe.JSON);
 
     assertEquals(0, serviceArray.size());
 
@@ -108,7 +108,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
   @Test
   public void testServiceInstanceID1JSON() throws UnsupportedPayloadType, InterruptedException, ProbeGeneratorException, MalformedURLException {
     final String targetServiceInstanceId = "urn:uuid:87362eb4-043b-4c75-b7e3-73462a7e9fce";
-    JsonArray serviceArray = probeForServiceInstanceID(targetServiceInstanceId, ProbeWrapper.JSON);
+    JsonArray serviceArray = probeForServiceInstanceID(targetServiceInstanceId, Probe.JSON);
 
     assertEquals(1, serviceArray.size());
 
@@ -125,7 +125,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
   @Test
   public void testServiceInstanceID1XML() throws UnsupportedPayloadType, InterruptedException, ProbeGeneratorException, MalformedURLException {
     final String targetServiceInstanceId = "urn:uuid:87362eb4-043b-4c75-b7e3-73462a7e9fce";
-    JsonArray serviceArray = probeForServiceInstanceID(targetServiceInstanceId, ProbeWrapper.XML);
+    JsonArray serviceArray = probeForServiceInstanceID(targetServiceInstanceId, Probe.XML);
 
     assertEquals(1, serviceArray.size());
 
@@ -142,7 +142,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
   @Test
   public void testServiceInstanceID2JSON() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeGeneratorException {
     final String targetServiceInstanceId = "urn:uuid:bd61b54b-93d1-4c9a-81b7-c189c383f459";
-    JsonArray serviceArray = probeForServiceInstanceID(targetServiceInstanceId, ProbeWrapper.JSON);
+    JsonArray serviceArray = probeForServiceInstanceID(targetServiceInstanceId, Probe.JSON);
 
     assertEquals(1, serviceArray.size());
 
@@ -159,7 +159,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
   @Test
   public void testServiceInstanceID2XML() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeGeneratorException {
     final String targetServiceInstanceId = "urn:uuid:bd61b54b-93d1-4c9a-81b7-c189c383f459";
-    JsonArray serviceArray = probeForServiceInstanceID(targetServiceInstanceId, ProbeWrapper.XML);
+    JsonArray serviceArray = probeForServiceInstanceID(targetServiceInstanceId, Probe.XML);
 
     assertEquals(1, serviceArray.size());
 

@@ -64,7 +64,7 @@ public class CreateProbe extends Command<ArgoClientContext> {
       return true;
     }
 
-    if (!_payloadType.equals(ProbeWrapper.JSON) || !_payloadType.equals(ProbeWrapper.XML)) {
+    if (!_payloadType.equals(Probe.JSON) || !_payloadType.equals(Probe.XML)) {
       return false;
     }
     return true;

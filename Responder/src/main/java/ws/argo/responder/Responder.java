@@ -204,7 +204,7 @@ public class Responder {
    * management procedures.
    */
   public void stopResponder() {
-    LOGGER.info("Force shutdown of Responder ID = " + runtimeId);
+    LOGGER.info("Force shutdown of Responder [" + runtimeId + "]");
     shouldRun = false;
     shutdownHook.run();
     Runtime.getRuntime().removeShutdownHook(shutdownHook);
@@ -217,7 +217,7 @@ public class Responder {
    * going on and exit the run loop.
    */
   public void shutdown() {
-    LOGGER.info("Responder shutting down port " + cliValues.multicastPort + " ID = " + runtimeId);
+    LOGGER.info("Responder shutting down port " + cliValues.multicastPort + " [" + runtimeId +"]");
     if (inboundSocket != null) {
       try {
         inboundSocket.leaveGroup(maddress);
@@ -282,7 +282,7 @@ public class Responder {
 
     }
 
-    LOGGER.info("Stopping responder through trigger ID = " + runtimeId);
+    LOGGER.info("Stopping responder through trigger [" + runtimeId + "]");
 
   }
 
@@ -293,7 +293,7 @@ public class Responder {
       try {
         addHandler(appConfig.classname, appConfig.configFilename);
       } catch (ResponderConfigException e) {
-        LOGGER.log(Level.SEVERE, "Error loading handler for " + appConfig.classname + ". Skipping handler", e);
+        LOGGER.log(Level.SEVERE, "Error loading handler for [" + appConfig.classname + "]. Skipping handler", e);
       }
     }
 
@@ -329,26 +329,25 @@ public class Responder {
       }
       if (ni == null) {
         InetAddress localhost = InetAddress.getLocalHost();
-        LOGGER.fine("Network Interface name not specified.  Using the NI for localhost " + localhost.getHostAddress());
+        LOGGER.fine("Network Interface name not specified.  Using the NI for localhost [" + localhost.getHostAddress() + "]");
         ni = NetworkInterface.getByInetAddress(localhost);
       }
 
-      LOGGER.info("Starting Responder:  Receiving mulitcast @ " + cliValues.multicastAddress + ":" + cliValues.multicastPort);
+      LOGGER.info("Starting Responder:  Receiving mulitcast @ [" + cliValues.multicastAddress + ":" + cliValues.multicastPort + "]");
       this.inboundSocket = new MulticastSocket(cliValues.multicastPort);
 
       if (ni == null) { // for some reason NI is still NULL. Not sure why
         // this happens.
         this.inboundSocket.joinGroup(maddress);
         LOGGER.warning("Unable to determine the network interface for the localhost address.  Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
-        LOGGER.info("Unknown network interface joined group " + socketAddress.toString());
+        LOGGER.info("Unknown network interface joined group [" + socketAddress.toString() + "]");
       } else {
         this.inboundSocket.joinGroup(socketAddress, ni);
-        // this.inboundSocket.setSoTimeout(INBOUND_SOCKET_TIMEOUT);
         LOGGER.info(ni.getName() + " joined group " + socketAddress.toString());
       }
     } catch (IOException e) {
       if (ni == null) {
-        LOGGER.log(Level.SEVERE, "Error attempting to joint multicast address: ", e);
+        LOGGER.log(Level.SEVERE, "Error attempting to joint multicast address.", e);
       } else {
         StringBuffer buf = new StringBuffer();
         try {
@@ -373,7 +372,7 @@ public class Responder {
         }
         buf.append("v:" + this.ni.isVirtual() + ") ");
 
-        LOGGER.severe(ni.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString() + " --> " + e.toString());
+        LOGGER.log(Level.SEVERE, ni.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString() + " --> " + e.toString(), e);
       }
       success = false;
     }
@@ -434,7 +433,7 @@ public class Responder {
       return null;
     }
 
-    LOGGER.info("Responder started on " + cliValues.multicastAddress + ":" + cliValues.multicastPort + " ID = " + responder.runtimeId);
+    LOGGER.info("Responder started on " + cliValues.multicastAddress + ":" + cliValues.multicastPort + " [" + responder.runtimeId + "]");
 
     return responder;
   }
@@ -447,11 +446,11 @@ public class Responder {
         p.load(is);
         ARGO_VERSION = p.getProperty("argo-version");
       } catch (IOException e) {
-        LOGGER.warning("Cannot load the file " + VERSION_PROPERTIES);
+        LOGGER.warning("Cannot load the file [" + VERSION_PROPERTIES + "]");
       }
 
     } else {
-      LOGGER.warning("Cannot load the file " + VERSION_PROPERTIES);
+      LOGGER.warning("Cannot load the file [" + VERSION_PROPERTIES + "]");
     }
   }
 
@@ -497,7 +496,7 @@ public class Responder {
       try {
         propsConfig = processPropertiesValue(propsFilename, propsConfig);
       } catch (ResponderConfigException e) {
-        LOGGER.log(Level.SEVERE, "Unable to read properties file named " + propsFilename + " due to:", e);
+        LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + propsFilename + "] due to:", e);
         throw e;
       }
     } else {
@@ -522,7 +521,7 @@ public class Responder {
         propsConfig.multicastPort = portNum;
         LOGGER.info("Overriding multicast port with command line value");
       } catch (NumberFormatException e) {
-        throw new ResponderConfigException("The multicast port number - " + cl.getOptionValue("mp") + " - is not formattable as an integer", e);
+        throw new ResponderConfigException("The multicast port number [" + cl.getOptionValue("mp") + "]- is not formattable as an integer", e);
       }
     }
 
@@ -542,10 +541,10 @@ public class Responder {
       InputStream is;
       if (Responder.class.getResource(propertiesFilename) != null) {
         is = Responder.class.getResourceAsStream(propertiesFilename);
-        LOGGER.info("Reading Responder properties file (" + propertiesFilename + ") from classpath.");
+        LOGGER.info("Reading Responder properties file [" + propertiesFilename + "] from classpath.");
       } else {
         is = new FileInputStream(propertiesFilename);
-        LOGGER.info("Reading Responder properties file (" + propertiesFilename + ") from file system.");
+        LOGGER.info("Reading Responder properties file [" + propertiesFilename + "] from file system.");
       }
       prop.load(is);
     } catch (FileNotFoundException e) {

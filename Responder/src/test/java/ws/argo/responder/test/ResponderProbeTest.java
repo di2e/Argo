@@ -73,7 +73,7 @@ public abstract class ResponderProbeTest {
    */
   @BeforeClass
   public static void startupTheGear() throws IOException, InterruptedException, ResponderConfigException, ProbeGeneratorException {
-    gen = new ProbeGenerator("230.0.0.1", 4003);
+    gen = new ProbeGenerator();
 
     startResponder();
     startListener();
