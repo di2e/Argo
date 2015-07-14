@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeGenerator;
+import ws.argo.probe.ProbeGeneratorException;
 import ws.argo.probe.UnsupportedPayloadType;
 import ws.argo.wireline.probe.ProbeWrapper;
 
@@ -34,7 +35,7 @@ public class ProbeGeneratorTest {
    * @throws IOException if something goes wrong reading the XML files
    */
   @BeforeClass
-  public static void setupProbeGenerator() throws IOException {
+  public static void setupProbeGenerator() throws ProbeGeneratorException, IOException {
     gen = new ProbeGenerator("230.0.0.1", 4003);
 
     readTargetXMLFiles();
@@ -150,7 +151,7 @@ public class ProbeGeneratorTest {
   }
 
   @Test
-  public void testSendingNakedProbe() throws IOException, UnsupportedPayloadType {
+  public void testSendingNakedProbe() throws UnsupportedPayloadType, ProbeGeneratorException, MalformedURLException {
     Probe probe = new Probe(ProbeWrapper.JSON);
 
     probe.addRespondToURL("internal", "http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");
@@ -160,7 +161,7 @@ public class ProbeGeneratorTest {
   }
 
   @Test
-  public void testSendingProbeWithJSONProbeFormat() throws IOException, UnsupportedPayloadType {
+  public void testSendingProbeWithJSONProbeFormat() throws UnsupportedPayloadType, ProbeGeneratorException, MalformedURLException {
     Probe probe = new Probe(ProbeWrapper.JSON);
 
     probe.addRespondToURL("internal", "http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");

@@ -30,15 +30,8 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 
   private HttpServer server;
 
-  private ProbeGenerator gen;
-
   public ArgoClient() throws CLIInitException {
     super();
-    gen = new ProbeGenerator("230.0.0.1", 4003);
-  }
-
-  public ProbeGenerator getProbeGenerator() {
-    return gen;
   }
 
   private void startListener() throws IOException {
@@ -67,7 +60,6 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 
   @Override
   protected void shutdown() {
-    gen.close();
     server.stop();
     System.out.println("Shutting down ArgoClient.");
   }

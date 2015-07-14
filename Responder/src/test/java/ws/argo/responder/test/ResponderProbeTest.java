@@ -7,6 +7,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import ws.argo.probe.ProbeGenerator;
+import ws.argo.probe.ProbeGeneratorException;
 import ws.argo.responder.Responder;
 import ws.argo.responder.ResponderConfigException;
 import ws.argo.responder.ResponderOperationException;
@@ -68,9 +69,10 @@ public abstract class ResponderProbeTest {
    * @throws IOException if something goes wrong starting the responder or listener
    * @throws InterruptedException - to support the Thread sleep function
    * @throws ResponderConfigException if there is some issue in the Responder configuration
+   * @throws ProbeGeneratorException if something goes wrong with the Probe Generator
    */
   @BeforeClass
-  public static void startupTheGear() throws IOException, InterruptedException, ResponderConfigException {
+  public static void startupTheGear() throws IOException, InterruptedException, ResponderConfigException, ProbeGeneratorException {
     gen = new ProbeGenerator("230.0.0.1", 4003);
 
     startResponder();

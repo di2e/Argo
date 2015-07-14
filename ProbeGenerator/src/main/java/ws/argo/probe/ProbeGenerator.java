@@ -54,11 +54,11 @@ public class ProbeGenerator {
 
   public String multicastAddress;
 
+  private NetworkInterface networkInterface = null;
+
   public int multicastPort;
 
   protected MulticastSocket outboundSocket = null;
-
-  private boolean readyToSend = false;
 
   /**
    * Create a new ProbeGenerator.
@@ -66,14 +66,16 @@ public class ProbeGenerator {
    * @param multicastAddress the multicast group
    * @param multicastPort the port
    * @param niName the Network Interface name
+   * @throws ProbeGeneratorException if something goes wrong at the network
+   *           layer
    */
-  public ProbeGenerator(String multicastAddress, int multicastPort, String niName) {
+  public ProbeGenerator(String multicastAddress, int multicastPort, String niName) throws ProbeGeneratorException {
     this.multicastAddress = multicastAddress;
     this.multicastPort = multicastPort;
 
-    this.readyToSend = joinGroup(niName);
-    if (this.readyToSend)
-      LOGGER.info("ProbeGenerator ready to send on " + this.outboundSocket.getInetAddress().toString());
+    joinGroup(niName);
+
+    LOGGER.info("ProbeGenerator ready to send on " + niName);
 
   }
 
@@ -82,9 +84,10 @@ public class ProbeGenerator {
    * 
    * @param niName - the name of the NetworkInterface - see
    *          {@linkplain NetworkInterface#getByName(String)}
-   * @throws IOException if something goes wrong at the network layer
+   * @throws ProbeGeneratorException if something goes wrong at the network
+   *           layer
    */
-  public ProbeGenerator(String niName) throws IOException {
+  public ProbeGenerator(String niName) throws ProbeGeneratorException {
     this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT, niName);
   }
 
@@ -92,9 +95,10 @@ public class ProbeGenerator {
    * Create a ProbeGenerator that connects to the network interface associated
    * with localhost - see {@linkplain InetAddress#getLocalHost()}.
    * 
-   * @throws IOException if something goes wrong at the network layer
+   * @throws ProbeGeneratorException if something goes wrong at the network
+   *           layer
    */
-  public ProbeGenerator() throws IOException {
+  public ProbeGenerator() throws ProbeGeneratorException {
     this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT);
   }
 
@@ -103,14 +107,15 @@ public class ProbeGenerator {
    * 
    * @param multicastAddress the multicast group
    * @param multicastPort the port
+   * @throws ProbeGeneratorException if there is a problem joining the multicast
+   *           group
    */
-  public ProbeGenerator(String multicastAddress, int multicastPort) {
+  public ProbeGenerator(String multicastAddress, int multicastPort) throws ProbeGeneratorException {
     this.multicastAddress = multicastAddress;
     this.multicastPort = multicastPort;
 
-    this.readyToSend = joinGroup("");
-    if (this.readyToSend)
-      LOGGER.info("ProbeGenerator ready to send on " + multicastAddress);
+    joinGroup("");
+    LOGGER.info("ProbeGenerator ready to send on " + multicastAddress);
 
   }
 
@@ -125,89 +130,82 @@ public class ProbeGenerator {
    * on the host OS ... so look out.
    * 
    * @param niName the name of the Network Interface
-   * @return true if the join was successful
    */
-  boolean joinGroup(String niName) {
-    boolean success = true;
+  void joinGroup(String niName) throws ProbeGeneratorException {
     InetSocketAddress socketAddress = new InetSocketAddress(multicastAddress, multicastPort);
-    NetworkInterface ni = null;
+
     try {
       // Setup for incoming multicast requests
       InetAddress maddress = InetAddress.getByName(multicastAddress);
 
       if (niName != null)
-        ni = NetworkInterface.getByName(niName);
-      if (ni == null) {
+        networkInterface = NetworkInterface.getByName(niName);
+      if (networkInterface == null) {
         InetAddress localhost = InetAddress.getLocalHost();
         LOGGER.fine("Network Interface name not specified.  Using the NI for localhost " + localhost.getHostAddress());
-        ni = NetworkInterface.getByInetAddress(localhost);
+        networkInterface = NetworkInterface.getByInetAddress(localhost);
       }
 
       this.outboundSocket = new MulticastSocket(multicastPort);
-      if (ni == null) {
+      if (networkInterface == null) {
         // for some reason NI is still NULL. Not sure why this happens.
         this.outboundSocket.joinGroup(maddress);
         LOGGER.warning("Unable to determine the network interface for the localhost address. Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
         LOGGER.info("Unknown network interface joined group " + socketAddress.toString());
       } else {
-        this.outboundSocket.joinGroup(socketAddress, ni);
-        LOGGER.info(ni.getName() + " joined group " + socketAddress.toString());
+        this.outboundSocket.joinGroup(socketAddress, networkInterface);
+        LOGGER.info(networkInterface.getName() + " joined group " + socketAddress.toString());
       }
     } catch (IOException e) {
 
-      if (ni == null) {
-        LOGGER.log(Level.SEVERE, "Error attempting to joint multicast address: ", e);
+      if (networkInterface == null) {
+        throw new ProbeGeneratorException("Error attempting to joint multicast address: ", e);
       } else {
 
         StringBuffer buf = new StringBuffer();
         try {
-          buf.append("(lb:" + ni.isLoopback() + " ");
+          buf.append("(lb:" + networkInterface.isLoopback() + " ");
         } catch (SocketException e2) {
           buf.append("(lb:err ");
         }
         try {
-          buf.append("m:" + ni.supportsMulticast() + " ");
+          buf.append("m:" + networkInterface.supportsMulticast() + " ");
         } catch (SocketException e3) {
           buf.append("(m:err ");
         }
         try {
-          buf.append("p2p:" + ni.isPointToPoint() + " ");
+          buf.append("p2p:" + networkInterface.isPointToPoint() + " ");
         } catch (SocketException e1) {
           buf.append("p2p:err ");
         }
         try {
-          buf.append("up:" + ni.isUp() + " ");
+          buf.append("up:" + networkInterface.isUp() + " ");
         } catch (SocketException e1) {
           buf.append("up:err ");
         }
-        buf.append("v:" + ni.isVirtual() + ") ");
+        buf.append("v:" + networkInterface.isVirtual() + ") ");
 
-        LOGGER.severe(ni.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString() + " --> " + e.toString());
+        throw new ProbeGeneratorException(networkInterface.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString() + " --> " + e.toString(), e);
       }
-      success = false;
     }
-    return success;
   }
 
   /**
    * Actually send the probe out on the wire.
    * 
    * @param probe the Probe instance that has been pre-configured
-   * @throws IOException if this instance of the ProbeGenerator is not ready to
-   *           send because it did not join the multicast group successfully
+   * @throws ProbeGeneratorException if something bad happened when sending the
+   *           probe
    */
-  public void sendProbe(Probe probe) throws IOException {
+  public void sendProbe(Probe probe) throws ProbeGeneratorException {
 
     LOGGER.info("Sending probe on port " + multicastAddress + ":" + multicastPort);
-    LOGGER.info("Probe requesting TTL of " + probe.ttl);
-
-    if (!readyToSend)
-      throw new IOException("ProbeGenerator not ready to send. Did not join group " + multicastAddress);
+    LOGGER.finest("Probe requesting TTL of " + probe.ttl);
 
     try {
       String msg = probe.asXML();
 
-      LOGGER.info("Probe payload (always XML): \n" + msg);
+      LOGGER.finest("Probe payload (always XML): \n" + msg);
 
       byte[] msgBytes;
       msgBytes = msg.getBytes(StandardCharsets.UTF_8);
@@ -218,18 +216,32 @@ public class ProbeGenerator {
       outboundSocket.setTimeToLive(probe.ttl);
       outboundSocket.send(packet);
 
-      LOGGER.info("Probe sent on port " + multicastAddress + ":" + multicastPort);
+      LOGGER.finest("Probe sent on port " + multicastAddress + ":" + multicastPort);
 
     } catch (IOException e) {
-      LOGGER.log(Level.SEVERE, "Unable to send probe. Issue sending UDP packets.", e);
+      throw new ProbeGeneratorException("Unable to send probe. Issue sending UDP packets.", e);
     } catch (JAXBException e) {
-      LOGGER.log(Level.SEVERE, "Unable to send probe because it could not be serialized to XML", e);
+      throw new ProbeGeneratorException("Unable to send probe because it could not be serialized to XML", e);
     }
 
   }
 
   public void close() {
     this.outboundSocket.close();
+  }
+
+  /**
+   * Return the name of the NetworkInterface this ProbeGenerator is attached to.
+   * If for some reason it's null, then return UNKNOWN.
+   * 
+   * @return the name of the NetworkInterface
+   */
+  public String getNIName() {
+    if (networkInterface == null) {
+      return "UNKNOWN";
+    } else {
+      return networkInterface.getName();
+    }
   }
 
 }
