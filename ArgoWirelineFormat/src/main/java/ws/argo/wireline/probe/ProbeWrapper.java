@@ -39,7 +39,7 @@ public class ProbeWrapper {
   /**
    * This is a wrapper class for the label, URL pair for a respondTo address.
    */
-  public class RespondToURL implements Comparable<RespondToURL> {
+  public static class RespondToURL implements Comparable<RespondToURL> {
     public String url;
     public String label;
 

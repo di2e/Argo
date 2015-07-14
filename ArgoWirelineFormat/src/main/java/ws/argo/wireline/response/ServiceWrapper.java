@@ -54,7 +54,7 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
    * @author jmsimpson
    *
    */
-  public class AccessPoint implements Comparable<AccessPoint> {
+  public static class AccessPoint implements Comparable<AccessPoint> {
     public String label;
     public String url;
     public String ipAddress;
@@ -88,6 +88,8 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
 
     @Override
     public boolean equals(Object obj) {
+      if (obj == null)
+        return false;
       if (obj == this)
         return true;
       return this.hashCode() == obj.hashCode();

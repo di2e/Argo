@@ -42,9 +42,7 @@ public class Probe {
   public static final String XML  = ProbeWrapper.XML;
   
   // the default TTL for a probe is the max TTL of 255 - or the entire network
-  public int ttl = 255;
-
-  public ArrayList<String> serviceInstanceIDs = new ArrayList<String>();
+  int ttl = 255;
 
   private ProbeWrapper probe;
 

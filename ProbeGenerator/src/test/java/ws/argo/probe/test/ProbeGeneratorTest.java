@@ -25,8 +25,8 @@ public class ProbeGeneratorTest {
 
   static ProbeGenerator gen                 = null;
 
-  public static String  targetXML           = "";
-  public static String  targetNakedProbeXML = "";
+  static String  targetXML           = "";
+  static String  targetNakedProbeXML = "";
 
   /**
    * Start up a ProbeGenerator for the harness and read in the XML files used in
