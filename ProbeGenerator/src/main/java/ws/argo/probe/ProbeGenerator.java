@@ -24,7 +24,6 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBException;
@@ -115,7 +114,7 @@ public class ProbeGenerator {
     this.multicastPort = multicastPort;
 
     joinGroup("");
-    LOGGER.info("ProbeGenerator ready to send on " + multicastAddress);
+    LOGGER.info("ProbeGenerator ready to send on [" + multicastAddress + "]");
 
   }
 
@@ -199,8 +198,8 @@ public class ProbeGenerator {
    */
   public void sendProbe(Probe probe) throws ProbeGeneratorException {
 
-    LOGGER.info("Sending probe on port " + multicastAddress + ":" + multicastPort);
-    LOGGER.finest("Probe requesting TTL of " + probe.ttl);
+    LOGGER.info("Sending probe [" + probe.getProbeID() + "] on port [" + multicastAddress + ":" + multicastPort + "]");
+    LOGGER.finest("Probe requesting TTL of [" + probe.ttl + "]");
 
     try {
       String msg = probe.asXML();
@@ -216,7 +215,7 @@ public class ProbeGenerator {
       outboundSocket.setTimeToLive(probe.ttl);
       outboundSocket.send(packet);
 
-      LOGGER.finest("Probe sent on port " + multicastAddress + ":" + multicastPort);
+      LOGGER.finest("Probe sent on port [" + multicastAddress + ":" + multicastPort + "]");
 
     } catch (IOException e) {
       throw new ProbeGeneratorException("Unable to send probe. Issue sending UDP packets.", e);

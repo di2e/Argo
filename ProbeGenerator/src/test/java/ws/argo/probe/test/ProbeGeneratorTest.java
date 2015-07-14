@@ -78,17 +78,17 @@ public class ProbeGeneratorTest {
 
   @Test
   public void testCreatingGoodProbeWithJSON() throws UnsupportedPayloadType {
-    new Probe(ProbeWrapper.JSON);
+    new Probe(Probe.JSON);
   }
 
   @Test
   public void testCreatingGoodProbeWithXML() throws UnsupportedPayloadType {
-    new Probe(ProbeWrapper.XML);
+    new Probe(Probe.XML);
   }
 
   @Test
   public void testWirelineFormatOfNakedProbe() throws UnsupportedPayloadType, JAXBException {
-    Probe probe = new Probe(ProbeWrapper.XML);
+    Probe probe = new Probe(Probe.XML);
 
     String xml = probe.asXML();
 
@@ -152,7 +152,7 @@ public class ProbeGeneratorTest {
 
   @Test
   public void testSendingNakedProbe() throws UnsupportedPayloadType, ProbeGeneratorException, MalformedURLException {
-    Probe probe = new Probe(ProbeWrapper.JSON);
+    Probe probe = new Probe(Probe.JSON);
 
     probe.addRespondToURL("internal", "http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");
     // No specified service contract IDs implies "all"
@@ -162,7 +162,7 @@ public class ProbeGeneratorTest {
 
   @Test
   public void testSendingProbeWithJSONProbeFormat() throws UnsupportedPayloadType, ProbeGeneratorException, MalformedURLException {
-    Probe probe = new Probe(ProbeWrapper.JSON);
+    Probe probe = new Probe(Probe.JSON);
 
     probe.addRespondToURL("internal", "http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");
     probe.addRespondToURL("external", "http://1.1.1.1:80/AsynchListener/api/responseHandler/probeResponse");

@@ -38,6 +38,9 @@ import ws.argo.wireline.probe.ProbeWrapper;
  */
 public class Probe {
 
+  public static final String JSON = ProbeWrapper.JSON;
+  public static final String XML  = ProbeWrapper.XML;
+  
   // the default TTL for a probe is the max TTL of 255 - or the entire network
   public int ttl = 255;
 
