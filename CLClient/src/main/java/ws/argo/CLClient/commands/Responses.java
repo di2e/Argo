@@ -12,7 +12,7 @@ import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
 
-@CLICommand(name = "response", description = "list the cached probe responses.")
+@CLICommand(name = "responses", description = "list the cached probe responses.")
 public class Responses extends Command<ArgoClientContext> {
 
   @Override

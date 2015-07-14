@@ -27,21 +27,20 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 
-import ws.argo.responder.Responder;
-
 import com.sun.jersey.api.container.grizzly2.GrizzlyServerFactory;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 
 /**
- * The ResponseListener is a client used in testing the Responder.
+ * The ResponseListener is a client used in providing the REST API for the Argo
+ * respondTo protocol.
  * 
  * @author jmsimpson
  *
  */
 public class ResponseListener {
 
-  private static final Logger LOGGER = Logger.getLogger(Responder.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(ResponseListener.class.getName());
 
   private static int getPort(int defaultPort) {
     // grab port from environment, otherwise fall back to default port 9998

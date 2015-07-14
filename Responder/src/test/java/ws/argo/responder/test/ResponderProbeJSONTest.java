@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -13,6 +14,7 @@ import org.junit.Test;
 import ws.argo.probe.UnsupportedPayloadType;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.probe.Probe;
+import ws.argo.probe.ProbeGeneratorException;
 
 public class ResponderProbeJSONTest extends ResponderProbeTest {
 
@@ -35,8 +37,7 @@ public class ResponderProbeJSONTest extends ResponderProbeTest {
   }
 
   @Test
-  public void testNakedProbeJSON() throws UnsupportedPayloadType,
-      IOException, InterruptedException {
+  public void testNakedProbeJSON() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeGeneratorException {
     Probe probe = new Probe(ProbeWrapper.JSON);
     probe.addRespondToURL("", "http://localhost:9998/listener/probeResponse");
     gen.sendProbe(probe); // Send the naked probe

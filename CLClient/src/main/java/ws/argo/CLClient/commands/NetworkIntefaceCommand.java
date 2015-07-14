@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -21,6 +22,7 @@ import net.dharwin.common.tools.cli.api.CommandResult;
 import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
+import ws.argo.probe.ProbeGenerator;
 
 @CLICommand(name = "ni", description = "control the network intefaces used to send probes.")
 public class NetworkIntefaceCommand extends Command<ArgoClientContext> {
@@ -33,13 +35,13 @@ public class NetworkIntefaceCommand extends Command<ArgoClientContext> {
 
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
-      
+
       StringBuffer buf = new StringBuffer();
       buf.append("Now using the following Network Interfaces: ");
-      for (String niName : context.getNIList() ) {
+      for (String niName : context.getNIList()) {
         buf.append("[" + niName + "] ");
       }
-      
+
       Console.info(buf.toString());
       return CommandResult.OK;
     }
@@ -51,27 +53,24 @@ public class NetworkIntefaceCommand extends Command<ArgoClientContext> {
 
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
-      try {
-        Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
 
-        Console.info("Available Multicast-enabled Network Interfaces");
-        while (nis.hasMoreElements()) {
-          NetworkInterface ni = nis.nextElement();
-          if (ni.supportsMulticast()) {
-            StringBuffer buf = new StringBuffer();
-            buf.append("NI named " + ni.getName());
-            if (context.getNIList().contains(ni.getName())) {
-              buf.append(" (USING) ");
-            }
-            buf.append(" at addresses " + ni.getInterfaceAddresses());
-            Console.info(buf.toString());
+      Map<String, ProbeGenerator> probeGens = context.getProbeGenerators();
+
+      Console.info("Available Multicast-enabled Network Interfaces");
+      for (String niName : probeGens.keySet()) {
+        try {
+          NetworkInterface ni = NetworkInterface.getByName(niName);
+          StringBuffer buf = new StringBuffer();
+          buf.append("NI named " + ni.getName());
+          if (context.getNIList().contains(ni.getName())) {
+            buf.append(" (USING) ");
           }
+          buf.append(" at addresses " + ni.getInterfaceAddresses());
+          Console.info(buf.toString());
+        } catch (SocketException e) {
+          Console.error("Issues getting the network interface for name [" + niName + "]");
+          Console.error(e.getMessage());
         }
-
-      } catch (SocketException e) {
-        Console.error("Error getting Network Interfaces from VM.");
-        Console.error(e.getMessage());
-        return CommandResult.ERROR;
       }
 
       return CommandResult.OK;
@@ -126,9 +125,16 @@ public class NetworkIntefaceCommand extends Command<ArgoClientContext> {
       try {
         localhost = InetAddress.getLocalHost();
         ni = NetworkInterface.getByInetAddress(localhost);
-        if (ni != null) {
+        
+        if (ni != null && context.getProbeGenerators().containsKey(ni.getName())) {
           niList.add(ni.getName());
+        } else {
+          Console.warn("Unable to get a Probe Generator for NI name [" + ni.getName() + "].");
+          String niName = context.getProbeGenerators().keySet().iterator().next();
+          Console.warn("Using NI name [" + niName + "] instead.");
+          niList.add(niName);
         }
+        
       } catch (SocketException | UnknownHostException e) {
         Console.severe("Cannot get the Network Interface for localhost");
         Console.severe(e.getMessage());
