@@ -72,9 +72,7 @@
         <version>2.15</version>
         <configuration>
           <configLocation>Argo/argo_checks.xml</configLocation>
-          <configuration>
-            <excludes>**/java-gen/**/*</excludes>
-          </configuration>
+          <excludes>**/java-gen/**/*</excludes>
         </configuration>
         <dependencies>
           <dependency>
