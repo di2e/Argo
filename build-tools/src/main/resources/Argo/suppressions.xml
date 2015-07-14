@@ -4,5 +4,5 @@
 <suppressions>
   <suppress files="[/\\]target[/\\]" checks=".*"/>
   <suppress files=".+\.(?:png|gif|jpg|jpeg)$" checks=".*"/>
-  <suppress checks="JavadocStyleCheck" files="ws[\\/]argo[\\/]MCGateway[\\/]comms[\\/]">
+  <suppress checks="JavadocStyleCheck" files="ws[/\\]argo[/\\]MCGateway[/\\]comms[/\\]"/>
 </suppressions>
