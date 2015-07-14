@@ -72,7 +72,7 @@
         <version>2.15</version>
         <configuration>
           <configLocation>Argo/argo_checks.xml</configLocation>
-          <suppressionsFile>Argo/suppressions.xml</suppressionsFile>
+          <suppressionsLocation>Argo/suppressions.xml</suppressionsLocation>
         </configuration>
         <dependencies>
           <dependency>
