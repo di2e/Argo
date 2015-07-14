@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.argo.AsynchListener.ResponseCache;
+package ws.argo.DemoWebClient.AsynchListener.ResponseCache;
 
 import java.util.Date;
 
