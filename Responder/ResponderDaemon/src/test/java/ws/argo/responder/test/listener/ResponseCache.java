@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.argo.CLClient.listener;
+package ws.argo.responder.test.listener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,8 +40,7 @@ public class ResponseCache {
   private HashMap<String, ExpiringService> cache = new HashMap<String, ExpiringService>();
 
   /**
-   * Basic ArrayList cache.
-   * 
+   * Cache class exists to make it easier to format the correct cache json object.
    * @author jmsimpson
    *
    */
@@ -93,9 +92,8 @@ public class ResponseCache {
     while (it.hasNext()) {
       Entry<String, ExpiringService> pair = it.next();
       ExpiringService infoBean = (ExpiringService) pair.getValue();
-      if (infoBean.isExpired()) {
+      if (infoBean.isExpired())
         it.remove(); // avoids a ConcurrentModificationException
-      }
     }
 
   }

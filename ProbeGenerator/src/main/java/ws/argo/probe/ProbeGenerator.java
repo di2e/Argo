@@ -184,7 +184,7 @@ public class ProbeGenerator {
         }
         buf.append("v:" + networkInterface.isVirtual() + ") ");
 
-        throw new ProbeGeneratorException(networkInterface.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString() + " --> " + e.toString(), e);
+        throw new ProbeGeneratorException(networkInterface.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString(), e);
       }
     }
   }
@@ -198,7 +198,7 @@ public class ProbeGenerator {
    */
   public void sendProbe(Probe probe) throws ProbeGeneratorException {
 
-    LOGGER.info("Sending probe [" + probe.getProbeID() + "] on port [" + multicastAddress + ":" + multicastPort + "]");
+    LOGGER.info("Sending probe [" + probe.getProbeID() + "] on network inteface [" + networkInterface.getName() + "] at port [" + multicastAddress + ":" + multicastPort + "]");
     LOGGER.finest("Probe requesting TTL of [" + probe.ttl + "]");
 
     try {

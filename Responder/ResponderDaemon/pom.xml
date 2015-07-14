@@ -1,13 +1,17 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
     <version>0.3.0-SNAPSHOT</version>
   </parent>
-  <artifactId>CLClient</artifactId>
-  <name>Command Line Client</name>
-  <description>Argo Command Line client that can operate as a listener as well as a probe generator</description>
+  <groupId>ws.argo.responder</groupId>
+  <artifactId>ResponderDaemon</artifactId>
+  <version>0.3.0-SNAPSHOT</version>
+  <name>Responder Daemon</name>
+  <description>This project is the actual Responder daemon and its accompanying script files.</description>
+  <url>http://www.argo.ws</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>
@@ -15,16 +19,6 @@
     <jersey-version>1.19</jersey-version>
   </properties>
   <dependencies>
-    <dependency>
-      <groupId>ws.argo.probe</groupId>
-      <version>0.3.0-SNAPSHOT</version>
-      <artifactId>ProbeGenerator</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>ws.argo.commandline</groupId>
-      <artifactId>clui</artifactId>
-      <version>0.3.0-SNAPSHOT</version>
-    </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
@@ -36,10 +30,19 @@
       <version>1.2</version>
     </dependency>
     <dependency>
-      <groupId>net.sf.json-lib</groupId>
-      <artifactId>json-lib</artifactId>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
       <version>2.4</version>
-      <classifier>jdk15</classifier>
+    </dependency>
+   <dependency>
+      <groupId>ws.argo.responder</groupId>
+      <artifactId>PluginClient</artifactId>
+      <version>0.3.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>ws.argo.wireline</groupId>
+      <artifactId>ArgoWirelineFormat</artifactId>
+      <version>0.3.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -48,29 +51,22 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
-      <groupId>javax.jmdns</groupId>
-      <artifactId>jmdns</artifactId>
-      <version>3.4.1</version>
-    </dependency>
-    <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-grizzly2</artifactId>
       <version>${jersey-version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-client</artifactId>
       <version>${jersey-version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
-      <version>2.12.1</version>
+      <groupId>ws.argo.probe</groupId>
+      <version>0.3.0-SNAPSHOT</version>
+      <artifactId>ProbeGenerator</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
@@ -105,6 +101,20 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18.1</version>
+        <configuration>
+          <argLine>-DconfigFile=${basedir}/target/test-classes/config/responderConfig.prop</argLine>
+          <systemProperties>
+            <property>
+              <name>configFile</name>
+              <value>${basedir}/target/test-classes/config/responderConfig.prop</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.3</version>
         <executions>
@@ -115,25 +125,31 @@
             </goals>
             <configuration>
               <transformers>
-                <!-- use transformer to handle merge of META-INF/services - see http://java.net/jira/browse/JERSEY-440?focusedCommentId=14822&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#action_14822 -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
-                    <Main-Class>net.dharwin.common.tools.cli.api.EntryPoint</Main-Class>
+                    <Main-Class>ws.argo.responder.Responder</Main-Class>
                   </manifestEntries>
                 </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
-              <filters>
-                <!-- filter to address "Invalid signature file" issue - see http://stackoverflow.com/a/6743609/589215 -->
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>xjc-configFileFormat</id>
+            <goals>
+              <goal>xjc</goal>
+            </goals>
+            <configuration>
+              <schemaDirectory>${basedir}/src/main/resources/configFileFormat</schemaDirectory>
+              <packageName>ws.argo.responder.plugin.configfile.xml</packageName>
+              <outputDirectory>${project.build.directory}/java-gen</outputDirectory>
+              <clearOutputDir>false</clearOutputDir>
             </configuration>
           </execution>
         </executions>
@@ -178,9 +194,15 @@
               <pluginExecutions>
                 <pluginExecution>
                   <pluginExecutionFilter>
-                    <groupId>com.google.code.maven-replacer-plugin</groupId>
-                    <artifactId>replacer</artifactId>
-                    <versionRange>[1.5.3,)</versionRange>
+                    <groupId>
+                      com.google.code.maven-replacer-plugin
+                    </groupId>
+                    <artifactId>
+                      replacer
+                    </artifactId>
+                    <versionRange>
+                      [1.5.3,)
+                    </versionRange>
                     <goals>
                       <goal>replace</goal>
                     </goals>

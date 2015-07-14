@@ -58,8 +58,8 @@ public class ArgoClientContext extends CLIContext {
         ProbeGenerator gen = new ProbeGenerator(niName);
         probeGens.put(niName, gen);
       } catch (ProbeGeneratorException e) {
-        Console.error("Issue creating ProbeGenerator for network interface named [" + niName + "]");
-        e.printStackTrace();
+        Console.error("Issue creating ProbeGenerator for network interface named [" + niName + "] - " + e.getMessage());
+//        e.printStackTrace();
       }
 
     }

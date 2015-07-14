@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.argo.CLClient.listener;
+package ws.argo.responder.test.listener;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -22,26 +22,18 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.wireline.response.JSONSerializer;
 import ws.argo.wireline.response.ResponseParseException;
 import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
 import ws.argo.wireline.response.XMLSerializer;
 
-/**
- * This is the CL UI probe listener resource used by the JAX-RS container. It
- * provides the REST API for the "respondTo" URL used in the probes.
- * 
- * @author jmsimpson
- *
- */
 @Path("/listener")
 public class ProbeResponseResource {
 
   private static ResponseCache cache = new ResponseCache();
 
-  private static void resetCache() {
+  static void resetCache() {
     cache = new ResponseCache();
   }
 
@@ -67,10 +59,7 @@ public class ProbeResponseResource {
       cache.cache(new ExpiringService(service));
     }
 
-    String statusString = "Successfully cached " + response.getServices().size() + " services";
-    Console.info(statusString);
-
-    return statusString;
+    return "Successfully cached " + response.getServices().size() + " services";
   }
 
   /**
@@ -85,6 +74,7 @@ public class ProbeResponseResource {
   @Path("/probeResponse")
   @Consumes("application/xml")
   public String handleXMLProbeResponse(String probeResponseXML) throws ResponseParseException {
+    System.out.println("Listener receiving XML probe response: " + probeResponseXML);
 
     XMLSerializer serializer = new XMLSerializer();
 
@@ -94,10 +84,7 @@ public class ProbeResponseResource {
       cache.cache(new ExpiringService(service));
     }
 
-    String statusString = "Successfully cached " + response.getServices().size() + " services";
-    Console.info(statusString);
-
-    return statusString;
+    return "Successfully cached " + response.getServices().size() + " services";
   }
 
   @GET
