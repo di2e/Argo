@@ -3,6 +3,8 @@
 
 <suppressions>
   <suppress files="[/\\]target[/\\]" checks=".*"/>
+  <suppress files="ws[/\\]argo[/\\]DemoWebClient[/\\]" checks=".*"/>
+  <suppress files="net[/\\]dharwin[/\\]" checks=".*"/>
   <suppress files=".+\.(?:png|gif|jpg|jpeg)$" checks=".*"/>
   <suppress checks="JavadocStyleCheck" files="ws[/\\]argo[/\\]MCGateway[/\\]comms[/\\]"/>
 </suppressions>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.argo.BrowserWeb;
+package ws.argo.DemoWebClient.Browser;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -55,9 +55,9 @@ import ws.argo.probe.UnsupportedPayloadType;
  */
 
 @Path("controller")
-public class BrowserWebController {
+public class BrowserController {
 
-  private static final Logger LOGGER = Logger.getLogger(BrowserWebController.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(BrowserController.class.getName());
 
   private static final String  PROBE_GENERATOR_PROPERTIES_FILE = "argoClient.prop";
   private static final String  DEFAULT_PROBE_RESPONSE_URL_PATH = "/AsynchListener/api/responseHandler/probeResponse";
@@ -215,7 +215,7 @@ public class BrowserWebController {
     } catch (FileNotFoundException e) {
       LOGGER.warning("External config file " + externPropsFilename + " not found.");
       LOGGER.warning("Using defaults located in classpath embedded in war file.");
-      is = BrowserWebController.class.getClassLoader().getResourceAsStream(PROBE_GENERATOR_PROPERTIES_FILE);
+      is = BrowserController.class.getClassLoader().getResourceAsStream(PROBE_GENERATOR_PROPERTIES_FILE);
     }
 
     return is;

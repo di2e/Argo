@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.argo.AsynchListener;
+package ws.argo.DemoWebClient.AsynchListener;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -22,8 +22,8 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import ws.argo.AsynchListener.ResponseCache.ExpiringService;
-import ws.argo.AsynchListener.ResponseCache.ResponseCache;
+import ws.argo.DemoWebClient.AsynchListener.ResponseCache.ExpiringService;
+import ws.argo.DemoWebClient.AsynchListener.ResponseCache.ResponseCache;
 import ws.argo.wireline.response.JSONSerializer;
 import ws.argo.wireline.response.ResponseParseException;
 import ws.argo.wireline.response.ResponseWrapper;

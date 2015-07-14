@@ -1,4 +1,4 @@
-package ws.argo.BrowserWeb;
+package ws.argo.DemoWebClient.Browser;
 
 class ProbeRespondToAddress {
 	public String respondToAddress;

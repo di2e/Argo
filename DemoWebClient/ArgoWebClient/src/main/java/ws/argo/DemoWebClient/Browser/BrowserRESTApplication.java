@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package ws.argo.BrowserWeb;
+package ws.argo.DemoWebClient.Browser;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
 
 @ApplicationPath("api")
-public class BrowserWebRESTApplication extends Application {
+public class BrowserRESTApplication extends Application {
 }

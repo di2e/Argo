@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.argo.AsynchListener;
+package ws.argo.DemoWebClient.AsynchListener;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
