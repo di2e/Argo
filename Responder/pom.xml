@@ -11,8 +11,8 @@
   <name>Responder pom project</name>
   <description>Includes the Responder and the standard plugins.  The Config File Plugin is included directly in the main ResponderDaemon package.</description>
   <modules>
-   <module>Plugins</module>
-   <module>PluginClient</module>
-   <module>ResponderDaemon</module>
+    <module>Plugins</module>
+    <module>PluginClient</module>
+    <module>ResponderDaemon</module>
   </modules>
 </project>

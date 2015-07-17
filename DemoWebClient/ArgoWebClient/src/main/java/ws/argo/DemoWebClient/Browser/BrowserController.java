@@ -163,13 +163,13 @@ public class BrowserController {
   /**
    * Returns a list of the responses collected in the listener.
    * 
-   * @returnlist of the responses collected in the listener
-   * @throws UnknownHostException
+   * @return list of the responses collected in the listener
+   * @throws UnknownHostException if the ProbeGenerator props throws it 
    */
   @GET
   @Path("/responses")
   @Produces("application/json")
-  public String getResponses() throws UnknownHostException {
+  public String getResponses() throws UnknownHostException  {
     Properties clientProps = getPropeGeneratorProps();
 
     String listenerIPAddress = clientProps.getProperty("listenerIPAddress");

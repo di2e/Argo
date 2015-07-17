@@ -285,6 +285,8 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
 
   /**
    * Return the Time To Live (network hops).
+   * 
+   * @return the number of hops
    */
   public Integer getTtl() {
     if (ttl == null)
@@ -301,7 +303,7 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
    * is provided as a convenience for developers (like me) that just wnat to jam
    * the string into the wrapper and let it worry about converting it.
    * 
-   * @param ttlString
+   * @param ttlString the number of hops
    */
   public void setTtl(String ttlString) {
     try {

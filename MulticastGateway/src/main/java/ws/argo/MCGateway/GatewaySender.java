@@ -126,7 +126,6 @@ public class GatewaySender {
   /**
    * Run the main sender process.
    * 
-   * @throws Exception if something goes wrong in the operation of the receiver
    */
   public void run() {
 
@@ -160,7 +159,7 @@ public class GatewaySender {
    * @throws Exception if something goes wrong with the operation of the
    *           receiver.
    */
-  public static void main(String[] args) throws IOException, ClassNotFoundException {
+  public static void main(String[] args) throws Exception {
     LOGGER.info("Starting Argo GatewaySender process.");
 
     CommandLineParser parser = new BasicParser();
