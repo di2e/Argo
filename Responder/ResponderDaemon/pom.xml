@@ -6,18 +6,19 @@
     <artifactId>Responder</artifactId>
     <version>0.3.0-SNAPSHOT</version>
   </parent>
-  <groupId>ws.argo.responder</groupId>
   <artifactId>ResponderDaemon</artifactId>
   <version>0.3.0-SNAPSHOT</version>
   <name>Responder Daemon</name>
   <description>This project is the actual Responder daemon and its accompanying script files.</description>
   <url>http://www.argo.ws</url>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
     <jersey-version>1.19</jersey-version>
   </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -69,14 +70,17 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <build>
     <plugins>
+
       <plugin>
         <groupId>com.google.code.maven-replacer-plugin</groupId>
         <artifactId>replacer</artifactId>
         <version>1.5.3</version>
         <executions>
           <execution>
+            <id>process-test-config</id>
             <phase>process-resources</phase>
             <goals>
               <goal>replace</goal>
@@ -84,6 +88,7 @@
           </execution>
         </executions>
         <configuration>
+          <outputDir>${basedir}/target/generated-test-config</outputDir>
           <filesToInclude>${basedir}/src/**/*</filesToInclude>
           <inputFilePattern>(.*).template</inputFilePattern>
           <outputFilePattern>$1</outputFilePattern>
@@ -99,20 +104,53 @@
           </replacements>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <version>1.5.3</version>
+        <executions>
+          <execution>
+            <id>process-config</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <outputDir>${basedir}/target/generated-config</outputDir>
+          <filesToInclude>${basedir}/src/**/*</filesToInclude>
+          <inputFilePattern>(.*).template</inputFilePattern>
+          <outputFilePattern>$1</outputFilePattern>
+          <replacements>
+            <replacement>
+              <token>@ARGO_VERSION@</token>
+              <value>${project.version}</value>
+            </replacement>
+            <replacement>
+              <token>@INSTALL_DIR@</token>
+              <value>/opt/argo/responder</value>
+            </replacement>
+          </replacements>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.18.1</version>
         <configuration>
-          <argLine>-DconfigFile=${basedir}/target/test-classes/config/responderConfig.prop</argLine>
+          <argLine>-DconfigFile=${basedir}/target/generated-test-config/responderConfig.prop</argLine>
           <systemProperties>
             <property>
               <name>configFile</name>
-              <value>${basedir}/target/test-classes/config/responderConfig.prop</value>
+              <value>${basedir}/target/generated-test-config/responderConfig.prop</value>
             </property>
           </systemProperties>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -153,6 +191,7 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>jaxb2-maven-plugin</artifactId>
@@ -172,6 +211,7 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.5.3</version>
@@ -190,6 +230,7 @@
           </execution>
         </executions>
       </plugin>
+
       <!-- Do not put distribution in a maven repo -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -208,40 +249,6 @@
         </configuration>
       </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>
-                      com.google.code.maven-replacer-plugin
-                    </groupId>
-                    <artifactId>
-                      replacer
-                    </artifactId>
-                    <versionRange>
-                      [1.5.3,)
-                    </versionRange>
-                    <goals>
-                      <goal>replace</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+
   </build>
 </project>

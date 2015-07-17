@@ -23,4 +23,4 @@
 #
 # to change the logging level please edit logging.properties
 
-java -cp $GW_HOME/lib/${project.artifactId}-${project.version}.jar -Djava.util.logging.config.file="$GW_HOME/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.MCGateway.GatewaySender "$@" 
+java -cp $GW_HOME/lib/@JAR_NAME@.jar -Djava.util.logging.config.file="$GW_HOME/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.MCGateway.GatewaySender "$@" 
