@@ -13,5 +13,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # 
-xmlConfigFilename=<install dir>/responder/config/configFileProbeHandlerServiceList.xml
+xmlConfigFilename=@INSTALL_DIR@/responder/config/configFileProbeHandlerServiceList.xml
 

@@ -10,8 +10,8 @@
 
 	<fileSets>
 		<fileSet>
-			<directory>${basedir}/src/resources/</directory>
-			<outputDirectory>/</outputDirectory>
+			<directory>${basedir}/target/generated-bin/</directory>
+			<outputDirectory>/client/bin</outputDirectory>
 			<filtered>true</filtered>
 			<includes>
 				<include>**/*.sh</include>
@@ -19,8 +19,8 @@
 			<fileMode>0774</fileMode>
 		</fileSet>
 		<fileSet>
-			<directory>${basedir}/src/resources/</directory>
-			<outputDirectory>/</outputDirectory>
+			<directory>${basedir}/target/generated-bin/</directory>
+			<outputDirectory>/client/bin</outputDirectory>
 			<filtered>true</filtered>
 			<includes>
 				<include>**/*</include>

@@ -23,7 +23,7 @@ import ws.argo.wireline.probe.ProbeWrapper;
  * <p>
  * The command structure is:
  * create
- *   -n : for future reference and use with 'send' command>.
+ *   -n : for future reference and use with 'send' command.
  *   -cid --clientID : sets the client ID in the probe.
  *   -scids --serviceContractIDs : takes a whitespace separated list strings to use as contract IDs
  *   -siids --serviceInstanceIDs : takes a whitespace separated list strings to use as instance IDs

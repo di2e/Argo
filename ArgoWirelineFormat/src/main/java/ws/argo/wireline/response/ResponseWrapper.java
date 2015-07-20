@@ -117,6 +117,8 @@ public class ResponseWrapper {
 
   /**
    * Return the XML string form of the Response payload.
+   * 
+   * @return the XML payload
    */
   public String toXML() {
     XMLSerializer serializer = new XMLSerializer();
@@ -126,6 +128,8 @@ public class ResponseWrapper {
 
   /**
    * Return the JSON string form of the Response payload.
+   * 
+   * @return the JSON payload
    */
   public String toJSON() {
     JSONSerializer serializer = new JSONSerializer();
