@@ -288,6 +288,8 @@ public class ProbeWrapper {
 
   /**
    * Returns the string form of the payload in XML.
+   * 
+   * @return the XML payload
    */
   public String asXML() {
     XMLSerializer serializer = new XMLSerializer();

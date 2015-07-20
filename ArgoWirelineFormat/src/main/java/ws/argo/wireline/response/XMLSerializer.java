@@ -166,7 +166,7 @@ public class XMLSerializer {
    * Translate the wireline string into an instance of a ResponseWrapper object.
    * 
    * @param payload the wireline string
-   * @return a new instance of a {@line ResponseWrapper}.
+   * @return a new instance of a {@link ResponseWrapper}.
    * @throws ResponseParseException if some issues occurred parsing the response
    */
   public ResponseWrapper unmarshal(String payload) throws ResponseParseException {
@@ -183,7 +183,7 @@ public class XMLSerializer {
    * Translate the wireline string to an instance of a ServiceWrapper object.
    * 
    * @param payload the wireline string
-   * @return a new instance of a {@line ServiceWrapper}.
+   * @return a new instance of a {@link ServiceWrapper}.
    * @throws ResponseParseException if some issues occurred parsing the response
    */
   public ServiceWrapper unmarshalService(String payload) throws ResponseParseException {

@@ -36,9 +36,9 @@ public class ResponderLaunchTest {
   @Test
   public void testResponderNormalLaunch() throws InterruptedException {
 
-    // String configFileProp = System.getProperty("configFile");
-    // System.out.println("****** Testing configFile = " + configFileProp);
-    String configFileProp = "/config/responderConfig.prop";
+     String configFileProp = System.getProperty("configFile");
+     System.out.println("****** Testing configFile = " + configFileProp);
+//    String configFileProp = "/config/responderConfig.prop";
 
     final String[] args = { "-pf", configFileProp };
 

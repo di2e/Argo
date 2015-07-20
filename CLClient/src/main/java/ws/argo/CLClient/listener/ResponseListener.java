@@ -80,8 +80,9 @@ public class ResponseListener {
   public static HttpServer startServer() throws IOException {
     ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.CLClient.listener");
 
-    System.out.println("Starting grizzly2...");
+    LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
     HttpServer httpServer = GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
+    LOGGER.info("Started Jersey-Grizzly2 JAX-RS listener.");
 
     return httpServer;
   }

@@ -332,6 +332,12 @@ public class Responder {
         InetAddress localhost = InetAddress.getLocalHost();
         LOGGER.fine("Network Interface name not specified.  Using the NI for localhost [" + localhost.getHostAddress() + "]");
         ni = NetworkInterface.getByInetAddress(localhost);
+        if (ni != null && ni.isLoopback()) {
+          LOGGER.warning("DEFAULT NETWORK INTERFACE IS THE LOOPBACK !!!!.");
+          LOGGER.warning("Attempting to use the NI for localhost [" + ni.getName() + "] is a loopback.");
+          LOGGER.warning("Please run the Responder with the -ni switch selecting a more appropriate network interface to use (e.g. -ni eth0).");
+          return false;
+        }
       }
 
       LOGGER.info("Starting Responder:  Receiving mulitcast @ [" + cliValues.multicastAddress + ":" + cliValues.multicastPort + "]");

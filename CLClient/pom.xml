@@ -3,7 +3,7 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.3.1</version>
   </parent>
   <artifactId>CLClient</artifactId>
   <name>Command Line Client</name>
@@ -13,17 +13,18 @@
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
     <jersey-version>1.19</jersey-version>
+    <rpm-package-name>argo-client</rpm-package-name>
   </properties>
   <dependencies>
     <dependency>
       <groupId>ws.argo.probe</groupId>
-      <version>0.3.0-SNAPSHOT</version>
+      <version>0.3.1</version>
       <artifactId>ProbeGenerator</artifactId>
     </dependency>
     <dependency>
       <groupId>ws.argo.commandline</groupId>
       <artifactId>clui</artifactId>
-      <version>0.3.0-SNAPSHOT</version>
+      <version>0.3.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -88,17 +89,15 @@
           </execution>
         </executions>
         <configuration>
-          <filesToInclude>${basedir}/src/**/*</filesToInclude>
-          <inputFilePattern>(.*).template</inputFilePattern>
+          <outputDir>${basedir}/target/generated-bin</outputDir>
+          <preserveDir>false</preserveDir>
+          <filesToInclude>${basedir}/src/resources/client/bin/*</filesToInclude>
+          <inputFilePattern>(.*)</inputFilePattern>
           <outputFilePattern>$1</outputFilePattern>
           <replacements>
             <replacement>
-              <token>@ARGO_VERSION@</token>
-              <value>${project.version}</value>
-            </replacement>
-            <replacement>
-              <token>@INSTALL_DIR@</token>
-              <value>${basedir}/target/test-classes</value>
+              <token>@JAR_NAME@</token>
+              <value>${project.artifactId}-${project.version}</value>
             </replacement>
           </replacements>
         </configuration>
@@ -156,6 +155,91 @@
           </execution>
         </executions>
       </plugin>
+      
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.1.3</version>
+        <executions>
+          <execution>
+            <id>generate-rpm</id>
+            <goals>
+              <goal>rpm</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <name>${rpm-package-name}</name>
+          <license>MIT (c) 2015, Jeff Simpson</license>
+          <group>Applications/Communications</group>
+          <needarch>noarch</needarch>
+          <targetOS>linux</targetOS>
+          <defineStatements>
+            <defineStatement>_unpackaged_files_terminate_build 0</defineStatement>
+          </defineStatements>
+          <mappings>
+            <mapping>
+              <directory>/opt/argo/client/lib</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>444</filemode>
+              <sources>
+                <source>
+                  <location>target/</location>
+                  <includes>
+                    <include>*.jar</include>
+                  </includes>
+                  <excludes>
+                    <exclude>original*.jar</exclude>
+                  </excludes>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/opt/argo/client/bin</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>755</filemode>
+              <sources>
+                <source>
+                  <location>target/generated-bin</location>
+                  <includes>
+                    <include>*.sh</include>
+                  </includes>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/opt/argo/client/bin</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>664</filemode>
+              <sources>
+                <source>
+                  <location>target/generated-bin</location>
+                  <excludes>
+                    <exclude>*.sh</exclude>
+                    <exclude>*.bat</exclude>
+                  </excludes>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/usr/local/bin</directory>
+              <sources>
+                <softlinkSource>
+                  <destination>argo</destination>
+                  <location>/opt/argo/client/bin/argo.sh</location>
+                </softlinkSource>
+              </sources>
+            </mapping>
+          </mappings>
+        </configuration>
+      </plugin>
+      
       <!-- Do not put distribution in a maven repo -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -165,35 +249,16 @@
           <skip>true</skip>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>com.google.code.maven-replacer-plugin</groupId>
-                    <artifactId>replacer</artifactId>
-                    <versionRange>[1.5.3,)</versionRange>
-                    <goals>
-                      <goal>replace</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+    
+   
   </build>
 </project>

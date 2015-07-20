@@ -1,46 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
-    <artifactId>Argo</artifactId>
-    <groupId>ws.argo</groupId>
-    <version>0.3.0-SNAPSHOT</version>
+    <artifactId>Responder</artifactId>
+    <groupId>ws.argo.responder</groupId>
+    <version>0.3.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>ws.argo.responder</groupId>
   <artifactId>ResponderDaemon</artifactId>
   <name>Responder Daemon</name>
-  <version>0.3.0-SNAPSHOT</version>
+  <version>0.3.1</version>
   <description>This project is the actual Responder daemon and its accompanying script files.</description>
   <url>http://www.argo.ws</url>
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>com.google.code.maven-replacer-plugin</groupId>
-                    <artifactId>replacer</artifactId>
-                    <versionRange>[1.5.3,)</versionRange>
-                    <goals>
-                      <goal>replace</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>com.google.code.maven-replacer-plugin</groupId>
@@ -48,37 +19,100 @@
         <version>1.5.3</version>
         <executions>
           <execution>
+            <id>process-test-config</id>
             <phase>process-resources</phase>
             <goals>
               <goal>replace</goal>
             </goals>
+            <configuration>
+              <outputDir>${basedir}/target/generated-test-config/config</outputDir>
+              <preserveDir>false</preserveDir>
+              <filesToInclude>${basedir}/src/test/config/**/*</filesToInclude>
+              <inputFilePattern>(.*)</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@INSTALL_DIR@</token>
+                  <value>${basedir}/target/generated-test-config</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+          <execution>
+            <id>process-rpm-config</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <outputDir>${basedir}/target/generated-rpm-config/config</outputDir>
+              <preserveDir>false</preserveDir>
+              <filesToInclude>${basedir}/src/resources/responder/config/*</filesToInclude>
+              <inputFilePattern>(.*)</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@INSTALL_DIR@</token>
+                  <value>/opt/argo</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+          <execution>
+            <id>process-assembly-bin</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <outputDir>${basedir}/target/generated-assembly-config/bin</outputDir>
+              <preserveDir>false</preserveDir>
+              <filesToInclude>${basedir}/src/resources/responder/bin/*</filesToInclude>
+              <inputFilePattern>(.*)</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@JAR_NAME@</token>
+                  <value>${project.artifactId}-${project.version}</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+          <execution>
+            <id>process-rpm-bin</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <outputDir>${basedir}/target/generated-rpm-config/bin</outputDir>
+              <preserveDir>false</preserveDir>
+              <filesToInclude>${basedir}/src/resources/responder/bin/*</filesToInclude>
+              <inputFilePattern>(.*)</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@INSTALL_DIR@</token>
+                  <value>/opt/argo</value>
+                </replacement>
+                <replacement>
+                  <token>@JAR_NAME@</token>
+                  <value>${project.artifactId}-${project.version}</value>
+                </replacement>
+              </replacements>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <filesToInclude>${basedir}/src/**/*</filesToInclude>
-          <inputFilePattern>(.*).template</inputFilePattern>
-          <outputFilePattern>$1</outputFilePattern>
-          <replacements>
-            <replacement>
-              <token>@ARGO_VERSION@</token>
-              <value>${project.version}</value>
-            </replacement>
-            <replacement>
-              <token>@INSTALL_DIR@</token>
-              <value>${basedir}/target/test-classes</value>
-            </replacement>
-          </replacements>
-        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.18.1</version>
         <configuration>
-          <argLine>-DconfigFile=${basedir}/target/test-classes/config/responderConfig.prop</argLine>
+          <argLine>-DconfigFile=${basedir}/target/generated-test-config/responderConfig.prop</argLine>
           <systemProperties>
             <property>
               <name>configFile</name>
-              <value>${basedir}/target/test-classes/config/responderConfig.prop</value>
+              <value>${basedir}/target/generated-test-config/config/responderConfig.prop</value>
             </property>
           </systemProperties>
         </configuration>
@@ -142,14 +176,134 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.1.3</version>
+        <executions>
+          <execution>
+            <id>generate-rpm</id>
+            <goals>
+              <goal>rpm</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <name>${rpm-package-name}</name>
+          <license>MIT (c) 2015, Jeff Simpson</license>
+          <group>Applications/Communications</group>
+          <needarch>noarch</needarch>
+          <targetOS>linux</targetOS>
+          <defineStatements>
+            <defineStatement>_unpackaged_files_terminate_build 0</defineStatement>
+          </defineStatements>
+          <mappings>
+            <mapping>
+              <directory>/opt/argo/responder/lib</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>444</filemode>
+              <sources>
+                <source>
+                  <location>target/</location>
+                  <includes>
+                    <include>*.jar</include>
+                  </includes>
+                  <excludes>
+                    <exclude>original*.jar</exclude>
+                  </excludes>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/opt/argo/responder/bin</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>755</filemode>
+              <sources>
+                <source>
+                  <location>target/generated-rpm-config/bin</location>
+                  <includes>
+                    <include>*.sh</include>
+                  </includes>
+                </source>
+                <source>
+                  <location>src/resources/responder/bin</location>
+                  <includes>
+                    <include>*.properties</include>
+                  </includes>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/opt/argo/responder/config</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>755</filemode>
+              <configuration>true</configuration>
+              <sources>
+                <source>
+                  <location>target/generated-rpm-config/config</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/usr/local/bin</directory>
+              <sources>
+                <softlinkSource>
+                  <destination>responder</destination>
+                  <location>/opt/argo/responder/bin/responder.sh</location>
+                </softlinkSource>
+              </sources>
+            </mapping>
+          </mappings>
+        </configuration>
+      </plugin>
+      <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.8.2</version>
         <configuration>
           <skip>true</skip>
         </configuration>
       </plugin>
+      <plugin>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+                <configuration>
+                  <excludePackageNames>*.xml</excludePackageNames>
+                </configuration>
+              </execution>
+            </executions>
+            <configuration>
+              <excludePackageNames>*.xml</excludePackageNames>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -198,7 +352,7 @@
     <dependency>
       <groupId>ws.argo.probe</groupId>
       <artifactId>ProbeGenerator</artifactId>
-      <version>0.3.0-SNAPSHOT</version>
+      <version>0.3.1</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -212,6 +366,7 @@
     <jersey-version>1.19</jersey-version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <rpm-package-name>argo-responder</rpm-package-name>
     <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 </project>
