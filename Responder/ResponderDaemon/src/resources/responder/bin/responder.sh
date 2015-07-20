@@ -23,4 +23,4 @@
 # -ni <networkInteface Name> : this tells the responder to listen for mulitcast traffic from a particular 
 #       network interface.  Some multi-home systems have specific interfaces that allow outside traffic in.
 
-java -cp $ARGO_HOME/responder/lib/${project.artifactId}-${project.version}.jar -Djava.util.logging.config.file="$ARGO_HOME/responder/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf $ARGO_HOME/responder/config/responderConfig.prop "$@"
+java -cp @INSTALL_DIR@/responder/lib/@JAR_NAME@.jar -Djava.util.logging.config.file="@INSTALL_DIR@/responder/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf @INSTALL_DIR@/responder/config/responderConfig.prop "$@"

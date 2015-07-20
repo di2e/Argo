@@ -3,12 +3,12 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.3.1</version>
   </parent>
   <artifactId>ArgoWirelineFormat</artifactId>
   <name>Argo Wireline Protocol</name>
   <groupId>ws.argo.wireline</groupId>
-  <version>0.3.0-SNAPSHOT</version>
+  <version>0.3.1</version>
   <description>Encapsulated the json and xml protocols for the Argo probes and responses</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
