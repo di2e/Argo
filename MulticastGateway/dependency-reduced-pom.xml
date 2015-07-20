@@ -3,13 +3,13 @@
   <parent>
     <artifactId>Argo</artifactId>
     <groupId>ws.argo</groupId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.3.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>ws.argo.MCGateway</groupId>
   <artifactId>MulticastGateway</artifactId>
   <name>Multicast Gateway</name>
-  <version>0.3.0-SNAPSHOT</version>
+  <version>0.3.1</version>
   <description>Provides a sender and receiver for bridging network where multicast would naturally not cross (not multicast routeable - like between segments on the open internet)</description>
   <build>
     <plugins>

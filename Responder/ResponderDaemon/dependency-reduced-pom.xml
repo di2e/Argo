@@ -3,12 +3,12 @@
   <parent>
     <artifactId>Responder</artifactId>
     <groupId>ws.argo.responder</groupId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.3.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ResponderDaemon</artifactId>
   <name>Responder Daemon</name>
-  <version>0.3.0-SNAPSHOT</version>
+  <version>0.3.1</version>
   <description>This project is the actual Responder daemon and its accompanying script files.</description>
   <url>http://www.argo.ws</url>
   <build>
@@ -291,6 +291,9 @@
                 <goals>
                   <goal>jar</goal>
                 </goals>
+                <configuration>
+                  <excludePackageNames>*.xml</excludePackageNames>
+                </configuration>
               </execution>
             </executions>
             <configuration>
@@ -349,7 +352,7 @@
     <dependency>
       <groupId>ws.argo.probe</groupId>
       <artifactId>ProbeGenerator</artifactId>
-      <version>0.3.0-SNAPSHOT</version>
+      <version>0.3.1</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
