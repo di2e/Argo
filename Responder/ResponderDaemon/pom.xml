@@ -4,10 +4,10 @@
   <parent>
     <groupId>ws.argo.responder</groupId>
     <artifactId>Responder</artifactId>
-    <version>0.3.1</version>
+    <version>0.3.2-SNAPSHOT</version>
   </parent>
   <artifactId>ResponderDaemon</artifactId>
-  <version>0.3.1</version>
+  <version>0.3.2-SNAPSHOT</version>
   <name>Responder Daemon</name>
   <description>This project is the actual Responder daemon and its accompanying script files.</description>
   <url>http://www.argo.ws</url>
@@ -39,12 +39,12 @@
     <dependency>
       <groupId>ws.argo.responder</groupId>
       <artifactId>PluginClient</artifactId>
-      <version>0.3.1</version>
+      <version>0.3.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>ws.argo.wireline</groupId>
       <artifactId>ArgoWirelineFormat</artifactId>
-      <version>0.3.1</version>
+      <version>0.3.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -66,7 +66,7 @@
     </dependency>
     <dependency>
       <groupId>ws.argo.probe</groupId>
-      <version>0.3.1</version>
+      <version>0.3.2-SNAPSHOT</version>
       <artifactId>ProbeGenerator</artifactId>
       <scope>test</scope>
     </dependency>

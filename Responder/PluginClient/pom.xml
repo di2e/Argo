@@ -3,7 +3,7 @@
   <parent>
     <groupId>ws.argo.responder</groupId>
     <artifactId>Responder</artifactId>
-    <version>0.3.1</version>
+    <version>0.3.2-SNAPSHOT</version>
   </parent>
   <artifactId>PluginClient</artifactId>
   <name>Plugin Client lib</name>
@@ -12,7 +12,7 @@
     <dependency>
       <groupId>ws.argo.wireline</groupId>
       <artifactId>ArgoWirelineFormat</artifactId>
-      <version>0.3.1</version>
+      <version>0.3.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
