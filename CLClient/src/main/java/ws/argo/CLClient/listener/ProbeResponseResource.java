@@ -56,18 +56,27 @@ public class ProbeResponseResource {
   @POST
   @Path("/probeResponse")
   @Consumes("application/json")
-  public String handleJSONProbeResponse(String probeResponseJSON) throws ResponseParseException {
+  public String handleJSONProbeResponse(String probeResponseJSON) {
     System.out.println("Listener receiving JSON probe response: " + probeResponseJSON);
 
     JSONSerializer serializer = new JSONSerializer();
 
-    ResponseWrapper response = serializer.unmarshal(probeResponseJSON);
+    ResponseWrapper response;
+    try {
+      response = serializer.unmarshal(probeResponseJSON);
+    } catch (ResponseParseException e) {
+      String errorResponseString = "Incoming Response could not be parsed. Error message is: " + e.getMessage();
+      Console.error(errorResponseString);
+      Console.error("Wireline message that could no be parsed is:");
+      Console.error(probeResponseJSON);
+      return errorResponseString;
+    }
 
     for (ServiceWrapper service : response.getServices()) {
       cache.cache(new ExpiringService(service));
     }
 
-    String statusString = "Successfully cached " + response.getServices().size() + " services";
+    String statusString = "\nSuccessfully cached " + response.getServices().size() + " services";
     Console.info(statusString);
 
     return statusString;
@@ -84,17 +93,26 @@ public class ProbeResponseResource {
   @POST
   @Path("/probeResponse")
   @Consumes("application/xml")
-  public String handleXMLProbeResponse(String probeResponseXML) throws ResponseParseException {
+  public String handleXMLProbeResponse(String probeResponseXML) {
 
     XMLSerializer serializer = new XMLSerializer();
 
-    ResponseWrapper response = serializer.unmarshal(probeResponseXML);
+    ResponseWrapper response;
+    try {
+      response = serializer.unmarshal(probeResponseXML);
+    } catch (ResponseParseException e) {
+      String errorResponseString = "Incoming Response could not be parsed. Error message is: " + e.getMessage();
+      Console.error(errorResponseString);
+      Console.error("Wireline message that could no be parsed is:");
+      Console.error(probeResponseXML);
+      return errorResponseString;
+    }
 
     for (ServiceWrapper service : response.getServices()) {
       cache.cache(new ExpiringService(service));
     }
 
-    String statusString = "Successfully cached " + response.getServices().size() + " services";
+    String statusString = "\nSuccessfully cached " + response.getServices().size() + " services";
     Console.info(statusString);
 
     return statusString;

@@ -77,11 +77,11 @@ public class ResponseListener {
    * @return a new HttpServer
    * @throws IOException if something goes wrong creating the http server
    */
-  public static HttpServer startServer() throws IOException {
+  public static HttpServer startServer(URI listenerURI) throws IOException {
     ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.CLClient.listener");
 
     LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
-    HttpServer httpServer = GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
+    HttpServer httpServer = GrizzlyServerFactory.createHttpServer(listenerURI, resourceConfig);
     LOGGER.info("Started Jersey-Grizzly2 JAX-RS listener.");
 
     return httpServer;

@@ -32,6 +32,11 @@
 			<version>2.4</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+		  <groupId>com.amazonaws</groupId>
+		  <artifactId>aws-java-sdk-sns</artifactId>
+		  <version>1.10.5.1</version>
+		</dependency>
 	</dependencies>
 	<name>Probe Generator</name>
 	<description>Provides the capability for Argo clients to create and send discovery probes.  Very small and easy to use.</description>

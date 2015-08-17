@@ -440,7 +440,8 @@ public class Responder {
       return null;
     }
 
-    LOGGER.info("Responder started on " + cliValues.multicastAddress + ":" + cliValues.multicastPort + " [" + responder.runtimeId + "]");
+    // This needs to be sent to stdout as there is no way to force the logging of this via the LOGGER
+    System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started on " + cliValues.multicastAddress + ":" + cliValues.multicastPort + " [" + responder.runtimeId + "]");
 
     return responder;
   }
@@ -631,7 +632,7 @@ public class Responder {
         .withDescription("the multicast group address to broadcast on")
         .create("ma"));
     options.addOption(OptionBuilder
-        .withDescription("setting this switch will disable the responder from returnin all services to a naked probe")
+        .withDescription("setting this switch will disable the responder from returning all services to a naked probe")
         .create("nb"));
 
     return options;

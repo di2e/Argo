@@ -8,6 +8,7 @@ import org.junit.BeforeClass;
 
 import ws.argo.probe.ProbeGenerator;
 import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeGeneratorFactory;
 import ws.argo.responder.Responder;
 import ws.argo.responder.ResponderConfigException;
 import ws.argo.responder.ResponderOperationException;
@@ -18,11 +19,11 @@ import com.sun.jersey.api.client.WebResource;
 
 public abstract class ResponderProbeTest {
 
-  static Responder             responder;
-  private static HttpServer       server;
-  static WebResource    target;
-  private static Thread           responderThread;
-  static ProbeGenerator gen = null;
+  static Responder          responder;
+  private static HttpServer server;
+  static WebResource        target;
+  private static Thread     responderThread;
+  static ProbeGenerator     gen = null;
 
   // /**
   // * reads in the test payload text to check responses against. better then
@@ -66,15 +67,18 @@ public abstract class ResponderProbeTest {
    * multicast UDP to make these work. NOTE: Some CI servers (like Jenkins
    * slaves) might not allow multicast for some reason
    * 
-   * @throws IOException if something goes wrong starting the responder or listener
+   * @throws IOException if something goes wrong starting the responder or
+   *           listener
    * @throws InterruptedException - to support the Thread sleep function
-   * @throws ResponderConfigException if there is some issue in the Responder configuration
-   * @throws ProbeGeneratorException if something goes wrong with the Probe Generator
+   * @throws ResponderConfigException if there is some issue in the Responder
+   *           configuration
+   * @throws ProbeGeneratorException if something goes wrong with the Probe
+   *           Generator
    */
   @BeforeClass
   public static void startupTheGear() throws IOException, InterruptedException, ResponderConfigException, ProbeGeneratorException {
-    gen = new ProbeGenerator();
-
+    gen = ProbeGeneratorFactory.createMulticastProbeGenerator();
+        
     startResponder();
     startListener();
 
@@ -86,9 +90,10 @@ public abstract class ResponderProbeTest {
    * Turn off the test harness processes.
    * 
    * @throws InterruptedException - to support the Thread sleep function
+   * @throws ProbeGeneratorException if some problem occurred closing the transport
    */
   @AfterClass
-  public static void tearDown() throws InterruptedException {
+  public static void tearDown() throws InterruptedException, ProbeGeneratorException {
 
     responder.stopResponder();
     gen.close();

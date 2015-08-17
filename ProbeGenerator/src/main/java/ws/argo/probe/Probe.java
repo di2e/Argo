@@ -17,7 +17,6 @@
 package ws.argo.probe;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
@@ -25,6 +24,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import ws.argo.wireline.probe.ProbeWrapper;
+import ws.argo.wireline.probe.ProbeWrapper.RespondToURL;
 
 /**
  * This class represents a Probe that will be sent from a client. It's a wrapper
@@ -40,7 +40,7 @@ public class Probe {
 
   public static final String JSON = ProbeWrapper.JSON;
   public static final String XML  = ProbeWrapper.XML;
-  
+
   // the default TTL for a probe is the max TTL of 255 - or the entire network
   int ttl = 255;
 
@@ -62,6 +62,34 @@ public class Probe {
     probe.setDESVersion(ProbeWrapper.PROBE_DES_VERSION);
 
     setRespondToPayloadType(respondToPayloadType);
+  }
+
+  /**
+   * Copy constructor.
+   * 
+   * @param probe the probe to copy
+   * @throws UnsupportedPayloadType if the payload in the original somehow
+   *           magically morphed into a type that Probes no longer supported
+   * @throws MalformedURLException if the url magically becomes malformed
+   */
+  public Probe(Probe probe) throws UnsupportedPayloadType, MalformedURLException {
+    this(probe.getProbeWrapper().getRespondToPayloadType());
+
+    this.setHopLimit(probe.getHopLimit());
+    this.setClientID(probe.getClientID());
+    for (RespondToURL respondTo : probe.getProbeWrapper().getRespondToURLs()) {
+      this.addRespondToURL(respondTo.getLabel(), respondTo.getUrl());
+    }
+    for (String scid : probe.getProbeWrapper().getServiceContractIDs()) {
+      this.addServiceContractID(scid);
+    }
+    for (String siid : probe.getProbeWrapper().getServiceInstanceIDs()) {
+      this.addServiceInstanceID(siid);
+    }
+  }
+
+  protected ProbeWrapper getProbeWrapper() {
+    return probe;
   }
 
   private String createProbeID() {
@@ -93,6 +121,10 @@ public class Probe {
    */
   public String getProbeID() {
     return probe.getProbeId();
+  }
+
+  public String getClientID() {
+    return probe.getClientId();
   }
 
   /**
@@ -171,8 +203,21 @@ public class Probe {
    * @throws JAXBException if there is some issue building XML
    */
   public String asXML() throws JAXBException {
-
     return probe.asXML();
+  }
+
+  public String asXMLFragment() throws JAXBException {
+    return probe.asXMLFragment();
+  }
+  
+  /**
+   * This will return the single-line textual representation. This was crafted
+   * for the command line client. Your mileage may vary.
+   * 
+   * @return the single line description
+   */
+  public String asString() {
+    return probe.asString();
   }
 
   /**
@@ -180,10 +225,10 @@ public class Probe {
    * reuse the probe but need a new ID (or else the responders will reject the
    * probe as it has already processed one with the same id).
    */
-  public void recreateProbeID() {
-    String probeID = createProbeID();
-
-    probe.setProbeId(probeID);
-  }
+  // public void recreateProbeID() {
+  // String probeID = createProbeID();
+  //
+  // probe.setProbeId(probeID);
+  // }
 
 }

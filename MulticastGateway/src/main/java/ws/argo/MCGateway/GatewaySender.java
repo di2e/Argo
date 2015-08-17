@@ -22,7 +22,7 @@ import org.apache.commons.cli.ParseException;
 
 /**
  * The GatewaySender utility is responsible for listening on a multicast address on a host and
- * then sending it via unicast to a paired reciever on some other routable network.  
+ * then sending it via unicast to a paired receiver on some other routable network.  
  * 
  * <p>
  * The idea is that Argo multicast packets cannot be routed to the target network naturally and need to be

@@ -47,13 +47,16 @@ import org.apache.http.impl.client.HttpClients;
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeGenerator;
 import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeGeneratorFactory;
 import ws.argo.probe.UnsupportedPayloadType;
 
-/*
+/**
+ * The BrowserController implements all the functions that I couldn't do in
+ * javascript. It implements them as REST API calls.
+ * 
  * @author Jeff Simpson
  * @since v0.0.1
  */
-
 @Path("controller")
 public class BrowserController {
 
@@ -79,6 +82,12 @@ public class BrowserController {
     return "this is a test service for the controller.  yea.";
   }
 
+  /**
+   * Return the ip info of where the web host lives that supports the browser app.
+   * 
+   * @return the ip addr info
+   * @throws UnknownHostException if something goes wrong
+   */
   @GET
   @Path("/ipAddrInfo")
   public String getIPAddrInfo() throws UnknownHostException {
@@ -115,6 +124,14 @@ public class BrowserController {
     return buf.toString();
   }
 
+  /**
+   * Actually launch a probe.
+   * 
+   * @return some confirmation string back to the client
+   * @throws IOException if there is some transport issues
+   * @throws UnsupportedPayloadType shouldn't happen as we always ask for JSON here
+   * @throws ProbeGeneratorException if something else goes wrong
+   */
   @GET
   @Path("/launchProbe")
   @Produces("application/txt")
@@ -131,7 +148,7 @@ public class BrowserController {
 
     Integer multicastPort = Integer.parseInt(multicastPortString);
 
-    ProbeGenerator gen = new ProbeGenerator(multicastGroupAddr, multicastPort);
+    ProbeGenerator gen = ProbeGeneratorFactory.createMulticastProbeGenerator(multicastGroupAddr, multicastPort);
 
     // loop over the "respond to addresses" specified in the properties file.
     // TODO: Clean out the commented out code.
@@ -164,12 +181,12 @@ public class BrowserController {
    * Returns a list of the responses collected in the listener.
    * 
    * @return list of the responses collected in the listener
-   * @throws UnknownHostException if the ProbeGenerator props throws it 
+   * @throws UnknownHostException if the ProbeGenerator props throws it
    */
   @GET
   @Path("/responses")
   @Produces("application/json")
-  public String getResponses() throws UnknownHostException  {
+  public String getResponses() throws UnknownHostException {
     Properties clientProps = getPropeGeneratorProps();
 
     String listenerIPAddress = clientProps.getProperty("listenerIPAddress");

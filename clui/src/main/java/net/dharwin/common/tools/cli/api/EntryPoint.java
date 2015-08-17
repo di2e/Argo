@@ -34,13 +34,15 @@ public class EntryPoint {
     CommandLineApplication<? extends CLIContext> cla = null;
     try {
       cla = instantiateClient(cliEntryClassName);
+      cla.initialize(args);
     } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException | CLIInitException e1) {
       Console.severe("Unable to instantiate ["+cliEntryClassName+"]. "+e1.getLocalizedMessage());
       e1.printStackTrace();
       System.exit(1);
     }
+    
 
-    cla.start(args);
+    cla.start();
   }
 
   @SuppressWarnings("unchecked")

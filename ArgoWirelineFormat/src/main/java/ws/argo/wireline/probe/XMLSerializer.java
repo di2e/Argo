@@ -58,14 +58,28 @@ public class XMLSerializer {
   }
 
   /**
-   * Translate the ProbeWrapper object into the wireline string. See
+   * Translate the ProbeWrapper object into the wireline XML document. See
    * {@link ProbeWrapper}.
    * 
    * @param probe the instance of the ProbeWrapper
-   * @return the wireline string
+   * @return the wireline XML document string
    */
   public String marshal(ProbeWrapper probe) {
-
+    return primitiveMarshal(probe, false);
+  }
+  
+  /**
+   * Translate the ProbeWrapper object into the wireline XML fragment. See
+   * {@link ProbeWrapper}.
+   * 
+   * @param probe the instance of the ProbeWrapper
+   * @return the wireline XML fragment string
+   */
+  public String marshalFragment(ProbeWrapper probe) {
+    return primitiveMarshal(probe, true);
+  }
+  
+  private String primitiveMarshal(ProbeWrapper probe, boolean fragment) {
     Probe xmlProbe = this.composeProbeFromProbeWrapper(probe);
 
     StringWriter sw = new StringWriter();
@@ -75,7 +89,8 @@ public class XMLSerializer {
 
       // output pretty printed
       jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
+      jaxbMarshaller.setProperty(Marshaller.JAXB_FRAGMENT, fragment);
+      
       jaxbMarshaller.marshal(xmlProbe, sw);
     } catch (PropertyException e) {
       // TODO Auto-generated catch block
@@ -86,7 +101,6 @@ public class XMLSerializer {
     }
 
     return sw.toString();
-
   }
 
   private Probe composeProbeFromProbeWrapper(ProbeWrapper probe) {

@@ -82,6 +82,25 @@
         <version>1.5.3</version>
         <executions>
           <execution>
+            <id>process-version-config</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <filesToInclude>${basedir}/src/main/resources/*</filesToInclude>
+              <inputFilePattern>(.*).template</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@ARGO_VERSION@</token>
+                  <value>${project.version}</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+
+          <execution>
             <id>process-test-config</id>
             <phase>process-resources</phase>
             <goals>

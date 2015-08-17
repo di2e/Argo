@@ -18,15 +18,22 @@ import org.junit.Test;
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeGenerator;
 import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeGeneratorFactory;
 import ws.argo.probe.UnsupportedPayloadType;
 import ws.argo.wireline.probe.ProbeWrapper;
 
+/**
+ * Test the ProbeGenerator.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ProbeGeneratorTest {
 
-  static ProbeGenerator gen                 = null;
+  static ProbeGenerator mcGen = null;
 
-  static String  targetXML           = "";
-  static String  targetNakedProbeXML = "";
+  static String targetXML           = "";
+  static String targetNakedProbeXML = "";
 
   /**
    * Start up a ProbeGenerator for the harness and read in the XML files used in
@@ -36,7 +43,7 @@ public class ProbeGeneratorTest {
    */
   @BeforeClass
   public static void setupProbeGenerator() throws ProbeGeneratorException, IOException {
-    gen = new ProbeGenerator("230.0.0.1", 4003);
+    mcGen = ProbeGeneratorFactory.createMulticastProbeGenerator();
 
     readTargetXMLFiles();
   }
@@ -59,11 +66,6 @@ public class ProbeGeneratorTest {
     try (InputStream is = ProbeGeneratorTest.class.getResourceAsStream("/targetNakedProbeXML.xml")) {
       targetNakedProbeXML = IOUtils.toString(is, "UTF-8");
     }
-  }
-
-  @Test(expected = UnsupportedPayloadType.class)
-  public void testBadPayloadTypesWithNull() throws UnsupportedPayloadType {
-    new Probe(null);
   }
 
   @Test(expected = UnsupportedPayloadType.class)
@@ -157,7 +159,7 @@ public class ProbeGeneratorTest {
     probe.addRespondToURL("internal", "http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");
     // No specified service contract IDs implies "all"
 
-    gen.sendProbe(probe);
+    mcGen.sendProbe(probe);
   }
 
   @Test
@@ -173,12 +175,12 @@ public class ProbeGeneratorTest {
     probe.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
     probe.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
 
-    gen.sendProbe(probe);
+    mcGen.sendProbe(probe);
   }
 
   @AfterClass
-  public static void closeProbeGenerator() {
-    gen.close();
+  public static void closeProbeGenerator() throws ProbeGeneratorException {
+    mcGen.close();
   }
 
 }

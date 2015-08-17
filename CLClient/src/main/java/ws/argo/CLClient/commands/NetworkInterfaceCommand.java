@@ -7,7 +7,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,13 +18,19 @@ import com.beust.jcommander.Parameters;
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.Command;
 import net.dharwin.common.tools.cli.api.CommandResult;
+import net.dharwin.common.tools.cli.api.CompoundCommand;
 import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
 import ws.argo.probe.ProbeGenerator;
 
+/**
+ * 
+ * @author jmsimpson
+ *
+ */
 @CLICommand(name = "ni", description = "control the network intefaces used to send probes.")
-public class NetworkIntefaceCommand extends Command<ArgoClientContext> {
+public class NetworkInterfaceCommand extends CompoundCommand<ArgoClientContext> {
 
   @Parameter
   List<String> params = new ArrayList<String>();
@@ -83,7 +88,7 @@ public class NetworkIntefaceCommand extends Command<ArgoClientContext> {
 
     @Parameter
     public List<String> _niNames = new ArrayList<>();
-
+    
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
       if (!_niNames.isEmpty()) {
@@ -147,78 +152,5 @@ public class NetworkIntefaceCommand extends Command<ArgoClientContext> {
     }
   }
 
-  @Override
-  protected CommandResult innerExecute(ArgoClientContext context) {
-    JCommander jc = new JCommander();
-
-    HashMap<String, Command<ArgoClientContext>> commandInstances = getCommands();
-    for (Command<ArgoClientContext> commandInstance : commandInstances.values()) {
-      jc.addCommand(commandInstance);
-    }
-
-    jc.parse(params.toArray(new String[params.size()]));
-
-    String parsedCommand = jc.getParsedCommand();
-
-    Command<ArgoClientContext> command = commandInstances.get(parsedCommand);
-
-    if (command != null) {
-      command.execute(context);
-    } else {
-      Console.info("Unknown ni command: " + jc.getParsedCommand());
-    }
-
-    return CommandResult.OK;
-  }
-
-  @SuppressWarnings("unchecked")
-  private HashMap<String, Command<ArgoClientContext>> getCommands() {
-    HashMap<String, Command<ArgoClientContext>> commands = new HashMap<String, Command<ArgoClientContext>>();
-
-    Class<? extends Command<? extends CLIContext>>[] commandClasses = (Class<? extends Command<? extends CLIContext>>[]) this.getClass().getDeclaredClasses();
-
-    for (Class<? extends Command<? extends CLIContext>> commandClass : commandClasses) {
-
-      try {
-
-        Constructor<? extends Command<? extends CLIContext>> commandConst = commandClass.getDeclaredConstructor(new Class[] { this.getClass() });
-
-        Command<? extends CLIContext> command = commandConst.newInstance(new Object[] { this });
-
-        String commandName = command.getClass().getAnnotation(Parameters.class).commandNames()[0];
-
-        commands.put(commandName, (Command<ArgoClientContext>) command);
-
-      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-        Console.error("Error instantiating compond command class [" + commandClass.getName() + "]");
-        Console.error(e.getLocalizedMessage());
-      }
-
-    }
-
-    return commands;
-  }
-
-  /**
-   * Print the usage for the command. By default, this prints the description
-   * and available parameters.
-   */
-  public void usage() {
-    CLICommand commandAnnotation = this.getClass().getAnnotation(CLICommand.class);
-    Console.info("Help for [" + commandAnnotation.name() + "].");
-    String description = commandAnnotation.description();
-    if (description != null && !description.isEmpty()) {
-      Console.info("Description: " + description);
-    }
-    JCommander comm = new JCommander(this);
-    comm.setProgramName(commandAnnotation.name());
-
-    HashMap<String, Command<ArgoClientContext>> commandInstances = getCommands();
-    for (Command<ArgoClientContext> commandInstance : commandInstances.values()) {
-      comm.addCommand(commandInstance);
-    }
-
-    comm.usage();
-  }
 
 }
