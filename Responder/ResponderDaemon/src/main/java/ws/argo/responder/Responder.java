@@ -250,7 +250,7 @@ public class Responder {
     // infinite loop until the responder is terminated
     while (shouldRun) {
 
-      byte[] buf = new byte[1024];
+      byte[] buf = new byte[1024]; //TODO parameterize the buffer size
       packet = new DatagramPacket(buf, buf.length);
       LOGGER.fine("Waiting to recieve packet...");
       try {

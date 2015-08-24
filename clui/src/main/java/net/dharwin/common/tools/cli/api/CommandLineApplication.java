@@ -54,7 +54,6 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	
 	/**
 	 * Initialize the application. This loads the known commands.
-	 * @throws CLIInitException Thrown when commands fail to properly load.
 	 */
 	public CommandLineApplication() {
 	  // empty constructor
@@ -67,7 +66,6 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	/**
 	 * Start the application. This will continuously loop until
 	 * the user exits the application.
-	 * @param args the java command line arguments
 	 */
 	public void start() {
 		setDefaultLogLevel();
@@ -184,7 +182,7 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	
 	/**
 	 * Find and create the command instance.
-	 * @param commandName The command name.
+	 * @param args the actual residual command line.
 	 * @return The command, or null if the command name is not recognized.
 	 * @throws CommandInitException Thrown when the command is recognized but failed to load.
 	 */
