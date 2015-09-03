@@ -24,12 +24,13 @@ import java.util.logging.Logger;
 import javax.ws.rs.core.UriBuilder;
 
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 
 import ws.argo.responder.Responder;
 
-import com.sun.jersey.api.container.grizzly2.GrizzlyServerFactory;
-import com.sun.jersey.api.core.PackagesResourceConfig;
-import com.sun.jersey.api.core.ResourceConfig;
+import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
 
 /**
  * The ResponseListener is a client used in testing the Responder.
@@ -68,10 +69,17 @@ public class ResponseListener {
    * @throws IOException if something goes wrong creating the http server
    */
   public static HttpServer startServer() throws IOException {
-    ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.responder.test.listener");
+    ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.responder.test.listener");
 
-    System.out.println("Starting grizzly2...");
-    HttpServer httpServer = GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
+    LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
+    HttpServer httpServer =  GrizzlyHttpServerFactory.createHttpServer(BASE_URI, resourceConfig);
+    LOGGER.info("Started Jersey-Grizzly2 JAX-RS listener.");
+
+    
+//    ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.responder.test.listener");
+//
+//    System.out.println("Starting grizzly2...");
+//    HttpServer httpServer = GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
 
     return httpServer;
   }

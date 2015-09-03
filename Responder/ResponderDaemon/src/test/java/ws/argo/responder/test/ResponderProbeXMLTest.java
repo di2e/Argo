@@ -47,10 +47,10 @@ public class ResponderProbeXMLTest extends ResponderProbeTest {
     
     System.out.println("Getting testNakedProbeXML cached responses from listener");
 
-    String responseMsg = target.path("listener/responses").get(String.class);
+    String responseMsg = target.path("listener/responses").request().get(String.class);
     assertEquals(nakedProbeXMLResponseFromListener.length(), responseMsg.length());
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
 

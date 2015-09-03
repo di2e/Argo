@@ -12,6 +12,7 @@ import net.dharwin.common.tools.cli.api.CompoundCommand;
 import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
+import ws.argo.CLClient.commands.util.Cache;
 import ws.argo.wireline.response.ResponseParseException;
 
 /**

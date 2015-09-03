@@ -1,4 +1,4 @@
-package ws.argo.CLClient.commands;
+package ws.argo.CLClient.commands.util;
 
 import java.util.ArrayList;
 import java.util.List;

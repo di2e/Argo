@@ -20,16 +20,21 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,10 +48,12 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.joda.time.Instant;
 
-import ws.argo.wireline.probe.ProbeParseException;
+import ws.argo.responder.transport.ProbeProcessor;
+import ws.argo.responder.transport.Transport;
+import ws.argo.responder.transport.TransportConfigException;
 import ws.argo.wireline.probe.ProbeWrapper;
-import ws.argo.wireline.probe.XMLSerializer;
 
 /**
  * This is the main class for the Responder system. It will start up the
@@ -57,13 +64,15 @@ import ws.argo.wireline.probe.XMLSerializer;
  * @author jmsimpson
  *
  */
-public class Responder {
+public class Responder implements ProbeProcessor {
 
   private static final String VERSION_PROPERTIES = "/version.properties";
 
   private static final Logger LOGGER = Logger.getLogger(Responder.class.getName());
 
   private static String ARGO_VERSION = "UNKNOWN";
+
+  private ArrayList<Transport> transports = new ArrayList<Transport>();
 
   private ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
 
@@ -91,6 +100,11 @@ public class Responder {
   // This id is for internal reporting and logging reasons
   private String runtimeId;
 
+  ThreadPoolExecutor     executorPool;
+  ResponderMonitorThread monitor;
+
+  ConcurrentLinkedQueue<Instant> messages = new ConcurrentLinkedQueue<Instant>();
+
   /**
    * Utility class to encaptulate some of the Responder configuration.
    * 
@@ -99,21 +113,26 @@ public class Responder {
    */
   private static class ResponderConfigurationBean {
 
-    public int                         multicastPort     = 4003;
-    public String                      multicastAddress  = "230.0.0.1";
-    public boolean                     noBrowser         = false;
-    public ArrayList<AppHandlerConfig> appHandlerConfigs = new ArrayList<AppHandlerConfig>();
-    public String                      networkInterface;
+    public int                     multicastPort     = 4003;
+    public String                  multicastAddress  = "230.0.0.1";
+    public boolean                 noBrowser         = false;
+    public ArrayList<PluginConfig> appHandlerConfigs = new ArrayList<PluginConfig>();
+    public ArrayList<PluginConfig> transportConfigs  = new ArrayList<PluginConfig>();
+    public String                  networkInterface;
+    public boolean                 runMonitor;
+    public int                     monitorInterval;
+    public int                     threadPoolSize;
 
   }
 
   /**
-   * Utility class to encaptulate some of the Responder configuration.
+   * Utility class to encapsulate the configuration of the plugin information.
+   * The plugins include the app handler and the transports.
    * 
    * @author jmsimpson
    *
    */
-  private static class AppHandlerConfig {
+  private static class PluginConfig {
     public String classname;
     public String configFilename;
   }
@@ -152,6 +171,26 @@ public class Responder {
     httpClient = HttpClients.createDefault();
     UUID uuid = UUID.randomUUID();
     runtimeId = uuid.toString();
+
+    intializeThreadPool();
+  }
+
+  private void intializeThreadPool() {
+    // RejectedExecutionHandler implementation
+    RejectedExecutionHandler rejectionHandler = new RejectedExecutionHandlerImpl();
+    // Get the ThreadFactory implementation to use
+    ThreadFactory threadFactory = Executors.defaultThreadFactory();
+    // creating the ThreadPoolExecutor
+
+    executorPool = new ThreadPoolExecutor(cliValues.threadPoolSize, cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS,
+        new ArrayBlockingQueue<Runnable>(cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
+
+    // start the monitoring thread
+    if (cliValues.runMonitor)
+      monitor = new ResponderMonitorThread(this, executorPool, cliValues.monitorInterval);
+    Thread monitorThread = new Thread(monitor);
+    monitorThread.start();
+
   }
 
   public ArrayList<ProbeHandlerPluginIntf> getHandlers() {
@@ -169,7 +208,7 @@ public class Responder {
    * @throws ResponderConfigException if there is some issues with the config
    *           file
    */
-  public void addHandler(String classname, String configFilename) throws ResponderConfigException {
+  private void addHandler(String classname, String configFilename) throws ResponderConfigException {
 
     ClassLoader cl = ClassLoader.getSystemClassLoader();
     Class<?> handlerClass;
@@ -194,6 +233,41 @@ public class Responder {
     handler.initializeWithPropertiesFilename(configFilename);
 
     handlers.add(handler);
+  }
+  
+  /**
+   * Add a new handler given the classname and config filename. It instantiates
+   * the class and then calls its initialization method to get the handler ready
+   * to process inbound probes.
+   * 
+   * @param classname is the FQCN of the handler class
+   * @param configFilename is the full path name of the config file name
+   *          specific for the handler (could be any crazy format)
+   * @throws ResponderConfigException if there is some issues with the config
+   *           file
+   * @throws TransportConfigException if the transport configuration failed
+   */
+  private void addTransport(String classname, String configFilename) throws ResponderConfigException, TransportConfigException {
+
+    ClassLoader cl = ClassLoader.getSystemClassLoader();
+    Class<?> transportClass;
+    try {
+      transportClass = cl.loadClass(classname);
+    } catch (ClassNotFoundException e1) {
+      throw new ResponderConfigException("Error loading the transport class", e1);
+    }
+    Transport transport;
+
+    try {
+      transport = (Transport) transportClass.newInstance();
+    } catch (InstantiationException | IllegalAccessException e) {
+      LOGGER.warning("Could not create an instance of the configured transport class - " + classname);
+      throw new ResponderConfigException("Error instantiating the transport class " + classname, e);
+    }
+
+    transport.initialize(this, configFilename);
+
+    transports.add(transport);
   }
 
   /**
@@ -244,13 +318,23 @@ public class Responder {
    */
   public void run() throws ResponderOperationException {
 
-    DatagramPacket packet;
+    Thread transportThread;
+    for (Transport t : transports) {
+      
+      transportThread = new Thread(t);
+      transportThread.setName(t.transportName());
+      transportThread.start();
+            
+    }
+    
+    
+/*    DatagramPacket packet;
 
     LOGGER.fine("Starting Responder loop - infinite until process terminated");
     // infinite loop until the responder is terminated
     while (shouldRun) {
 
-      byte[] buf = new byte[1024]; //TODO parameterize the buffer size
+      byte[] buf = new byte[2 * 1024]; // TODO parameterize the buffer size
       packet = new DatagramPacket(buf, buf.length);
       LOGGER.fine("Waiting to recieve packet...");
       try {
@@ -269,7 +353,11 @@ public class Responder {
           ProbeWrapper probe = serializer.unmarshal(probeStr);
 
           // reuses the handlers and the httpClient. Both should be threadSafe
-          new ProbeHandlerThread(handlers, probe, httpClient, cliValues.noBrowser).start();
+          executorPool.execute(new ProbeHandlerThread(this, probe, cliValues.noBrowser));
+
+          // Thread t = new Thread(new ProbeHandlerThread(this, probe,
+          // cliValues.noBrowser));
+          // t.start();
         } catch (ProbeParseException e) {
           LOGGER.log(Level.SEVERE, "Error parsing inbound probe payload.", e);
         }
@@ -283,13 +371,65 @@ public class Responder {
 
     }
 
-    LOGGER.info("Stopping responder through trigger [" + runtimeId + "]");
+    LOGGER.info("Stopping responder through trigger [" + runtimeId + "]");*/
 
   }
 
-  private void loadHandlerPlugins(ArrayList<AppHandlerConfig> configs) throws ResponderConfigException {
+  @Override
+  /**
+   * This is where the rubber meets the road. The transport module has
+   */
+  public void processProbe(ProbeWrapper probe) {
+    executorPool.execute(new ProbeHandlerThread(this, probe, cliValues.noBrowser));
+  }
 
-    for (AppHandlerConfig appConfig : configs) {
+  /**
+   * Calculates the number of probes per second over the last 1000 probes.
+   * 
+   * @return probes per second
+   */
+  public synchronized float probesPerSecond() {
+    Instant[] m = messages.toArray(new Instant[messages.size()]);
+
+    if (m.length == 0)
+      return 0;
+
+    int offset = 1;
+    Instant oldest = m[0];
+    Instant newest = m[m.length - offset];
+
+    while (newest == null) {
+      offset++;
+      newest = m[m.length - offset];
+    }
+
+    float seconds = (float) ((newest.getMillis() - oldest.getMillis()) / 1000.0);
+    // System.out.println(oldest + ":" + newest + " - " + m.length + " - " +
+    // seconds);
+    float mps = m.length / seconds;
+
+    return mps;
+
+  }
+
+  public int probesProcessed() {
+    return messages.size();
+  }
+
+  /**
+   * Tells the Responder that a message was responded to.
+   */
+  public void probeProcessed() {
+    messages.add(new Instant());
+
+    long size = messages.size();
+    if (size > 1000)
+      messages.poll();
+  }
+
+  private void loadHandlerPlugins(ArrayList<PluginConfig> configs) throws ResponderConfigException {
+
+    for (PluginConfig appConfig : configs) {
 
       try {
         addHandler(appConfig.classname, appConfig.configFilename);
@@ -301,6 +441,25 @@ public class Responder {
     // make sure we have at least 1 active handler. If not, then fail the
     // responder process
     if (getHandlers().isEmpty()) {
+      throw new ResponderConfigException("No responders created successfully on initialization.");
+    }
+
+  }
+  
+  private void loadTransportPlugins(ArrayList<PluginConfig> configs) throws ResponderConfigException {
+
+    for (PluginConfig appConfig : configs) {
+
+      try {
+        addTransport(appConfig.classname, appConfig.configFilename);
+      } catch (ResponderConfigException | TransportConfigException e) {
+        LOGGER.log(Level.SEVERE, "Error loading handler for [" + appConfig.classname + "]. Skipping handler", e);
+      }
+    }
+
+    // make sure we have at least 1 active handler. If not, then fail the
+    // responder process
+    if (transports.isEmpty()) {
       throw new ResponderConfigException("No responders created successfully on initialization.");
     }
 
@@ -428,8 +587,10 @@ public class Responder {
     Responder responder = new Responder(cliValues);
 
     // load up the handler classes specified in the configuration parameters
-    // I hope the hander classes are in a jar file on the classpath
     responder.loadHandlerPlugins(cliValues.appHandlerConfigs);
+
+    // load up the transport classes specified in the configuration parameters
+    responder.loadTransportPlugins(cliValues.transportConfigs);
 
     LOGGER.info("Responder registering shutdown hook.");
     ResponderShutdown hook = new ResponderShutdown(responder);
@@ -440,7 +601,8 @@ public class Responder {
       return null;
     }
 
-    // This needs to be sent to stdout as there is no way to force the logging of this via the LOGGER
+    // This needs to be sent to stdout as there is no way to force the logging
+    // of this via the LOGGER
     System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started on " + cliValues.multicastAddress + ":" + cliValues.multicastPort + " [" + responder.runtimeId + "]");
 
     return responder;
@@ -583,6 +745,24 @@ public class Responder {
 
     config.multicastAddress = prop.getProperty("multicastAddress", "230.0.0.1");
 
+    config.runMonitor = Boolean.parseBoolean(prop.getProperty("runMonitor", "false"));
+
+    try {
+      int monitorInterval = Integer.parseInt(prop.getProperty("monitorInterval", "5"));
+      config.monitorInterval = monitorInterval;
+    } catch (NumberFormatException e) {
+      LOGGER.warning("Error reading monitorInterval number from properties file.  Using default port of 5.");
+      config.monitorInterval = 5;
+    }
+
+    try {
+      int threadSize = Integer.parseInt(prop.getProperty("threadPoolSize", "10"));
+      config.threadPoolSize = threadSize;
+    } catch (NumberFormatException e) {
+      LOGGER.warning("Error reading threadPoolSize number from properties file.  Using default threadPoolSize of 10.");
+      config.threadPoolSize = 10;
+    }
+
     // handle the list of appHandler information
 
     boolean continueProcessing = true;
@@ -595,10 +775,33 @@ public class Responder {
       configFilename = prop.getProperty("probeHandlerConfigFilename." + number, null);
 
       if (configFilename != null) {
-        AppHandlerConfig handlerConfig = new AppHandlerConfig();
+        PluginConfig handlerConfig = new PluginConfig();
         handlerConfig.classname = appHandlerClassname;
         handlerConfig.configFilename = configFilename;
         config.appHandlerConfigs.add(handlerConfig);
+      } else {
+        continueProcessing = false;
+      }
+      number++;
+
+    }
+
+    // handle the list of transport information
+
+    continueProcessing = true;
+    number = 1;
+    while (continueProcessing) {
+      String transportClassname;
+      String configFilename;
+
+      transportClassname = prop.getProperty("transportClassname." + number, "ws.argo.responder.transport.MulticastTransport");
+      configFilename = prop.getProperty("transportConfigFilename." + number, null);
+
+      if (configFilename != null) {
+        PluginConfig handlerConfig = new PluginConfig();
+        handlerConfig.classname = transportClassname;
+        handlerConfig.configFilename = configFilename;
+        config.transportConfigs.add(handlerConfig);
       } else {
         continueProcessing = false;
       }

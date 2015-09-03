@@ -14,10 +14,9 @@
 #  limitations under the License.
 # 
 
-multicastPort=4003
-multicastAddress=230.0.0.1
+
 probeHandlerClassname.1=ws.argo.responder.plugin.configfile.ConfigFileProbeHandlerPluginImpl
-probeHandlerConfigFilename.1=@INSTALL_DIR@/config/configFileProbeHandlerConfig.prop
+probeHandlerConfigFilename.1=@INSTALL_DIR@/responder/config/configFileProbeHandlerConfig.prop
 #
 # Uncomment to enable Argo to discovery mDNS services as well
 # You only really need on one mDNS enables Responder for a local network
@@ -28,3 +27,8 @@ probeHandlerConfigFilename.1=@INSTALL_DIR@/config/configFileProbeHandlerConfig.p
 #
 #probeHandlerClassname.2=ws.argo.responder.plugin.jmdns.MulticastDNSProbeHandlerPluginImpl
 #probeHandlerConfigFilename.2=
+
+# Transports
+
+transportClassname.1=ws.argo.responder.transport.MulticastTransport
+transportConfigFilename.1=@INSTALL_DIR@/responder/config/multicastTransport.prop

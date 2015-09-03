@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 
+import javax.ws.rs.client.WebTarget;
+
 import org.junit.Test;
 
 import ws.argo.probe.Probe;
@@ -34,7 +36,8 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
 
     assertEquals(targetContractId, contractID);
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    WebTarget cacheTarget = target.path("listener/clearCache");
+    String cacheClearedMsg = cacheTarget.request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
   
@@ -51,7 +54,8 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
 
     assertEquals(targetContractId, contractID);
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    WebTarget cacheTarget = target.path("listener/clearCache");
+    String cacheClearedMsg = cacheTarget.request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
 
@@ -71,7 +75,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
 
     assertEquals(targetContractId, contractID);
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
   
@@ -90,7 +94,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
 
     assertEquals(targetContractId, contractID);
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
 
@@ -101,7 +105,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
 
     assertEquals(0, serviceArray.size());
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
   
@@ -118,7 +122,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
 
     assertEquals(targetServiceInstanceId, serviceInstanceID);
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
   
@@ -135,7 +139,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
 
     assertEquals(targetServiceInstanceId, serviceInstanceID);
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
   
@@ -152,7 +156,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
 
     assertEquals(targetServiceInstanceId, serviceInstanceID);
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
   
@@ -169,7 +173,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
 
     assertEquals(targetServiceInstanceId, serviceInstanceID);
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
 
@@ -200,7 +204,7 @@ public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderPro
     Thread.sleep(500); // let the responder process the message and post back
     // to the listener
 
-    String responseMsg = target.path("listener/responses").get(String.class);
+    String responseMsg = target.path("listener/responses").request().get(String.class);
 
     JsonReader reader = new JsonReader(new StringReader(responseMsg));
 

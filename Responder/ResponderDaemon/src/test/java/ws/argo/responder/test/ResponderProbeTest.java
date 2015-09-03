@@ -2,6 +2,10 @@ package ws.argo.responder.test;
 
 import java.io.IOException;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -14,14 +18,12 @@ import ws.argo.responder.ResponderConfigException;
 import ws.argo.responder.ResponderOperationException;
 import ws.argo.responder.test.listener.ResponseListener;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
 
 public abstract class ResponderProbeTest {
 
   static Responder          responder;
   private static HttpServer server;
-  static WebResource        target;
+  static WebTarget        target;
   private static Thread     responderThread;
   static ProbeGenerator     gen = null;
 
@@ -36,7 +38,8 @@ public abstract class ResponderProbeTest {
 
   private static void startListener() throws IOException {
     server = ResponseListener.startServer();
-    target = Client.create().resource(ResponseListener.BASE_URI);
+    Client client = ClientBuilder.newClient();
+    target = client.target(ResponseListener.BASE_URI);
   }
 
   private static void startResponder() throws ResponderConfigException {
@@ -97,7 +100,7 @@ public abstract class ResponderProbeTest {
 
     responder.stopResponder();
     gen.close();
-    server.stop();
+    server.shutdownNow();
   }
 
 }

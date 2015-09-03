@@ -16,9 +16,14 @@
 
 package ws.argo.probe;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
+import ws.argo.probe.Probe.ProbeIdEntry;
 import ws.argo.probe.transport.Transport;
 
 /**
@@ -62,7 +67,12 @@ public class ProbeGenerator {
    */
   public List<Probe> sendProbe(Probe probe) throws ProbeGeneratorException {
 
-    List<Probe> actualProbesToSend = splitProbe(probe);
+    List<Probe> actualProbesToSend;
+    try {
+      actualProbesToSend = splitProbe(probe);
+    } catch (MalformedURLException | JAXBException | UnsupportedPayloadType e) {
+      throw new ProbeGeneratorException("Issue splitting the probe.", e);
+    }
 
     for (Probe probeSegment : actualProbesToSend) {
       probeTransport.sendProbe(probeSegment);
@@ -91,27 +101,73 @@ public class ProbeGenerator {
    * @param probe the offered probe instance
    * @return the list of probes the original one was split into (might be the
    *         same as the original probe)
+   * @throws JAXBException if there was some issue creating the xml
+   * @throws UnsupportedPayloadType this should never happen in this method
+   * @throws MalformedURLException this should never happen in this method
    */
-  private List<Probe> splitProbe(Probe probe) {
-    // TODO Auto-generated method stub
-    List<Probe> actualProbeList = new ArrayList<Probe>();
-//    int maxPayloadSize = this.probeTransport.maxPayloadSize();
+  private List<Probe> splitProbe(Probe probe) throws ProbeGeneratorException, JAXBException, MalformedURLException, UnsupportedPayloadType {
     
+    List<Probe> actualProbeList = new ArrayList<Probe>();
+    int maxPayloadSize = this.probeTransport.maxPayloadSize();
+
+    LinkedList<ProbeIdEntry> combinedList = probe.getCombinedIdentifierList();
+
     // use a strategy to split up the probe into biggest possible chunks
-    // all respondTo address must be included - if that's a problem then throw an exception - the user will need to do some thinking.
-    // start by taking one siid or scid off put it into a temp probe, check the payload size of the probe and repeat until target probe is right size.
-    // put the target probe in the list, make the temp probe the target probe and start the process again.
+    // all respondTo address must be included - if that's a problem then throw
+    // an exception - the user will need to do some thinking.
+    // start by taking one siid or scid off put it into a temp probe, check the
+    // payload size of the probe and repeat until target probe is right size.
+    // put the target probe in the list, make the temp probe the target probe
+    // and start the process again.
     // Not sure how to do this with wireline compression involved.
 
-    // TODO: Actually split the probe in to smaller chuck is necessary
 
-    actualProbeList.add(probe);
+    if (probe.asXML().length() < maxPayloadSize) {
+      actualProbeList.add(probe);
+    } else {
+      Probe frame = Probe.frameProbeFrom(probe);
+
+      Probe splitProbe = new Probe(frame);
+
+      int payloadLength = splitProbe.asXML().length();
+      ProbeIdEntry nextId = combinedList.peek();
+
+      if (payloadLength + nextId.getId().length() + 40 >= maxPayloadSize) {
+        throw new ProbeGeneratorException("Basic frame violates maxPayloadSize of transport.  Likely due to too many respondTo address.");
+      }
+
+      while (!combinedList.isEmpty()) {
+
+        payloadLength = splitProbe.asXML().length();
+        nextId = combinedList.peek();
+
+        if (payloadLength + nextId.getId().length() + 40 >= maxPayloadSize) {
+          actualProbeList.add(splitProbe);
+          splitProbe = new Probe(frame);
+        }
+
+        ProbeIdEntry id = combinedList.pop();
+        switch (id.getType()) {
+          case "scid":
+            splitProbe.addServiceContractID(id.getId());
+            break;
+          case "siid":
+            splitProbe.addServiceInstanceID(id.getId());
+            break;
+          default:
+            break;
+        }
+
+      }
+      actualProbeList.add(splitProbe);
+    }
 
     return actualProbeList;
   }
 
   /**
    * Return the description of the ProbeGenerator.
+   * 
    * @return description
    */
   public String getDescription() {

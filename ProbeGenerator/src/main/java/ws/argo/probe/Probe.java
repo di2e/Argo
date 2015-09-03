@@ -17,6 +17,7 @@
 package ws.argo.probe;
 
 import java.net.MalformedURLException;
+import java.util.LinkedList;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
@@ -44,7 +45,38 @@ public class Probe {
   // the default TTL for a probe is the max TTL of 255 - or the entire network
   int ttl = 255;
 
-  private ProbeWrapper probe;
+  private ProbeWrapper _probe;
+
+  /**
+   * Create a new probe from the argument that includes all the frame stuff
+   * (payload type, respondTo addr, etc) but don't include any of the contract
+   * or service ids. This method is a helper method for splitting over sized
+   * probes into smaller probes so that the packets are not too big for the
+   * network.
+   * 
+   * @param p the source probe
+   * @return the probe frame
+   */
+  public static Probe frameProbeFrom(Probe p) throws ProbeGeneratorException {
+    Probe fp = null;
+    try {
+      fp = new Probe(p.getProbeWrapper().getRespondToPayloadType());
+    } catch (UnsupportedPayloadType e1) {
+      throw new ProbeGeneratorException("Error in creating frame probe.", e1);
+    }
+
+    fp.setHopLimit(p.getHopLimit());
+    fp.setClientID(p.getClientID());
+    for (RespondToURL respondTo : p.getProbeWrapper().getRespondToURLs()) {
+      try {
+        fp.addRespondToURL(respondTo.getLabel(), respondTo.getUrl());
+      } catch (MalformedURLException e) {
+        throw new ProbeGeneratorException("Error in creating frame probe.", e);
+      }
+    }
+    return fp;
+
+  }
 
   /**
    * Create a new client-generated probe for sending out on the network.
@@ -57,9 +89,9 @@ public class Probe {
 
     String probeID = createProbeID();
 
-    probe = new ProbeWrapper(probeID);
+    _probe = new ProbeWrapper(probeID);
 
-    probe.setDESVersion(ProbeWrapper.PROBE_DES_VERSION);
+    _probe.setDESVersion(ProbeWrapper.PROBE_DES_VERSION);
 
     setRespondToPayloadType(respondToPayloadType);
   }
@@ -89,7 +121,7 @@ public class Probe {
   }
 
   protected ProbeWrapper getProbeWrapper() {
-    return probe;
+    return _probe;
   }
 
   private String createProbeID() {
@@ -120,11 +152,11 @@ public class Probe {
    * @return the probe ID
    */
   public String getProbeID() {
-    return probe.getProbeId();
+    return _probe.getProbeId();
   }
 
   public String getClientID() {
-    return probe.getClientId();
+    return _probe.getClientId();
   }
 
   /**
@@ -134,7 +166,7 @@ public class Probe {
    * @param clientID the client identifier
    */
   public void setClientID(String clientID) {
-    probe.setClientId(clientID);
+    _probe.setClientId(clientID);
   }
 
   /**
@@ -151,7 +183,7 @@ public class Probe {
     if (respondToPayloadType == null || respondToPayloadType.isEmpty() || (!respondToPayloadType.equals(ProbeWrapper.JSON) && !respondToPayloadType.equals(ProbeWrapper.XML)))
       throw new UnsupportedPayloadType("Attempting to set payload type to: " + respondToPayloadType + ". Cannot be null or empty and must be " + ProbeWrapper.JSON + " or " + ProbeWrapper.XML);
 
-    probe.setRespondToPayloadType(respondToPayloadType);
+    _probe.setRespondToPayloadType(respondToPayloadType);
   }
 
   /**
@@ -175,7 +207,7 @@ public class Probe {
     if (!urlValidator.isValid(respondToURL))
       throw new MalformedURLException("The probe respondTo URL is invalid: " + respondToURL);
 
-    probe.addRespondToURL(label, respondToURL);
+    _probe.addRespondToURL(label, respondToURL);
 
   }
 
@@ -185,7 +217,7 @@ public class Probe {
    * @param serviceContractID - the ID
    */
   public void addServiceContractID(String serviceContractID) {
-    probe.addServiceContractID(serviceContractID);
+    _probe.addServiceContractID(serviceContractID);
   }
 
   /**
@@ -194,7 +226,7 @@ public class Probe {
    * @param serviceInstanceID - the ID
    */
   public void addServiceInstanceID(String serviceInstanceID) {
-    probe.addServiceInstanceID(serviceInstanceID);
+    _probe.addServiceInstanceID(serviceInstanceID);
   }
 
   /**
@@ -203,13 +235,13 @@ public class Probe {
    * @throws JAXBException if there is some issue building XML
    */
   public String asXML() throws JAXBException {
-    return probe.asXML();
+    return _probe.asXML();
   }
 
   public String asXMLFragment() throws JAXBException {
-    return probe.asXMLFragment();
+    return _probe.asXMLFragment();
   }
-  
+
   /**
    * This will return the single-line textual representation. This was crafted
    * for the command line client. Your mileage may vary.
@@ -217,18 +249,60 @@ public class Probe {
    * @return the single line description
    */
   public String asString() {
-    return probe.asString();
+    return _probe.asString();
   }
 
   /**
-   * This method can recreate the Probe ID. It's used when you are going to
-   * reuse the probe but need a new ID (or else the responders will reject the
-   * probe as it has already processed one with the same id).
+   * Create and return a LinkedList of a combination of both scids and siids.
+   * This is a method that is used primarily in the creation of split packets.
+   * 
+   * @return combined LikedList
    */
-  // public void recreateProbeID() {
-  // String probeID = createProbeID();
-  //
-  // probe.setProbeId(probeID);
-  // }
+  public LinkedList<ProbeIdEntry> getCombinedIdentifierList() {
+    LinkedList<ProbeIdEntry> combinedList = new LinkedList<ProbeIdEntry>();
+
+    for (String id : this.getProbeWrapper().getServiceContractIDs()) {
+      combinedList.add(new ProbeIdEntry("scid", id));
+    }
+    for (String id : this.getProbeWrapper().getServiceInstanceIDs()) {
+      combinedList.add(new ProbeIdEntry("siid", id));
+    }
+    return combinedList;
+  }
+
+  /**
+   * This is a "Pair" class that in context specific in the pairing of the
+   * context (scid | siid) and the actual id. This needs to be done do package
+   * and differentiate IDs that are piled into the same list.
+   * 
+   * @author jmsimpson
+   *
+   */
+  public static class ProbeIdEntry {
+    String type;
+    String id;
+
+    public ProbeIdEntry(String type, String id) {
+      this.type = type;
+      this.id = id;
+    }
+
+    public String getType() {
+      return type;
+    }
+
+    public void setType(String type) {
+      this.type = type;
+    }
+
+    public String getId() {
+      return id;
+    }
+
+    public void setId(String id) {
+      this.id = id;
+    }
+
+  }
 
 }

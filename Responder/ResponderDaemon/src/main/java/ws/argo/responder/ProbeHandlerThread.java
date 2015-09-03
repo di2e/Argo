@@ -48,7 +48,7 @@ import ws.argo.wireline.response.ResponseWrapper;
  * @author jmsimpson
  *
  */
-public class ProbeHandlerThread extends Thread {
+public class ProbeHandlerThread implements Runnable {
 
   private static final Logger LOGGER = Logger.getLogger(ProbeHandlerThread.class.getName());
 
@@ -62,6 +62,7 @@ public class ProbeHandlerThread extends Thread {
   ArrayList<ProbeHandlerPluginIntf> handlers;
   ProbeWrapper                      probe;
   boolean                           noBrowser;
+  Responder                         responder;
 
   /**
    * Create a new ProbeHandler thread that will process a probe in a
@@ -74,10 +75,11 @@ public class ProbeHandlerThread extends Thread {
    * @param noBrowser - a flag that indicated whether a naked probe should be
    *          processed
    */
-  public ProbeHandlerThread(ArrayList<ProbeHandlerPluginIntf> handlers, ProbeWrapper probe, CloseableHttpClient httpClient, boolean noBrowser) {
-    this.handlers = handlers;
+  public ProbeHandlerThread(Responder responder, ProbeWrapper probe, boolean noBrowser) {
+    this.responder = responder;
+    this.handlers = responder.getHandlers();
     this.probe = probe;
-    this.httpClient = httpClient;
+    this.httpClient = responder.httpClient;
     this.noBrowser = noBrowser;
   }
 
@@ -231,6 +233,8 @@ public class ProbeHandlerThread extends Thread {
       }
 
       markProbeAsHandled(probe.getProbeId());
+      
+      responder.probeProcessed();
 
     } else {
       LOGGER.info("Discarding duplicate/handled probe with id: " + probe.getProbeId());
