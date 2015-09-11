@@ -3,6 +3,10 @@ package ws.argo.CLClient.commands;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
@@ -28,7 +32,7 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
     Cache cache = null;
   
     Console.superFine("Getting the responses from the listener ...");
-    String responseMsg = context.getListenerTarget().path("listener/responses").get(String.class);
+    String responseMsg = context.getListenerTarget().path("listener/responses").request().get(String.class);
     try {
       cache = new Cache(responseMsg);
     } catch (ResponseParseException e) {
@@ -52,7 +56,8 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
 
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
-      String responseMsg = context.getListenerTarget().path("listener/clearCache").get(String.class);
+      WebTarget target = context.getListenerTarget();
+      String responseMsg = target.path("listener/clearCache").request().get(String.class);
       Console.info(responseMsg);
       return CommandResult.OK;
     }

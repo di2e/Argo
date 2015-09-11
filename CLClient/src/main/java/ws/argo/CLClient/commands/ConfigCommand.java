@@ -23,6 +23,10 @@ import ws.argo.CLClient.ArgoClientContext;
 import ws.argo.probe.ProbeGenerator;
 
 /**
+ * This Config command is used to configure various things including the probe
+ * generators and associated transports. I'd rather do this differently (with
+ * plugable and configurable transports) but that is a bridge too far for this
+ * release. I'll hardcode in new transports as I go for now.
  * 
  * @author jmsimpson
  *
@@ -35,16 +39,18 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
   @Parameter(names = { "-url", "--listenerURL" }, description = "URL for the client response listener.  Setting this will restart the listener.")
   private String _url;
-  
+
   /**
+   * Manage the configuration of the probe generators.
    * 
    * @author jmsimpson
    *
    */
-  @Parameters(commandNames = { "gen" }, commandDescription = "manage the generator")
+  @Parameters(commandNames = { "gen" }, commandDescription = "manage the generators/transports")
   public class Generator extends CompoundCommand<ArgoClientContext> {
 
     /**
+     * List the probe generator/transports that are currently active.
      * 
      * @author jmsimpson
      *
@@ -55,17 +61,25 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
+        Map<String, ProbeGenerator> gens = context.getProbeGenerators();
+
+        for (String s : gens.keySet()) {
+          ProbeGenerator gen = gens.get(s);
+          Console.info(s + " : " + gen.getDescription());
+        }
+
         return CommandResult.OK;
       }
 
     }
 
     /**
+     * Configure and manage the SNS Transport probe generator.
      * 
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "useSNS" }, commandDescription = "Use the SNS probe generator.")
+    @Parameters(commandNames = { "enableSNS" }, commandDescription = "Enable/configure the SNS probe generator.")
     public class UseSNS extends Command<ArgoClientContext> {
 
       @Parameter(names = { "-ak", "--accessKey" }, description = "Amazon Access Key")
@@ -106,14 +120,15 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     }
 
     /**
+     * Configure and manage the Multicast Transport probe generator.
      * 
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "useMC" }, commandDescription = "Use the Multicast probe generators.")
+    @Parameters(commandNames = { "enableMC" }, commandDescription = "enable the Multicast probe generators.")
     public class UseMC extends Command<ArgoClientContext> {
 
-      @Parameter(names = { "-ma", "--multicastAdde" }, description = "Multicast Address")
+      @Parameter(names = { "-ma", "--multicastAddress" }, description = "Multicast Address")
       private String _ma;
 
       @Parameter(names = { "-mp", "--multicastPort" }, description = "Multicast Port")
@@ -138,11 +153,12 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     }
 
     /**
+     * Disable the SNS transport.
      * 
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "noSNS" }, commandDescription = "Do not the SNS probe generator.")
+    @Parameters(commandNames = { "disableSNS" }, commandDescription = "Do not the SNS probe generator.")
     public class NoSNS extends Command<ArgoClientContext> {
 
       @Override
@@ -156,11 +172,12 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     }
 
     /**
+     * Disable the MC transport.
      * 
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "noMC" }, commandDescription = "Do not the MC probe generators.")
+    @Parameters(commandNames = { "disableMC" }, commandDescription = "Do not the MC probe generators.")
     public class NoMC extends Command<ArgoClientContext> {
 
       @Override
@@ -176,6 +193,8 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
   }
 
   /**
+   * Configure the Network Interfaces. This really is only for the MC transport
+   * at the moment.
    * 
    * @author jmsimpson
    *
@@ -184,6 +203,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
   public class NI extends CompoundCommand<ArgoClientContext> {
 
     /**
+     * List the available network interfaces the client can use.
      * 
      * @author jmsimpson
      *
@@ -219,6 +239,10 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     }
 
     /**
+     * Enable or use the specified NI. This will tell the
+     * {@linkplain ArgoClientContext#getProbeGenerators()} call to return the
+     * pre-created MC probe generator in the list of ProbeGenerator to use when
+     * sending a probe.
      * 
      * @author jmsimpson
      *
@@ -265,8 +289,9 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
       }
     }
-    
+
     /**
+     * Disables or ignore a network interface for the multicast transport.
      * 
      * @author jmsimpson
      *
@@ -379,25 +404,27 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       Console.info("Showing configuration.\n");
 
       Console.info("--------------- Basic Information -------------------");
-      Console.info("                  Default CID = " + context.getDefaultCID());
-      Console.info("       (use 'config -defaultCID' to change)");
-
-      Console.info("\n--------------- Multicast Information ---------------");
-      Console.info("     Use Multicast Generators = " + context.isUseMulticast());
-      Console.info("      Multicast Group Address = " + context.getMulticastAddress());
-      Console.info("               Multicast Port = " + context.getMulticastPort());
-      Console.info("       Network Interfaces = " + context.getNIList());
-      Console.info("       (use 'config ni avail' to see all available network interfaces)");
-      Console.info("       (use 'config ni use' to use a particular network interface)");
+      Console.info("  Default CID = " + context.getDefaultCID());
+      Console.info("    (use 'config -defaultCID' to change)");
 
       Console.info("\n------------- Client URL Information ---------------");
-      Console.info("Client Listener RepsondTo URL = " + context.getURL());
+      Console.info("  Client Listener RepsondTo URL = " + context.getURL());
 
-      Console.info("\n------------- Amazon SNS Information ---------------");
-      Console.info("           Use SNS Generators = " + context.isUseSNS());
-      Console.info("                SNS Topic ARN = " + context.getSNSTopicARN());
-      Console.info("            Amazon Access Key = " + context.getAccessKey());
-      Console.info("            Amazon Access Key = " + context.getSecretKey());
+      Console.info("\n--------------- Multicast Transport Information ---------------");
+      Console.info("  (use config gen enableMC to enable/set MC transport settings)");
+      Console.info("  Multicast Enabled =        " + context.isUseMulticast());
+      Console.info("  Multicast Group Address =  " + context.getMulticastAddress());
+      Console.info("  Multicast Port =           " + context.getMulticastPort());
+      Console.info("  Network Interfaces =       " + context.getNIList());
+      Console.info("    (use 'config ni avail' to see all available network interfaces)");
+      Console.info("    (use 'config ni use' to use a particular network interface)");
+
+      Console.info("\n------------- Amazon SNS Transport Information ---------------");
+      Console.info("  (use config gen enableSNS to enable/set SNS transport settings)");
+      Console.info("  SNS Generators Enabled =   " + context.isUseSNS());
+      Console.info("  SNS Topic ARN =            " + context.getSNSTopicARN());
+      Console.info("  Amazon Access Key =        " + context.getAccessKey());
+      Console.info("  Amazon Access Key =        " + context.getSecretKey());
 
       return CommandResult.OK;
     }
@@ -406,31 +433,30 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
   @Override
   protected CommandResult innerExecute(ArgoClientContext context) {
-    
+
     if (_defaultCID != null) {
       Console.info("Setting default CID to: " + _defaultCID);
       context.setDefaultCID(_defaultCID);
     }
 
     if (_url != null) {
-      
+
       // Sanity check on the respondToURL
       // The requirement for the respondToURL is a REST POST call, so that means
       // only HTTP and HTTPS schemes.
       // Localhost is allowed as well as a valid response destination
       String[] schemes = { "http", "https" };
       UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
-      
+
       if (!urlValidator.isValid(_url)) {
         Console.error("The Response Listener URL specified is invalid. Not restarting listener.");
         return CommandResult.ERROR;
       } else {
         ((ArgoClient) context.getHostApplication()).restartListener(_url);
       }
-      
-      
+
     }
-    
+
     return CommandResult.OK;
   }
 

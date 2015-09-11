@@ -7,6 +7,10 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -18,8 +22,6 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.glassfish.grizzly.http.server.HttpServer;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
 
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.CommandLineApplication;
@@ -58,7 +60,8 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
       listenerURL = new URI(urlString); //This should not be malformed as it's checked earlier
     
     server = ResponseListener.startServer(listenerURL);
-    WebResource target = Client.create().resource(listenerURL);
+    Client client = ClientBuilder.newClient();
+    WebTarget target = client.target(listenerURL);
     _appContext.put("listener", target);
   }
 
@@ -98,7 +101,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 
   @Override
   protected void shutdown() {
-    server.stop();
+    server.shutdownNow();
     System.out.println("Shutting down ArgoClient.");
   }
 

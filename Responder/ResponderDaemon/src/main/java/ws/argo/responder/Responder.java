@@ -76,20 +76,8 @@ public class Responder implements ProbeProcessor {
 
   private ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
 
-  // 30 second timeout - the processing loop will interrupt once every 30
-  // seconds to check to see if the loop should quit. This is for hygiene as
-  // well as unit/integration tests
-  // private static int INBOUND_SOCKET_TIMEOUT = 30000;
-
-  // flag to tell the processing loop to continue or not.
-  // this allows external control on the processing loop so you don't have to
-  // directly
-  // kill the process to stop a Responder - see inboundSocketTimeout
-  private boolean shouldRun = true;
-
-  private NetworkInterface  ni            = null;
-  protected MulticastSocket inboundSocket = null;
-  protected InetAddress     maddress;
+  private NetworkInterface ni = null;
+  protected InetAddress    maddress;
 
   protected CloseableHttpClient httpClient;
 
@@ -182,8 +170,7 @@ public class Responder implements ProbeProcessor {
     ThreadFactory threadFactory = Executors.defaultThreadFactory();
     // creating the ThreadPoolExecutor
 
-    executorPool = new ThreadPoolExecutor(cliValues.threadPoolSize, cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS,
-        new ArrayBlockingQueue<Runnable>(cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
+    executorPool = new ThreadPoolExecutor(cliValues.threadPoolSize, cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
 
     // start the monitoring thread
     if (cliValues.runMonitor)
@@ -191,6 +178,11 @@ public class Responder implements ProbeProcessor {
     Thread monitorThread = new Thread(monitor);
     monitorThread.start();
 
+  }
+
+  @Override
+  public String getRuntimeID() {
+    return runtimeId;
   }
 
   public ArrayList<ProbeHandlerPluginIntf> getHandlers() {
@@ -234,7 +226,7 @@ public class Responder implements ProbeProcessor {
 
     handlers.add(handler);
   }
-  
+
   /**
    * Add a new handler given the classname and config filename. It instantiates
    * the class and then calls its initialization method to get the handler ready
@@ -280,27 +272,20 @@ public class Responder implements ProbeProcessor {
    */
   public void stopResponder() {
     LOGGER.info("Force shutdown of Responder [" + runtimeId + "]");
-    shouldRun = false;
     shutdownHook.start();
     Runtime.getRuntime().removeShutdownHook(shutdownHook);
   }
 
   /**
    * This will shutdown the listening socket and remove the responder from the
-   * multicast group. Part of the natural lifecycle. It also will end the run
+   * multicast group. Part of the natural life cycle. It also will end the run
    * loop of the responder automatically - it will interrupt any read operation
    * going on and exit the run loop.
    */
   public void shutdown() {
     LOGGER.info("Responder shutting down port " + cliValues.multicastPort + " [" + runtimeId + "]");
-    if (inboundSocket != null) {
-      try {
-        inboundSocket.leaveGroup(maddress);
-      } catch (IOException e) {
-        LOGGER.log(Level.SEVERE, "Error leaving multicast group", e);
-      }
-      inboundSocket.close();
-
+    for (Transport t : transports) {
+      t.shutdown();
     }
   }
 
@@ -310,68 +295,30 @@ public class Responder implements ProbeProcessor {
 
   /**
    * This is the main run method for the Argo Responder. It starts up all the
-   * necessary machinery and enters the UDP receive loop.
+   * configured transports in their own thread and starts their receive loops.
    * 
-   * @throws ResponderOperationException if some IOException or other
-   *           operational problem occurs
+   * <p>
+   * Transports run in their own thread. Thus, when all the transports are
+   * running, this method will exit. You can shutdown the Responder by calling
+   * the {@linkplain #shutdown()} method. This method will be called by the
+   * {@linkplain ResponderShutdown} hook.
+   * 
    * 
    */
-  public void run() throws ResponderOperationException {
+  public void run() {
+
+    // I hope that this hits you over the head with its simplicity.
+    // That's the idea. The instances of the transports are supposed to be send
+    // contained.
 
     Thread transportThread;
     for (Transport t : transports) {
-      
+
       transportThread = new Thread(t);
       transportThread.setName(t.transportName());
       transportThread.start();
-            
-    }
-    
-    
-/*    DatagramPacket packet;
-
-    LOGGER.fine("Starting Responder loop - infinite until process terminated");
-    // infinite loop until the responder is terminated
-    while (shouldRun) {
-
-      byte[] buf = new byte[2 * 1024]; // TODO parameterize the buffer size
-      packet = new DatagramPacket(buf, buf.length);
-      LOGGER.fine("Waiting to recieve packet...");
-      try {
-        inboundSocket.receive(packet);
-
-        LOGGER.fine("Received packet");
-        LOGGER.fine("Packet contents:");
-
-        // Get the actual wireline payload
-        String probeStr = new String(packet.getData(), 0, packet.getLength());
-        LOGGER.fine(probeStr);
-
-        try {
-          XMLSerializer serializer = new XMLSerializer();
-
-          ProbeWrapper probe = serializer.unmarshal(probeStr);
-
-          // reuses the handlers and the httpClient. Both should be threadSafe
-          executorPool.execute(new ProbeHandlerThread(this, probe, cliValues.noBrowser));
-
-          // Thread t = new Thread(new ProbeHandlerThread(this, probe,
-          // cliValues.noBrowser));
-          // t.start();
-        } catch (ProbeParseException e) {
-          LOGGER.log(Level.SEVERE, "Error parsing inbound probe payload.", e);
-        }
-      } catch (SocketTimeoutException toe) {
-        LOGGER.finest("Responder loop timeout fired.");
-      } catch (IOException e1) {
-        if (shouldRun) {
-          throw new ResponderOperationException("Error during responder wireline read loop.", e1);
-        }
-      }
 
     }
-
-    LOGGER.info("Stopping responder through trigger [" + runtimeId + "]");*/
 
   }
 
@@ -445,7 +392,7 @@ public class Responder implements ProbeProcessor {
     }
 
   }
-  
+
   private void loadTransportPlugins(ArrayList<PluginConfig> configs) throws ResponderConfigException {
 
     for (PluginConfig appConfig : configs) {
@@ -460,89 +407,9 @@ public class Responder implements ProbeProcessor {
     // make sure we have at least 1 active handler. If not, then fail the
     // responder process
     if (transports.isEmpty()) {
-      throw new ResponderConfigException("No responders created successfully on initialization.");
+      throw new ResponderConfigException("No responder transports created successfully on initialization.  There needs to be a least one transport instance for the Responder to work.");
     }
 
-  }
-
-  /**
-   * This method attempts to join the multicast group in a particular Network
-   * Interface (NI). This is useful for when inbound multicast ONLY can occur on
-   * a particular interface channel. However, if there is some issue with the NI
-   * name, then it attempts to join on the localhost NI. It is possible,
-   * however, unlikely that this will fail as well. This happens when strange
-   * things are happening to the routing tables and the presentation of the NIs
-   * in the OS. This can happen with you have VPN clients or hypervisors running
-   * on the host OS ... so look out.
-   * 
-   * @return true if the join was successful
-   */
-  private boolean joinGroup() {
-    boolean success = true;
-    InetSocketAddress socketAddress = new InetSocketAddress(cliValues.multicastAddress, cliValues.multicastPort);
-    try {
-      // Setup for incoming multicast requests
-      maddress = InetAddress.getByName(cliValues.multicastAddress);
-
-      if (cliValues.networkInterface != null) {
-        ni = NetworkInterface.getByName(cliValues.networkInterface);
-      }
-      if (ni == null) {
-        InetAddress localhost = InetAddress.getLocalHost();
-        LOGGER.fine("Network Interface name not specified.  Using the NI for localhost [" + localhost.getHostAddress() + "]");
-        ni = NetworkInterface.getByInetAddress(localhost);
-        if (ni != null && ni.isLoopback()) {
-          LOGGER.warning("DEFAULT NETWORK INTERFACE IS THE LOOPBACK !!!!.");
-          LOGGER.warning("Attempting to use the NI for localhost [" + ni.getName() + "] is a loopback.");
-          LOGGER.warning("Please run the Responder with the -ni switch selecting a more appropriate network interface to use (e.g. -ni eth0).");
-          return false;
-        }
-      }
-
-      LOGGER.info("Starting Responder:  Receiving mulitcast @ [" + cliValues.multicastAddress + ":" + cliValues.multicastPort + "]");
-      this.inboundSocket = new MulticastSocket(cliValues.multicastPort);
-
-      if (ni == null) { // for some reason NI is still NULL. Not sure why
-        // this happens.
-        this.inboundSocket.joinGroup(maddress);
-        LOGGER.warning("Unable to determine the network interface for the localhost address.  Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
-        LOGGER.info("Unknown network interface joined group [" + socketAddress.toString() + "]");
-      } else {
-        this.inboundSocket.joinGroup(socketAddress, ni);
-        LOGGER.info(ni.getName() + " joined group " + socketAddress.toString());
-      }
-    } catch (IOException e) {
-      if (ni == null) {
-        LOGGER.log(Level.SEVERE, "Error attempting to joint multicast address.", e);
-      } else {
-        StringBuffer buf = new StringBuffer();
-        try {
-          buf.append("(lb:" + this.ni.isLoopback() + " ");
-        } catch (SocketException e2) {
-          buf.append("(lb:err ");
-        }
-        try {
-          buf.append("m:" + this.ni.supportsMulticast() + " ");
-        } catch (SocketException e3) {
-          buf.append("(m:err ");
-        }
-        try {
-          buf.append("p2p:" + this.ni.isPointToPoint() + " ");
-        } catch (SocketException e1) {
-          buf.append("p2p:err ");
-        }
-        try {
-          buf.append("up:" + this.ni.isUp() + " ");
-        } catch (SocketException e1) {
-          buf.append("up:err ");
-        }
-        buf.append("v:" + this.ni.isVirtual() + ") ");
-
-        LOGGER.log(Level.SEVERE, ni.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString() + " --> " + e.toString(), e);
-      }
-      success = false;
-    }
-    return success;
   }
 
   /**
@@ -553,7 +420,7 @@ public class Responder implements ProbeProcessor {
    *           configuration files
    * @throws ResponderOperationException if a runtime error occurs
    */
-  public static void main(String[] args) throws ResponderConfigException, ResponderOperationException {
+  public static void main(String[] args) throws ResponderConfigException {
 
     Responder responder = initialize(args);
     if (responder != null) {
@@ -595,11 +462,6 @@ public class Responder implements ProbeProcessor {
     LOGGER.info("Responder registering shutdown hook.");
     ResponderShutdown hook = new ResponderShutdown(responder);
     Runtime.getRuntime().addShutdownHook(hook);
-
-    if (!responder.joinGroup()) {
-      LOGGER.severe("Unable to join multicast group. Terminating Responder process.");
-      return null;
-    }
 
     // This needs to be sent to stdout as there is no way to force the logging
     // of this via the LOGGER

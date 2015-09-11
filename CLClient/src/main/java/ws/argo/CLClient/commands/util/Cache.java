@@ -10,13 +10,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import net.dharwin.common.tools.cli.api.console.Console;
+import ws.argo.CLClient.listener.ResponseCache;
 import ws.argo.wireline.response.JSONSerializer;
 import ws.argo.wireline.response.ResponseParseException;
 import ws.argo.wireline.response.ServiceWrapper;
 
 /**
  * This class is a representation of the response cache for the purposes of this
- * command.
+ * command. It is not the actual client listener cache with is the
+ * {@linkplain ResponseCache}.
  * 
  * @author jmsimpson
  *

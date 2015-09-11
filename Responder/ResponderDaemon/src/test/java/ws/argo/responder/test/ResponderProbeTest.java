@@ -51,14 +51,9 @@ public abstract class ResponderProbeTest {
     responder = Responder.initialize(args);
 
     responderThread = new Thread("Argo Responder") {
-      public void run() {
-        try {
+      public void run() {       
           responder.run();
-
           System.out.println("Argo Responder ended");
-        } catch (ResponderOperationException e) {
-          org.junit.Assert.fail(e.getLocalizedMessage());
-        }
       }
     };
     responderThread.start();

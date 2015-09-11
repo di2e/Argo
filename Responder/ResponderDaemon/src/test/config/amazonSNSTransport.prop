@@ -1,0 +1,12 @@
+# The following are the required properties for the Amazon SNS transport.
+# The listenerURL is the actual URL used by the Grizzly HTTP server that the listener launches
+# for receiving SNS messages.  It should be in term of the addressible network.
+# The subscriptionURL is the one provided to SNS.  It may be different because it may require
+# sending SNS messages across proxies or firewalls with various address translators.
+
+listenerURL=
+subscriptionURL=
+argoTopicName=
+amazonAK=
+amazonSK=
+

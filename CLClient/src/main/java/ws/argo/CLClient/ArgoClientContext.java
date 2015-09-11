@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.client.WebTarget;
 
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.CommandLineApplication;
@@ -259,8 +259,8 @@ public class ArgoClientContext extends CLIContext {
     this.put("ni-list", niList);
   }
 
-  public WebResource getListenerTarget() {
-    return (WebResource) this.getObject("listener");
+  public WebTarget getListenerTarget() {
+    return (WebTarget) this.getObject("listener");
   }
 
   @SuppressWarnings("unchecked")

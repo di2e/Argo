@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package ws.argo.CLClient.listener;
+package ws.argo.responder.transport.sns;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.core.UriBuilder;
@@ -29,8 +28,6 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
-
-
 /**
  * The ResponseListener is a client used in providing the REST API for the Argo
  * respondTo protocol.
@@ -38,32 +35,13 @@ import org.glassfish.jersey.server.ResourceConfig;
  * @author jmsimpson
  *
  */
-public class ResponseListener {
+public class SNSListener {
 
-  private static final Logger LOGGER = Logger.getLogger(ResponseListener.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(SNSListener.class.getName());
 
-  private static int getPort(int defaultPort) {
-    // grab port from environment, otherwise fall back to default port 9998
-    String httpPort = System.getProperty("jersey.test.port");
-    if (null != httpPort) {
-      try {
-        return Integer.parseInt(httpPort);
-      } catch (NumberFormatException e) {
-        LOGGER.log(Level.INFO, "Error in port number format", e);
-      }
-    }
-    return defaultPort;
-  }
+  private static final int DEFAULT_PORT = 4004;
 
-  /**
-   * This is the default URL for the client listener. It's just the localhost
-   * address. This may not be the one that you want to use (and likely isn't in
-   * a complex environment). You can set the url you want to use with the -surl
-   * switch on the command line.
-   * 
-   * @return the default URI
-   */
-  private static URI getBaseURI() {
+  public static URI getLocalBaseURI() {
     InetAddress localAddr;
     String addr;
     try {
@@ -73,10 +51,8 @@ public class ResponseListener {
       LOGGER.warning("Issues finding ip address of locahost.  Using string 'localhost' for listener address binding");
       addr = "localhost";
     }
-    return UriBuilder.fromUri("http://" + addr + "/").port(getPort(9998)).build();
+    return UriBuilder.fromUri("http://" + addr + "/").port(DEFAULT_PORT).build();
   }
-
-  public static final URI BASE_URI = getBaseURI();
 
   /**
    * Start the ResponseListener client. This largely includes starting at
@@ -85,16 +61,17 @@ public class ResponseListener {
    * @return a new HttpServer
    * @throws IOException if something goes wrong creating the http server
    */
-  public static HttpServer startServer(URI listenerURI) throws IOException {
-    ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.CLClient.listener");
+  public static HttpServer startServer(URI uri) throws IOException {
+    ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.responder.transport.sns");
 
     LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
-    HttpServer httpServer =  GrizzlyHttpServerFactory.createHttpServer(listenerURI, resourceConfig, false);
-    httpServer.getServerConfiguration().setName("Argo Client Listener");
+    HttpServer httpServer =  GrizzlyHttpServerFactory.createHttpServer(uri, resourceConfig, false);
+    httpServer.getServerConfiguration().setName("SNS Listener");
     httpServer.start();
     LOGGER.info("Started Jersey-Grizzly2 JAX-RS listener.");
 
     return httpServer;
+
   }
 
 }

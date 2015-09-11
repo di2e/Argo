@@ -50,8 +50,6 @@ public class ResponderLaunchTest {
           responder.run();
         } catch (ResponderConfigException e) {
           org.junit.Assert.fail(e.getLocalizedMessage());
-        } catch (ResponderOperationException e) {
-          org.junit.Assert.fail(e.getLocalizedMessage());
         }
       }
     };

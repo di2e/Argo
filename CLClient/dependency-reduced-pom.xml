@@ -201,7 +201,6 @@
     </dependency>
   </dependencies>
   <properties>
-    <jersey-version>1.19</jersey-version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <rpm-package-name>argo-client</rpm-package-name>
