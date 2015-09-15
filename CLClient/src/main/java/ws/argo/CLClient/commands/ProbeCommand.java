@@ -232,7 +232,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
 
       try {
         String urlString = context.getURL();
-        URI listenerURL = ResponseListener.BASE_URI;
+        URI listenerURL = ResponseListener.DEFAULT_LISTENER_URI;
         if (urlString != null)
           listenerURL = new URI(urlString); // This should not be malformed as
                                             // it's checked earlier

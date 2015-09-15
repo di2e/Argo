@@ -28,6 +28,8 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import ws.argo.responder.transport.AmazonSNSTransport;
+
 /**
  * The ResponseListener is a client used in providing the REST API for the Argo
  * respondTo protocol.
@@ -40,7 +42,12 @@ public class SNSListener {
   private static final Logger LOGGER = Logger.getLogger(SNSListener.class.getName());
 
   private static final int DEFAULT_PORT = 4004;
-
+  
+  /**
+   * Return the local base URI based on the localhost address.
+   * 
+   * @return the default URI
+   */
   public static URI getLocalBaseURI() {
     InetAddress localAddr;
     String addr;
@@ -61,8 +68,14 @@ public class SNSListener {
    * @return a new HttpServer
    * @throws IOException if something goes wrong creating the http server
    */
-  public static HttpServer startServer(URI uri) throws IOException {
-    ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.responder.transport.sns");
+  public static HttpServer startServer(URI uri, AmazonSNSTransport t) throws IOException {
+    
+    ResourceConfig resourceConfig = new ResourceConfig();
+    resourceConfig.registerInstances(new SNSListenerResource(t));
+    resourceConfig.setApplicationName("Argo AmazonSNSTransport");
+    
+    
+//    ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.responder.transport.sns");
 
     LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
     HttpServer httpServer =  GrizzlyHttpServerFactory.createHttpServer(uri, resourceConfig, false);

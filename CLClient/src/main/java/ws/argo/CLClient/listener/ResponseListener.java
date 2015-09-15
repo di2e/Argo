@@ -41,19 +41,10 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class ResponseListener {
 
   private static final Logger LOGGER = Logger.getLogger(ResponseListener.class.getName());
+  
+  public static final URI DEFAULT_LISTENER_URI = getDefaultBaseURI();
 
-  private static int getPort(int defaultPort) {
-    // grab port from environment, otherwise fall back to default port 9998
-    String httpPort = System.getProperty("jersey.test.port");
-    if (null != httpPort) {
-      try {
-        return Integer.parseInt(httpPort);
-      } catch (NumberFormatException e) {
-        LOGGER.log(Level.INFO, "Error in port number format", e);
-      }
-    }
-    return defaultPort;
-  }
+
 
   /**
    * This is the default URL for the client listener. It's just the localhost
@@ -63,7 +54,7 @@ public class ResponseListener {
    * 
    * @return the default URI
    */
-  private static URI getBaseURI() {
+  private static URI getDefaultBaseURI() {
     InetAddress localAddr;
     String addr;
     try {
@@ -73,10 +64,8 @@ public class ResponseListener {
       LOGGER.warning("Issues finding ip address of locahost.  Using string 'localhost' for listener address binding");
       addr = "localhost";
     }
-    return UriBuilder.fromUri("http://" + addr + "/").port(getPort(9998)).build();
+    return UriBuilder.fromUri("http://" + addr + "/").port(9998).build();
   }
-
-  public static final URI BASE_URI = getBaseURI();
 
   /**
    * Start the ResponseListener client. This largely includes starting at

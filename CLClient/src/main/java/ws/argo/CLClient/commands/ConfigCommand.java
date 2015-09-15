@@ -93,26 +93,32 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
-
+        boolean recreateSNSTransport = false;
+        
         if (_ak != null) {
           context.setAccessKey(_ak);
+          recreateSNSTransport = true;
         }
 
         if (_sk != null) {
           context.setSecretKey(_sk);
+          recreateSNSTransport = true;
         }
 
         if (_arn != null) {
           context.setSNSTopicARN(_arn);
+          recreateSNSTransport = true;
         }
 
         if (context.getAccessKey() == null || context.getSecretKey() == null) {
           Console.error("Either the Amazon Acccess Key or the Secrey key has not been set.");
-          Console.error("Please setup the Amazon keys using the 'useSNS -ak <key> -sk <key>' command.");
+          Console.error("Please setup the Amazon keys using the 'enableSNS -ak <key> -sk <key>' command.");
           return CommandResult.ERROR;
         }
 
         context.setUseSNS(true);
+        if (recreateSNSTransport)
+          context.initializeSNSProbeGenerator();
         Console.info("Client will now use SNS.");
         return CommandResult.OK;
       }
@@ -401,30 +407,29 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
 
-      Console.info("Showing configuration.\n");
-
-      Console.info("--------------- Basic Information -------------------");
-      Console.info("  Default CID = " + context.getDefaultCID());
+      Console.info("-------------------- Basic Information ------------------------");
+      Console.info("  Default CID ... " + context.getDefaultCID());
       Console.info("    (use 'config -defaultCID' to change)");
 
-      Console.info("\n------------- Client URL Information ---------------");
-      Console.info("  Client Listener RepsondTo URL = " + context.getURL());
+      Console.info("\n------------------ Client URL Information --------------------");
+      Console.info("  Client Listener RespondTo URL ... " + context.getURL());
+      Console.info("    (use 'config -url' to change.  Setting this will restart the listener)");
 
       Console.info("\n--------------- Multicast Transport Information ---------------");
       Console.info("  (use config gen enableMC to enable/set MC transport settings)");
-      Console.info("  Multicast Enabled =        " + context.isUseMulticast());
-      Console.info("  Multicast Group Address =  " + context.getMulticastAddress());
-      Console.info("  Multicast Port =           " + context.getMulticastPort());
-      Console.info("  Network Interfaces =       " + context.getNIList());
+      Console.info("  Multicast Enabled ......... " + context.isUseMulticast());
+      Console.info("  Multicast Group Address ... " + context.getMulticastAddress());
+      Console.info("  Multicast Port ............ " + context.getMulticastPort());
+      Console.info("  Network Interfaces ........ " + context.getNIList());
       Console.info("    (use 'config ni avail' to see all available network interfaces)");
       Console.info("    (use 'config ni use' to use a particular network interface)");
 
-      Console.info("\n------------- Amazon SNS Transport Information ---------------");
-      Console.info("  (use config gen enableSNS to enable/set SNS transport settings)");
+      Console.info("\n------------- Amazon SNS Transport Information -----------------");
       Console.info("  SNS Generators Enabled =   " + context.isUseSNS());
       Console.info("  SNS Topic ARN =            " + context.getSNSTopicARN());
       Console.info("  Amazon Access Key =        " + context.getAccessKey());
       Console.info("  Amazon Access Key =        " + context.getSecretKey());
+      Console.info("    (use config gen enableSNS to enable/set SNS transport settings)");
 
       return CommandResult.OK;
     }

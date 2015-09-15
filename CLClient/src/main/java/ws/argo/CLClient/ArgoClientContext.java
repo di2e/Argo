@@ -112,6 +112,7 @@ public class ArgoClientContext extends CLIContext {
 
     if (isUseSNS()) {
       try {
+        probeGens.clear();
         ProbeGenerator gen = ProbeGeneratorFactory.createSNSProbeGenerator(getAccessKey(), getSecretKey());
         probeGens.put("sns", gen);
       } catch (ProbeGeneratorException e) {

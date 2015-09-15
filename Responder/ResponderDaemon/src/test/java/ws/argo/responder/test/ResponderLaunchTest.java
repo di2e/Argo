@@ -6,8 +6,12 @@ import org.junit.Test;
 
 import ws.argo.responder.Responder;
 import ws.argo.responder.ResponderConfigException;
-import ws.argo.responder.ResponderOperationException;
 
+/**
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponderLaunchTest {
 
   protected Responder responder;
@@ -18,7 +22,7 @@ public class ResponderLaunchTest {
     String[] args = new String[1];
     args[0] = "-h"; // help
     Responder responder = Responder.initialize(args);
-    
+
     assertNull(responder);
 
   }
@@ -36,9 +40,9 @@ public class ResponderLaunchTest {
   @Test
   public void testResponderNormalLaunch() throws InterruptedException {
 
-     String configFileProp = System.getProperty("configFile");
-     System.out.println("****** Testing configFile = " + configFileProp);
-//    String configFileProp = "/config/responderConfig.prop";
+    String configFileProp = System.getProperty("configFile");
+    System.out.println("****** Testing configFile = " + configFileProp);
+    // String configFileProp = "/config/responderConfig.prop";
 
     final String[] args = { "-pf", configFileProp };
 
@@ -54,17 +58,17 @@ public class ResponderLaunchTest {
       }
     };
     responderThread.start();
-    
+
     Thread.sleep(1000);
-    
+
     responder.stopResponder();
-     
+
   }
-  
+
   @Test
   public void testResponderWithOneBadConfigClassname() {
-    
-    //how to test this?
+
+    // how to test this?
   }
 
   @Test(expected = ResponderConfigException.class)

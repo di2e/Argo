@@ -16,6 +16,9 @@
 
 package ws.argo.responder.transport.sns;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -24,6 +27,12 @@ import com.amazonaws.services.sns.model.ConfirmSubscriptionResult;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import ws.argo.responder.transport.AmazonSNSTransport;
+import ws.argo.wireline.probe.ProbeParseException;
+import ws.argo.wireline.probe.ProbeWrapper;
+import ws.argo.wireline.probe.XMLSerializer;
+import ws.argo.wireline.response.ResponseParseException;
 
 
 /**
@@ -36,24 +45,55 @@ import com.google.gson.JsonObject;
 @Path("/listener")
 public class SNSListenerResource {
 
+  private static final Logger LOGGER = Logger.getLogger(SNSListenerResource.class.getName());
+
+  private AmazonSNSTransport snsTransport;
+  
+  public SNSListenerResource(AmazonSNSTransport snsTransport) {
+    this.snsTransport = snsTransport;
+    LOGGER.info("Hey You.");
+  }
+
+
+  
   /**
    * Inbound JSON responses get processed here.
    * 
-   * @param probeResponseJSON - the actual wireline response payload
    * @return some innocuous string
-   * @throws ResponseParseException if the wireline payload is malformed in some
-   *           way
+   * @throws ResponseParseException if the wireline payload is malformed
    */
   @POST
   @Path("/sns")
   @Consumes("text/plain")
   public String handleSNSMessage(String message) {
 
+    String trimmedMessage = message.trim();
+    char leadingChar = trimmedMessage.charAt(0);
+    
+    switch (leadingChar) {
+      case '<' : processXML(trimmedMessage); break;
+      case '{' : processJson(trimmedMessage); break;
+      default:
+        break;
+    }
+    
     System.out.println(message);
+
+
+    
+    
+    
+    
+    return "got SNS message";
+  }
+  
+  private void processJson(String trimmedMessage) {
+
+    LOGGER.info("Processing JSON message");
 
     Gson gson = new Gson();
 
-    JsonObject jsonMsg = gson.fromJson(message, JsonObject.class);
+    JsonObject jsonMsg = gson.fromJson(trimmedMessage, JsonObject.class);
     
     JsonElement type = jsonMsg.get("Type");
     
@@ -65,18 +105,29 @@ public class SNSListenerResource {
         break;
       default:
         break;
-    }
-    
-    
-    
-    
-    return "got SNS message";
+    }    
   }
-  
-  private void handleSubscriptionConfirmation(String arn, String token) {
-//    ConfirmSubscriptionResult result = Receiver.getSNSClient().confirmSubscription(arn, token);
+
+  private void processXML(String probeMessage) {
+    LOGGER.info("Processing XML Probe message");
     
-//    System.out.println("Confirmed Subsription to [" + arn + "] : " + result.toString());
+    try {
+      XMLSerializer serializer = new XMLSerializer();
+
+      ProbeWrapper probe = serializer.unmarshal(probeMessage);
+
+      snsTransport.getProcessor().processProbe(probe);
+
+    } catch (ProbeParseException e) {
+      LOGGER.log(Level.SEVERE, "Error parsing inbound probe payload.", e);
+    }
+
+    
+  }
+
+  private void handleSubscriptionConfirmation(String arn, String token) {
+    ConfirmSubscriptionResult result = snsTransport.getSNSClient().confirmSubscription(arn, token);  
+    LOGGER.info("Confirmed Subsription to [" + arn + "] : " + result.toString());
   }
 
 }

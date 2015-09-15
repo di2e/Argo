@@ -342,10 +342,6 @@
           <artifactId>commons-validator</artifactId>
           <groupId>commons-validator</groupId>
         </exclusion>
-        <exclusion>
-          <artifactId>aws-java-sdk-sns</artifactId>
-          <groupId>com.amazonaws</groupId>
-        </exclusion>
       </exclusions>
     </dependency>
   </dependencies>

@@ -21,10 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
 import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.UUID;
@@ -76,8 +73,7 @@ public class Responder implements ProbeProcessor {
 
   private ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
 
-  private NetworkInterface ni = null;
-  protected InetAddress    maddress;
+  protected InetAddress maddress;
 
   protected CloseableHttpClient httpClient;
 

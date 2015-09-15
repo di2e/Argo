@@ -1,3 +1,9 @@
 multicastPort=4003
 multicastAddress=230.0.0.1
 bufferSize=2
+
+# The network interface configuration parameter declares which network interface this
+# transport should listen on. If its not specified, the network interface associated
+# with localhost will be used.  This is usually eth0 or en0 on a linux system.
+
+#networkInterface=

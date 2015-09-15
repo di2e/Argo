@@ -44,6 +44,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
   private static final Logger LOGGER = Logger.getLogger(ProbeGenerator.class.getName());
 
   static final String DEFAULT_TOPIC_NAME = "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
+  static final String DEFAULT_LISTENER_HOST = "localhost";
 
   private HttpServer server;
   
@@ -55,7 +56,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 
   private void startListener() throws IOException, URISyntaxException {
     String urlString = getProperties().getProperty("url");
-    URI listenerURL = ResponseListener.BASE_URI;
+    URI listenerURL = ResponseListener.DEFAULT_LISTENER_URI;
     if (urlString != null)
       listenerURL = new URI(urlString); //This should not be malformed as it's checked earlier
     
@@ -80,7 +81,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
    */
   public void restartListener(String _url) {
     if (server != null)
-      server.stop();
+      server.shutdownNow();
     getProperties().put("url", _url);
     try {
       startListener();

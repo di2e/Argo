@@ -16,7 +16,7 @@ import ws.argo.probe.ProbeGeneratorException;
 
 /**
  * The AmazonSNSTransport class encapsulates the mechanics of sending the probe
- * via SNS
+ * via SNS.
  * 
  * @author jmsimpson
  *

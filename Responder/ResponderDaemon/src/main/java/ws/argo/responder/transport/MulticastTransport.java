@@ -37,10 +37,11 @@ public class MulticastTransport implements Transport {
   protected MulticastSocket inboundSocket = null;
   protected InetAddress     maddress;
 
+  // Configuration items
   private String networkInterface;
   private String multicastAddress;
   private int    multicastPort;
-  private int    bufferSize = 2 * 1024;
+  private int    bufferSize = 2 * 1024; // default to 2k block
 
   ProbeProcessor processor;
 

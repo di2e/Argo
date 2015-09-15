@@ -16,6 +16,7 @@ import javax.ws.rs.client.WebTarget;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sns.AmazonSNSClient;
@@ -24,36 +25,41 @@ import com.amazonaws.services.sns.model.SubscribeRequest;
 import ws.argo.responder.Responder;
 import ws.argo.responder.transport.sns.SNSListener;
 
-
+/**
+ * The AmazonSNSTransport is a transport that uses the Amazon SNS service as the
+ * pub/sub mechanism to move probes around.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class AmazonSNSTransport implements Transport {
 
   static final String DEFAULT_TOPIC_NAME = "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
-  static final String DEFAULT_AK = "AKIAJXYLKPZVDS6VDLJA";
-  static final String DEFAULT_SK = "1MAA3DES3HZ/awWoNx3GLd46zcyJQLcNR3VJ720D";
 
-  
   private static final Logger LOGGER = Logger.getLogger(AmazonSNSTransport.class.getName());
 
   private HttpServer server;
-  WebTarget target;
+  WebTarget          target;
 
   private AmazonSNSClient snsClient;
-  private String argoTopicName = DEFAULT_TOPIC_NAME;
+  private String          argoTopicName = DEFAULT_TOPIC_NAME;
 
-  private String subscriptionArn;
-
-  private Properties cliValues;
+  // Configuration params
+  private String         subscriptionArn;
   private ProbeProcessor processor;
-  private String listenerURL;
-  private String amazonAK;
-  private String amazonSK;
-  private String subscriptionURL;
-  
+  private String         listenerURL;
+  private String         amazonAK;
+  private String         amazonSK;
+  private String         subscriptionURL;
+
+  public AmazonSNSTransport() {
+  }
+
   @Override
   public void run() {
-    
-    URI uri; 
-    
+
+    URI uri;
+
     try {
       uri = getBaseListenerURI();
     } catch (URISyntaxException e) {
@@ -61,31 +67,35 @@ public class AmazonSNSTransport implements Transport {
       LOGGER.info("Using the default listner URL assocaited with the loca host [" + SNSListener.getLocalBaseURI() + "]");
       uri = SNSListener.getLocalBaseURI();
     }
-    
+
     try {
-      server = SNSListener.startServer(uri);
+      server = SNSListener.startServer(uri, this);
     } catch (IOException e) {
       LOGGER.log(Level.SEVERE, "There was an error starting the SNS Listener.", e);
     }
 
     Client client = ClientBuilder.newClient();
     target = client.target(uri);
-    
+
     try {
       subscribe();
-    } catch (URISyntaxException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    } catch (URISyntaxException | TransportConfigException e) {
+      LOGGER.log(Level.SEVERE, "Error subscribing to SNS topic.");
+      LOGGER.log(Level.SEVERE, "Amazon SNS transport failed startup - shuting down SNS listener.", e);
+      if (server != null)
+        server.shutdownNow();
     }
-    
-    
+
   }
 
   @Override
   public void initialize(ProbeProcessor p, String propertiesFilename) throws TransportConfigException {
     this.processor = p;
     processPropertiesFile(propertiesFilename);
-    initializeAWSClient(cliValues.getProperty("ak"), cliValues.getProperty("sk"));      
+    if (amazonAK == null || amazonSK == null)
+      throw new TransportConfigException("The AK and/or the SK was not specified.");
+
+    initializeAWSClient(amazonAK, amazonSK);
   }
 
   @Override
@@ -100,7 +110,7 @@ public class AmazonSNSTransport implements Transport {
   public String transportName() {
     return this.getClass().getName();
   }
-  
+
   private URI getBaseListenerURI() throws URISyntaxException {
     URI url;
     if (listenerURL == null) {
@@ -111,32 +121,36 @@ public class AmazonSNSTransport implements Transport {
     return url;
 
   }
-  
+
   private URI getBaseSubscriptionURI() throws URISyntaxException {
     URI url;
     if (subscriptionURL == null) {
-      url = SNSListener.getLocalBaseURI();
+      url = getBaseListenerURI();
     } else {
       url = new URI(subscriptionURL);
     }
     return url;
 
   }
-  
-  private void subscribe() throws URISyntaxException {
-    
+
+  private void subscribe() throws URISyntaxException, TransportConfigException {
+
     URI url = getBaseSubscriptionURI();
-    
-    String subscriptionURL = url.toString() + "/listener/sns";
-    System.out.println("Subscription  URI - " + subscriptionURL);
-    
+
+    String subscriptionURL = url.toString() + "listener/sns";
+    LOGGER.info("Subscription  URI - " + subscriptionURL);
+
     SubscribeRequest subRequest = new SubscribeRequest(argoTopicName, "http", subscriptionURL);
-    getSNSClient().subscribe(subRequest);
-    //get request id for SubscribeRequest from SNS metadata
-    this.subscriptionArn = getSNSClient().getCachedResponseMetadata(subRequest).toString();
-    System.out.println("SubscribeRequest - " + subscriptionArn);
+    try {
+//      getSNSClient().subscribe(subRequest);
+    } catch (AmazonServiceException e) {
+      throw new TransportConfigException("Error subscribing to SNS topic.", e);
+    }
+    // get request id for SubscribeRequest from SNS metadata
+//    this.subscriptionArn = getSNSClient().getCachedResponseMetadata(subRequest).toString();
+    LOGGER.info("SubscribeRequest - " + subscriptionArn);
   }
-  
+
   private void unsubscribe() {
     snsClient.unsubscribe(argoTopicName);
   }
@@ -145,9 +159,13 @@ public class AmazonSNSTransport implements Transport {
     AWSCredentials creds = new BasicAWSCredentials(ak, sk);
     setSNSClient(new AmazonSNSClient(creds));
   }
-  
+
   public AmazonSNSClient getSNSClient() {
     return snsClient;
+  }
+
+  public ProbeProcessor getProcessor() {
+    return processor;
   }
 
   private void setSNSClient(AmazonSNSClient snsClient) {
@@ -179,16 +197,14 @@ public class AmazonSNSTransport implements Transport {
       }
     }
 
-
     subscriptionURL = prop.getProperty("subscriptionURL");
     listenerURL = prop.getProperty("listenerURL");
-//    networkInterface = prop.getProperty("networkInterface");
-    
-    argoTopicName = prop.getProperty("argoTopicName", DEFAULT_TOPIC_NAME);
-    amazonAK = prop.getProperty("amazonAK", DEFAULT_AK);
-    amazonSK = prop.getProperty("amazonSK", DEFAULT_SK);
-        
+    // networkInterface = prop.getProperty("networkInterface");
 
+    argoTopicName = prop.getProperty("argoTopicName", DEFAULT_TOPIC_NAME);
+    amazonAK = prop.getProperty("amazonAK");
+    amazonSK = prop.getProperty("amazonSK");
+    
     return prop;
 
   }
