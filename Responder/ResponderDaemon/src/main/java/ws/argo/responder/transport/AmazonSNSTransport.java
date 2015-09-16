@@ -43,6 +43,7 @@ public class AmazonSNSTransport implements Transport {
 
   private AmazonSNSClient snsClient;
   private String          argoTopicName = DEFAULT_TOPIC_NAME;
+  private boolean         inShutdown    = false;
 
   // Configuration params
   private String         subscriptionArn;
@@ -101,6 +102,7 @@ public class AmazonSNSTransport implements Transport {
   @Override
   public void shutdown() {
     LOGGER.info("SNSTransport shutting down URL [" + listenerURL + "] for processor [" + processor.getRuntimeID() + "]");
+    inShutdown = true;
     unsubscribe();
     if (server != null)
       server.shutdownNow();
@@ -133,7 +135,24 @@ public class AmazonSNSTransport implements Transport {
 
   }
 
-  private void subscribe() throws URISyntaxException, TransportConfigException {
+  /**
+   * Attempt to subscript to the Argo SNS topic.
+   * 
+   * @throws URISyntaxException if the subscription HTTP URL is messed up
+   * @throws TransportConfigException if there was some Amazon specific issue
+   *           while subscribing
+   */
+  public void subscribe() throws URISyntaxException, TransportConfigException {
+
+    /* if this instance of the transport (as there could be several - each with
+     a different topic) is in shutdown mode then don't subscribe.
+     This is a side effect of when you shutdown a sns transport and the
+     listener gets an UnsubscribeConfirmation.
+     In normal operation, when the topic does occasional house keeping and
+     clears out the subscriptions, running transports will just re-subscribe.
+    */
+    if (inShutdown)
+      return;
 
     URI url = getBaseSubscriptionURI();
 
@@ -142,12 +161,12 @@ public class AmazonSNSTransport implements Transport {
 
     SubscribeRequest subRequest = new SubscribeRequest(argoTopicName, "http", subscriptionURL);
     try {
-//      getSNSClient().subscribe(subRequest);
+      getSNSClient().subscribe(subRequest);
     } catch (AmazonServiceException e) {
       throw new TransportConfigException("Error subscribing to SNS topic.", e);
     }
     // get request id for SubscribeRequest from SNS metadata
-//    this.subscriptionArn = getSNSClient().getCachedResponseMetadata(subRequest).toString();
+    this.subscriptionArn = getSNSClient().getCachedResponseMetadata(subRequest).toString();
     LOGGER.info("SubscribeRequest - " + subscriptionArn);
   }
 
@@ -204,7 +223,7 @@ public class AmazonSNSTransport implements Transport {
     argoTopicName = prop.getProperty("argoTopicName", DEFAULT_TOPIC_NAME);
     amazonAK = prop.getProperty("amazonAK");
     amazonSK = prop.getProperty("amazonSK");
-    
+
     return prop;
 
   }

@@ -4,10 +4,10 @@
   <parent>
     <groupId>ws.argo.responder</groupId>
     <artifactId>Responder</artifactId>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.4.0-BETA</version>
   </parent>
   <artifactId>ResponderDaemon</artifactId>
-  <version>0.3.2-SNAPSHOT</version>
+  <version>0.4.0-BETA</version>
   <name>Responder Daemon</name>
   <description>This project is the actual Responder daemon and its accompanying script files.</description>
   <url>http://www.argo.ws</url>
@@ -16,7 +16,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <jersey-version>1.19</jersey-version>
     <rpm-package-name>argo-responder</rpm-package-name>
   </properties>
 
@@ -54,12 +53,12 @@
     <dependency>
       <groupId>ws.argo.responder</groupId>
       <artifactId>PluginClient</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.4.0-BETA</version>
     </dependency>
     <dependency>
       <groupId>ws.argo.wireline</groupId>
       <artifactId>ArgoWirelineFormat</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.4.0-BETA</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
@@ -75,7 +74,7 @@
 
     <dependency>
       <groupId>ws.argo.probe</groupId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.4.0-BETA</version>
       <artifactId>ProbeGenerator</artifactId>
       <scope>test</scope>
     </dependency>

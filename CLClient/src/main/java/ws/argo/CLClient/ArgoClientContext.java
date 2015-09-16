@@ -283,13 +283,15 @@ public class ArgoClientContext extends CLIContext {
    */
   public Map<String, ProbeGenerator> getProbeGenerators() {
     Map<String, ProbeGenerator> mergedMap = new HashMap<String, ProbeGenerator>();
-    
-    Map<String, ProbeGenerator> mcPGs = getMCProbeGenerators();
-    for (String niName : getNIList()) {
-      if (mcPGs.containsKey(niName))
-        mergedMap.put(niName, mcPGs.get(niName));
+
+    if (isUseMulticast()) {
+      Map<String, ProbeGenerator> mcPGs = getMCProbeGenerators();
+      for (String niName : getNIList()) {
+        if (mcPGs.containsKey(niName))
+          mergedMap.put(niName, mcPGs.get(niName));
+      }
     }
-    
+
     if (isUseSNS())
       mergedMap.putAll(getSNSProbeGenerators());
 

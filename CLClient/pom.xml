@@ -3,7 +3,7 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.4.0-BETA</version>
   </parent>
   <artifactId>CLClient</artifactId>
   <name>Command Line Client</name>
@@ -17,13 +17,13 @@
   <dependencies>
     <dependency>
       <groupId>ws.argo.probe</groupId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.4.0-BETA</version>
       <artifactId>ProbeGenerator</artifactId>
     </dependency>
     <dependency>
       <groupId>ws.argo.commandline</groupId>
       <artifactId>clui</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.4.0-BETA</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -79,21 +79,42 @@
             <goals>
               <goal>replace</goal>
             </goals>
+            <configuration>
+              <outputDir>${basedir}/target/generated-bin</outputDir>
+              <preserveDir>false</preserveDir>
+              <filesToInclude>${basedir}/src/resources/client/bin/*</filesToInclude>
+              <inputFilePattern>(.*)</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@JAR_NAME@</token>
+                  <value>${project.artifactId}-${project.version}</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>process-rpm-config</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <outputDir>${basedir}/target/generated-rpm-config/config</outputDir>
+              <preserveDir>false</preserveDir>
+              <filesToInclude>${basedir}/src/resources/client/config/*</filesToInclude>
+              <inputFilePattern>(.*)</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@INSTALL_DIR@</token>
+                  <value>/opt/argo</value>
+                </replacement>
+              </replacements>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <outputDir>${basedir}/target/generated-bin</outputDir>
-          <preserveDir>false</preserveDir>
-          <filesToInclude>${basedir}/src/resources/client/bin/*</filesToInclude>
-          <inputFilePattern>(.*)</inputFilePattern>
-          <outputFilePattern>$1</outputFilePattern>
-          <replacements>
-            <replacement>
-              <token>@JAR_NAME@</token>
-              <value>${project.artifactId}-${project.version}</value>
-            </replacement>
-          </replacements>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -148,7 +169,7 @@
           </execution>
         </executions>
       </plugin>
-      
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
@@ -221,6 +242,19 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/opt/argo/client/config</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>755</filemode>
+              <configuration>true</configuration>
+              <sources>
+                <source>
+                  <location>target/generated-rpm-config/config</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/usr/local/bin</directory>
               <sources>
                 <softlinkSource>
@@ -251,7 +285,7 @@
         </configuration>
       </plugin>
     </plugins>
-    
-   
+
+
   </build>
 </project>

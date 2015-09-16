@@ -1,0 +1,16 @@
+# Transports
+
+transportName.1=Multicast
+transportEnabledOnStartup=true
+transportClassname.1=ws.argo.CLClient.transport.MulticastTransport
+transportConfigFilename.1=@INSTALL_DIR@/client/config/multicastTransport.prop
+
+#transportName.1=SNS
+#transportEnabledOnStartup=true
+#transportClassname.2=ws.argo.CLClient.transport.AmazonSNSTransport
+#transportConfigFilename.2=@INSTALL_DIR@/client/config/amazonSNSTransport.prop
+
+#transportName.1=MQTT
+#transportEnabledOnStartup=true
+#transportClassname.3=ws.argo.CLClient.transport.MQTTTransport
+#transportConfigFilename.3=@INSTALL_DIR@/client/config/mqttTransport.prop

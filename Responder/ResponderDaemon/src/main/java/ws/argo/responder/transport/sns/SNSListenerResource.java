@@ -16,6 +16,7 @@
 
 package ws.argo.responder.transport.sns;
 
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,11 +30,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import ws.argo.responder.transport.AmazonSNSTransport;
+import ws.argo.responder.transport.TransportConfigException;
 import ws.argo.wireline.probe.ProbeParseException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.XMLSerializer;
 import ws.argo.wireline.response.ResponseParseException;
-
 
 /**
  * This is the CL UI probe listener resource used by the JAX-RS container. It
@@ -48,14 +49,11 @@ public class SNSListenerResource {
   private static final Logger LOGGER = Logger.getLogger(SNSListenerResource.class.getName());
 
   private AmazonSNSTransport snsTransport;
-  
+
   public SNSListenerResource(AmazonSNSTransport snsTransport) {
     this.snsTransport = snsTransport;
-    LOGGER.info("Hey You.");
   }
 
-
-  
   /**
    * Inbound JSON responses get processed here.
    * 
@@ -67,66 +65,68 @@ public class SNSListenerResource {
   @Consumes("text/plain")
   public String handleSNSMessage(String message) {
 
-    String trimmedMessage = message.trim();
-    char leadingChar = trimmedMessage.charAt(0);
-    
-    switch (leadingChar) {
-      case '<' : processXML(trimmedMessage); break;
-      case '{' : processJson(trimmedMessage); break;
-      default:
-        break;
-    }
-    
-    System.out.println(message);
+    processJson(message);
 
-
-    
-    
-    
-    
-    return "got SNS message";
+    return "Argo Received SNS message";
   }
-  
-  private void processJson(String trimmedMessage) {
+
+  private void processJson(String message) {
 
     LOGGER.info("Processing JSON message");
 
     Gson gson = new Gson();
-
-    JsonObject jsonMsg = gson.fromJson(trimmedMessage, JsonObject.class);
-    
+    JsonObject jsonMsg = gson.fromJson(message, JsonObject.class);
     JsonElement type = jsonMsg.get("Type");
+
+    JsonElement token;
+    JsonElement arn;
     
     switch (type.getAsString()) {
-      case "SubscriptionConfirmation" :
-        JsonElement token = jsonMsg.get("Token");
-        JsonElement arn = jsonMsg.get("TopicArn");
+      case "SubscriptionConfirmation":
+        token = jsonMsg.get("Token");
+        arn = jsonMsg.get("TopicArn");
         handleSubscriptionConfirmation(arn.getAsString(), token.getAsString());
+        break;
+      case "UnsubscribeConfirmation":
+        token = jsonMsg.get("Token");
+        arn = jsonMsg.get("TopicArn");
+        handleUnsubscriptionConfirmation(arn.getAsString(), token.getAsString());
+        break;
+      case "Notification":
+        JsonElement probeString = jsonMsg.get("Message");
+        handleProbeMessage(probeString.getAsString());
         break;
       default:
         break;
-    }    
+    }
   }
 
-  private void processXML(String probeMessage) {
+  private void handleProbeMessage(String probeMessage) {
     LOGGER.info("Processing XML Probe message");
-    
+  
     try {
       XMLSerializer serializer = new XMLSerializer();
-
       ProbeWrapper probe = serializer.unmarshal(probeMessage);
-
       snsTransport.getProcessor().processProbe(probe);
-
+  
     } catch (ProbeParseException e) {
       LOGGER.log(Level.SEVERE, "Error parsing inbound probe payload.", e);
     }
+  }
 
+  private void handleUnsubscriptionConfirmation(String asString, String asString2) {
+    LOGGER.warning("Handling unsubscribe confirmation message.  Will resubscribe if not in shutdown.");
+    
+    try {
+      snsTransport.subscribe();
+    } catch (URISyntaxException | TransportConfigException e) {
+      LOGGER.log(Level.SEVERE, "Error during re-subscribe from housekeeping unsubscribe.", e);
+    }
     
   }
 
   private void handleSubscriptionConfirmation(String arn, String token) {
-    ConfirmSubscriptionResult result = snsTransport.getSNSClient().confirmSubscription(arn, token);  
+    ConfirmSubscriptionResult result = snsTransport.getSNSClient().confirmSubscription(arn, token);
     LOGGER.info("Confirmed Subsription to [" + arn + "] : " + result.toString());
   }
 

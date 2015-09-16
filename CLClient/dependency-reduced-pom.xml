@@ -3,7 +3,7 @@
   <parent>
     <artifactId>Argo</artifactId>
     <groupId>ws.argo</groupId>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.4.0-BETA</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>CLClient</artifactId>
@@ -21,21 +21,41 @@
             <goals>
               <goal>replace</goal>
             </goals>
+            <configuration>
+              <outputDir>${basedir}/target/generated-bin</outputDir>
+              <preserveDir>false</preserveDir>
+              <filesToInclude>${basedir}/src/resources/client/bin/*</filesToInclude>
+              <inputFilePattern>(.*)</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@JAR_NAME@</token>
+                  <value>${project.artifactId}-${project.version}</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+          <execution>
+            <id>process-rpm-config</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <outputDir>${basedir}/target/generated-rpm-config/config</outputDir>
+              <preserveDir>false</preserveDir>
+              <filesToInclude>${basedir}/src/resources/client/config/*</filesToInclude>
+              <inputFilePattern>(.*)</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@INSTALL_DIR@</token>
+                  <value>/opt/argo</value>
+                </replacement>
+              </replacements>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <outputDir>${basedir}/target/generated-bin</outputDir>
-          <preserveDir>false</preserveDir>
-          <filesToInclude>${basedir}/src/resources/client/bin/*</filesToInclude>
-          <inputFilePattern>(.*)</inputFilePattern>
-          <outputFilePattern>$1</outputFilePattern>
-          <replacements>
-            <replacement>
-              <token>@JAR_NAME@</token>
-              <value>${project.artifactId}-${project.version}</value>
-            </replacement>
-          </replacements>
-        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
@@ -155,6 +175,19 @@
                     <exclude>*.sh</exclude>
                     <exclude>*.bat</exclude>
                   </excludes>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/opt/argo/client/config</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>755</filemode>
+              <configuration>true</configuration>
+              <sources>
+                <source>
+                  <location>target/generated-rpm-config/config</location>
                 </source>
               </sources>
             </mapping>

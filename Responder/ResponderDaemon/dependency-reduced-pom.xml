@@ -3,12 +3,12 @@
   <parent>
     <artifactId>Responder</artifactId>
     <groupId>ws.argo.responder</groupId>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.4.0-BETA</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ResponderDaemon</artifactId>
   <name>Responder Daemon</name>
-  <version>0.3.2-SNAPSHOT</version>
+  <version>0.4.0-BETA</version>
   <description>This project is the actual Responder daemon and its accompanying script files.</description>
   <url>http://www.argo.ws</url>
   <build>
@@ -335,7 +335,7 @@
     <dependency>
       <groupId>ws.argo.probe</groupId>
       <artifactId>ProbeGenerator</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.4.0-BETA</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -346,7 +346,6 @@
     </dependency>
   </dependencies>
   <properties>
-    <jersey-version>1.19</jersey-version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <rpm-package-name>argo-responder</rpm-package-name>

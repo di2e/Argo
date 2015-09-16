@@ -210,15 +210,18 @@ public class ProbeHandlerThread implements Runnable {
         for (ProbeHandlerPluginIntf handler : handlers) {
           response = handler.handleProbeEvent(probe);
           if (!response.isEmpty()) {
-            LOGGER.fine("Response includes " + response.numberOfServices());
+            LOGGER.fine("Response to probe [" + probe.getProbeId() + "] includes " + response.numberOfServices());
             Iterator<RespondToURL> respondToURLs = probe.getRespondToURLs().iterator();
 
+            if (probe.getRespondToURLs().isEmpty())
+              LOGGER.warning("Processed probe [" + probe.getProbeId() + "] with no respondTo address. That's odd.");
+            
             if (respondToURLs.hasNext()) {
               RespondToURL respondToURL = respondToURLs.next();
               // we are ignoring the label for now
               boolean success = sendResponse(respondToURL.url, probe.getRespondToPayloadType(), response);
               if (!success) {
-                LOGGER.warning("Issue sending response to " + respondToURL.url);
+                LOGGER.warning("Issue sending probe [" + probe.getProbeId() + "] response to [" + respondToURL.url + "]");
               }
             }
 
@@ -230,7 +233,7 @@ public class ProbeHandlerThread implements Runnable {
       }
 
       markProbeAsHandled(probe.getProbeId());
-      
+
       responder.probeProcessed();
 
     } else {
