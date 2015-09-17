@@ -90,7 +90,7 @@ public class JSONSerializer {
 
       ws.argo.wireline.response.json.AccessPoint jsonap = new ws.argo.wireline.response.json.AccessPoint();
 
-      jsonap.withLabel(ap.label).withIpAddress(ap.ipAddress).withPort(ap.port).withUrl(ap.port);
+      jsonap.withLabel(ap.label).withIpAddress(ap.ipAddress).withPort(ap.port).withUrl(ap.url);
       jsonap.withDataType(ap.dataType).withData(ap.data);
 
       accessPoints.add(jsonap);

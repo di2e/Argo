@@ -10,7 +10,7 @@
 
   <fileSets>
     <fileSet>
-      <directory>${basedir}/src/resources/client/config</directory>
+      <directory>${basedir}/target/generated-rpm-config/config</directory>
       <outputDirectory>/client/config</outputDirectory>
       <filtered>true</filtered>
       <fileMode>0444</fileMode>
