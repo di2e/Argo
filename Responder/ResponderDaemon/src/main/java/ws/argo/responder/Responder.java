@@ -332,24 +332,33 @@ public class Responder implements ProbeProcessor {
    * @return probes per second
    */
   public synchronized float probesPerSecond() {
-    Instant[] m = messages.toArray(new Instant[messages.size()]);
 
-    if (m.length == 0)
-      return 0;
+    Instant now = new Instant();
 
-    int offset = 1;
-    Instant oldest = m[0];
-    Instant newest = m[m.length - offset];
+    Instant event = null;
+    int events = 0;
+    long deltaTime = 0;
+    boolean done = false;
+    long timeWindow = 0;
+    long oldestTime = 0;
 
-    while (newest == null) {
-      offset++;
-      newest = m[m.length - offset];
-    }
+    do {
+      event = messages.poll();
+      if (event != null) {
+        events++;
+        if (events == 1)
+          oldestTime = event.getMillis();
+        done = event.getMillis() >= now.getMillis();
+      } else {
+        done = true;
+      }
+    } while (!done);
 
-    float seconds = (float) ((newest.getMillis() - oldest.getMillis()) / 1000.0);
-    // System.out.println(oldest + ":" + newest + " - " + m.length + " - " +
-    // seconds);
-    float mps = m.length / seconds;
+    timeWindow = now.getMillis() - oldestTime;
+    
+    float mps = (float) events / timeWindow;
+    mps = (float) (mps * 1000.0);
+
 
     return mps;
 
