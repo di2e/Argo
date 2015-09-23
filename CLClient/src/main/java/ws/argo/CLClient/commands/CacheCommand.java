@@ -135,6 +135,8 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
           Console.info(i + ": " + desc);
           i++;
         }
+      } else {
+        Console.info("Empty cache.");
       }
 
       return CommandResult.OK;

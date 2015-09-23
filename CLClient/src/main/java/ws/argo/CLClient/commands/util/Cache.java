@@ -9,7 +9,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.listener.ResponseCache;
 import ws.argo.wireline.response.JSONSerializer;
 import ws.argo.wireline.response.ResponseParseException;
