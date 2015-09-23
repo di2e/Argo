@@ -12,9 +12,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.UnsupportedPayloadType;
 
+/**
+ * Test the Responder using JSON as the payload format.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponderProbeJSONTest extends ResponderProbeTest {
 
   private String nakedProbeJSONResponseFromListener;
@@ -36,7 +42,7 @@ public class ResponderProbeJSONTest extends ResponderProbeTest {
   }
 
   @Test
-  public void testNakedProbeJSON() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeGeneratorException {
+  public void testNakedProbeJSON() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeSenderException {
     Probe probe = new Probe(Probe.JSON);
     probe.addRespondToURL("", "http://localhost:9998/listener/probeResponse");
     gen.sendProbe(probe); // Send the naked probe

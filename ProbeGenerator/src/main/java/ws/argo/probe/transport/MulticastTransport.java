@@ -8,13 +8,14 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBException;
 
 import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeSenderException;
 
 /**
  * The MulticastTransport class encapsulates the mechanics of sending the probe
@@ -25,9 +26,9 @@ import ws.argo.probe.ProbeGeneratorException;
  */
 public class MulticastTransport implements Transport {
 
-  private static final String DEFAULT_ARGO_GROUP = "230.0.0.1";
-
-  private static final int DEFAULT_ARGO_PORT = 4003;
+  public static final String DEFAULT_ARGO_GROUP       = "230.0.0.1";
+  public static final String DEFAULT_ARGO_PORT_STRING = "4003";
+  public static final int DEFAULT_ARGO_PORT = 4003;
 
   private static final Logger LOGGER = Logger.getLogger(MulticastTransport.class.getName());
 
@@ -40,14 +41,11 @@ public class MulticastTransport implements Transport {
   protected MulticastSocket outboundSocket = null;
 
   /**
-   * Create a MulticastTransport that connects to the network interface
-   * associated with localhost - see {@linkplain InetAddress#getLocalHost()}.
+   * Default constructor. Usually followed by the
+   * {@linkplain #initialize(Properties, String)} call.
    * 
-   * @throws ProbeGeneratorException if something goes wrong at the network
-   *           layer
    */
-  public MulticastTransport() throws ProbeGeneratorException {
-    this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT);
+  public MulticastTransport() {
   }
 
   /**
@@ -55,10 +53,10 @@ public class MulticastTransport implements Transport {
    * 
    * @param niName - the name of the NetworkInterface - see
    *          {@linkplain NetworkInterface#getByName(String)}
-   * @throws ProbeGeneratorException if something goes wrong at the network
-   *           layer
+   * @throws TransportConfigException if something goes wrong at the
+   *           network layer
    */
-  public MulticastTransport(String niName) throws ProbeGeneratorException {
+  public MulticastTransport(String niName) throws TransportConfigException {
     this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT, niName);
   }
 
@@ -67,15 +65,14 @@ public class MulticastTransport implements Transport {
    * 
    * @param multicastAddress the multicast group
    * @param multicastPort the port
-   * @throws ProbeGeneratorException if there is a problem joining the multicast
-   *           group
+   * @throws TransportConfigException if there is a problem joining the
+   *           multicast group
    */
-  public MulticastTransport(String multicastAddress, int multicastPort) throws ProbeGeneratorException {
+  public MulticastTransport(String multicastAddress, int multicastPort) throws TransportConfigException {
     this.multicastAddress = multicastAddress;
     this.multicastPort = multicastPort;
 
-    joinGroup(""); // This will attach to the localhost NI
-    LOGGER.info("MulticastTransport ready to send on [" + multicastAddress + "]");
+    initialize(""); // This will attach to the localhost NI
 
   }
 
@@ -85,17 +82,47 @@ public class MulticastTransport implements Transport {
    * @param multicastAddress the multicast group
    * @param multicastPort the port
    * @param niName the Network Interface name
-   * @throws ProbeGeneratorException if something goes wrong at the network
-   *           layer
+   * @throws TransportConfigException if something goes wrong at the
+   *           network layer
    */
-  public MulticastTransport(String multicastAddress, int multicastPort, String niName) throws ProbeGeneratorException {
+  public MulticastTransport(String multicastAddress, int multicastPort, String niName) throws TransportConfigException {
     this.multicastAddress = multicastAddress;
     this.multicastPort = multicastPort;
 
+    initialize(niName);
+
+  }
+
+  @Override
+  public void initialize(Properties p, String networkInterface) throws TransportConfigException {
+    this.multicastAddress = p.getProperty("multicastAddress", DEFAULT_ARGO_GROUP);
+
+    try {
+      String multicastPort = p.getProperty("multicastPort", DEFAULT_ARGO_PORT_STRING);
+      this.multicastPort = Integer.parseInt(multicastPort);
+    } catch (NumberFormatException e) {
+      LOGGER.log(Level.WARNING, "MulticastTransport initialization error.  Unable to read multicastPort during initialization.");
+      LOGGER.log(Level.WARNING, "Value provided is [" + multicastPort + "].  Using default port of [" + DEFAULT_ARGO_PORT + "]");
+      this.multicastPort = DEFAULT_ARGO_PORT;
+    }
+
+    initialize(networkInterface);
+
+  }
+
+  /**
+   * This is the private initialization function that will actually to the
+   * connection to the network. This only gets called after a legitimate
+   * construction pattern is followed.
+   * 
+   * @param niName the name of the network interface to use or an empty string
+   *          to denote the localhost interface.
+   * @throws TransportConfigException if some thing went wrong joining
+   *           the multicast group.
+   */
+  private void initialize(String niName) throws TransportConfigException {
     joinGroup(niName);
-
     LOGGER.info("MulticastTransport ready to send on " + niName);
-
   }
 
   /**
@@ -110,7 +137,7 @@ public class MulticastTransport implements Transport {
    * 
    * @param niName the name of the Network Interface
    */
-  void joinGroup(String niName) throws ProbeGeneratorException {
+  void joinGroup(String niName) throws TransportConfigException {
     InetSocketAddress socketAddress = new InetSocketAddress(multicastAddress, multicastPort);
 
     try {
@@ -138,7 +165,7 @@ public class MulticastTransport implements Transport {
     } catch (IOException e) {
 
       if (networkInterface == null) {
-        throw new ProbeGeneratorException("Error attempting to joint multicast address: ", e);
+        throw new TransportConfigException("Error attempting to joint multicast address: ", e);
       } else {
 
         StringBuffer buf = new StringBuffer();
@@ -164,7 +191,7 @@ public class MulticastTransport implements Transport {
         }
         buf.append("v:" + networkInterface.isVirtual() + ") ");
 
-        throw new ProbeGeneratorException(networkInterface.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString(), e);
+        throw new TransportConfigException(networkInterface.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString(), e);
       }
     }
   }
@@ -173,11 +200,11 @@ public class MulticastTransport implements Transport {
    * Actually send the probe out on the wire.
    * 
    * @param probe the Probe instance that has been pre-configured
-   * @throws ProbeGeneratorException if something bad happened when sending the
+   * @throws ProbeSenderException if something bad happened when sending the
    *           probe
    */
   @Override
-  public void sendProbe(Probe probe) throws ProbeGeneratorException {
+  public void sendProbe(Probe probe) throws ProbeSenderException {
 
     LOGGER.info("Sending probe [" + probe.getProbeID() + "] on network inteface [" + networkInterface.getName() + "] at port [" + multicastAddress + ":" + multicastPort + "]");
     LOGGER.finest("Probe requesting TTL of [" + probe.getHopLimit() + "]");
@@ -199,19 +226,19 @@ public class MulticastTransport implements Transport {
       LOGGER.finest("Probe sent on port [" + multicastAddress + ":" + multicastPort + "]");
 
     } catch (IOException e) {
-      throw new ProbeGeneratorException("Unable to send probe. Issue sending UDP packets.", e);
+      throw new ProbeSenderException("Unable to send probe. Issue sending UDP packets.", e);
     } catch (JAXBException e) {
-      throw new ProbeGeneratorException("Unable to send probe because it could not be serialized to XML", e);
+      throw new ProbeSenderException("Unable to send probe because it could not be serialized to XML", e);
     }
 
   }
 
-  public void close() throws ProbeGeneratorException {
+  public void close() throws ProbeSenderException {
     this.outboundSocket.close();
   }
 
   /**
-   * Return the name of the NetworkInterface this ProbeGenerator is attached to.
+   * Return the name of the NetworkInterface this ProbeSender is attached to.
    * If for some reason it's null, then return UNKNOWN.
    * 
    * @return the name of the NetworkInterface
@@ -241,9 +268,14 @@ public class MulticastTransport implements Transport {
     StringBuffer buf = new StringBuffer();
     buf.append("Multicast Transport - ");
     buf.append(" mcast group [").append(multicastAddress).append("] - port [")
-      .append(multicastPort).append("] on NI [").append(getNIName()).append("]");
-    
+        .append(multicastPort).append("] on NI [").append(getNIName()).append("]");
+
     return buf.toString();
+  }
+
+  @Override
+  public String getNetworkInterfaceName() {
+    return getNIName();
   }
 
 }

@@ -10,22 +10,28 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import ws.argo.probe.ProbeGenerator;
-import ws.argo.probe.ProbeGeneratorException;
-import ws.argo.probe.ProbeGeneratorFactory;
+import ws.argo.probe.ProbeSender;
+import ws.argo.probe.ProbeSenderException;
+import ws.argo.probe.ProbeSenderFactory;
+import ws.argo.probe.transport.TransportConfigException;
 import ws.argo.responder.Responder;
 import ws.argo.responder.ResponderConfigException;
-import ws.argo.responder.ResponderOperationException;
 import ws.argo.responder.test.listener.ResponseListener;
 
-
+/**
+ * Test Responder. This is an abstract class that provides some boilerplate to
+ * the other concrete tests.
+ * 
+ * @author jmsimpson
+ *
+ */
 public abstract class ResponderProbeTest {
 
   static Responder          responder;
   private static HttpServer server;
-  static WebTarget        target;
+  static WebTarget          target;
   private static Thread     responderThread;
-  static ProbeGenerator     gen = null;
+  static ProbeSender        gen = null;
 
   // /**
   // * reads in the test payload text to check responses against. better then
@@ -51,9 +57,9 @@ public abstract class ResponderProbeTest {
     responder = Responder.initialize(args);
 
     responderThread = new Thread("Argo Responder") {
-      public void run() {       
-          responder.run();
-          System.out.println("Argo Responder ended");
+      public void run() {
+        responder.run();
+        System.out.println("Argo Responder ended");
       }
     };
     responderThread.start();
@@ -70,13 +76,14 @@ public abstract class ResponderProbeTest {
    * @throws InterruptedException - to support the Thread sleep function
    * @throws ResponderConfigException if there is some issue in the Responder
    *           configuration
-   * @throws ProbeGeneratorException if something goes wrong with the Probe
+   * @throws ProbeSenderException if something goes wrong with the Probe
    *           Generator
+   * @throws TransportConfigException  if something goes wrong
    */
   @BeforeClass
-  public static void startupTheGear() throws IOException, InterruptedException, ResponderConfigException, ProbeGeneratorException {
-    gen = ProbeGeneratorFactory.createMulticastProbeGenerator();
-        
+  public static void startupTheGear() throws IOException, InterruptedException, ResponderConfigException, ProbeSenderException, TransportConfigException {
+    gen = ProbeSenderFactory.createMulticastProbeSender();
+
     startResponder();
     startListener();
 
@@ -88,10 +95,10 @@ public abstract class ResponderProbeTest {
    * Turn off the test harness processes.
    * 
    * @throws InterruptedException - to support the Thread sleep function
-   * @throws ProbeGeneratorException if some problem occurred closing the transport
+   * @throws ProbeSenderException if some problem occurred closing the transport
    */
   @AfterClass
-  public static void tearDown() throws InterruptedException, ProbeGeneratorException {
+  public static void tearDown() throws InterruptedException, ProbeSenderException {
 
     responder.stopResponder();
     gen.close();

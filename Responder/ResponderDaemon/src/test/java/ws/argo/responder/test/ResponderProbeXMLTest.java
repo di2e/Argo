@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.UnsupportedPayloadType;
 import ws.argo.wireline.probe.ProbeWrapper;
 
@@ -38,7 +38,7 @@ public class ResponderProbeXMLTest extends ResponderProbeTest {
   }
   
   @Test
-  public void testNakedProbeXML() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeGeneratorException {
+  public void testNakedProbeXML() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeSenderException {
     Probe probe = new Probe(ProbeWrapper.XML);
     probe.addRespondToURL("", "http://localhost:9998/listener/probeResponse");
     gen.sendProbe(probe); // Send the naked probe

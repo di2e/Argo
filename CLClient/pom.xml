@@ -18,7 +18,7 @@
     <dependency>
       <groupId>ws.argo.probe</groupId>
       <version>0.4.0-BETA</version>
-      <artifactId>ProbeGenerator</artifactId>
+      <artifactId>ProbeSender</artifactId>
     </dependency>
     <dependency>
       <groupId>ws.argo.commandline</groupId>

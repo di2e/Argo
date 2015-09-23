@@ -20,12 +20,13 @@ import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClient;
 import ws.argo.CLClient.ArgoClientContext;
-import ws.argo.probe.ProbeGenerator;
+import ws.argo.CLClient.ClientTransport;
+import ws.argo.probe.ProbeSender;
 
 /**
  * This Config command is used to configure various things including the probe
- * generators and associated transports. I'd rather do this differently (with
- * plugable and configurable transports) but that is a bridge too far for this
+ * senders and associated transports. I'd rather do this differently (with
+ * pluggable and configurable transports) but that is a bridge too far for this
  * release. I'll hardcode in new transports as I go for now.
  * 
  * @author jmsimpson
@@ -41,31 +42,56 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
   private String _url;
 
   /**
-   * Manage the configuration of the probe generators.
+   * Manage the configuration of the probe transports.
    * 
    * @author jmsimpson
    *
    */
-  @Parameters(commandNames = { "gen" }, commandDescription = "manage the generators/transports")
-  public class Generator extends CompoundCommand<ArgoClientContext> {
+  @Parameters(commandNames = { "transport" }, commandDescription = "manage the transports")
+  public class Transport extends CompoundCommand<ArgoClientContext> {
 
     /**
-     * List the probe generator/transports that are currently active.
+     * List the probe transports that are currently active.
      * 
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "list" }, commandDescription = "list the currently setup probe generators.")
+    @Parameters(commandNames = { "show" }, commandDescription = "shows the configuration of the named transports.")
+    public class Show extends Command<ArgoClientContext> {
+
+      @Parameter(names = { "-n", "--name" }, description = "name of the transport.", required = true)
+      private String _transportName;
+
+      @Override
+      protected CommandResult innerExecute(ArgoClientContext context) {
+
+        ClientTransport transport = context.getClientTransportNamed(_transportName);
+        if (transport != null) {
+          Console.info(transport.showConfiguration());
+        } else {
+          Console.error("No transport named [" + _transportName + "]");
+        }
+        return CommandResult.OK;
+      }
+
+    }
+
+    /**
+     * List the probe transports that are currently active.
+     * 
+     * @author jmsimpson
+     *
+     */
+    @Parameters(commandNames = { "list" }, commandDescription = "list the currently setup probe transports.")
     public class List extends Command<ArgoClientContext> {
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        Map<String, ProbeGenerator> gens = context.getProbeGenerators();
+        ArrayList<ClientTransport> gens = context.getClientTransports();
 
-        for (String s : gens.keySet()) {
-          ProbeGenerator gen = gens.get(s);
-          Console.info(s + " : " + gen.getDescription());
+        for (ClientTransport t : gens) {
+          Console.info(t.getDescription());
         }
 
         return CommandResult.OK;
@@ -74,123 +100,95 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     }
 
     /**
-     * Configure and manage the SNS Transport probe generator.
+     * List the probe transports that are currently active.
      * 
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "enableSNS" }, commandDescription = "Enable/configure the SNS probe generator.")
-    public class UseSNS extends Command<ArgoClientContext> {
+    @Parameters(commandNames = { "enable" }, commandDescription = "enables a transport with the given name.")
+    public class Enable extends Command<ArgoClientContext> {
 
-      @Parameter(names = { "-ak", "--accessKey" }, description = "Amazon Access Key")
-      private String _ak;
-
-      @Parameter(names = { "-sk", "--secretKey" }, description = "Amazon Secret Key")
-      private String _sk;
-
-      @Parameter(names = { "-arn", "--topicARN" }, description = "SNS Topic ARN")
-      private String _arn;
+      @Parameter(names = { "-n", "--name" }, description = "name of the transport.", required = true)
+      private String _transportName;
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
-        boolean recreateSNSTransport = false;
-        
-        if (_ak != null) {
-          context.setAccessKey(_ak);
-          recreateSNSTransport = true;
+
+        ClientTransport transport = context.getClientTransportNamed(_transportName);
+
+        if (transport != null) {
+          transport.setEnabled(true);
+        } else {
+          Console.error("No transport named [" + _transportName + "]");
         }
 
-        if (_sk != null) {
-          context.setSecretKey(_sk);
-          recreateSNSTransport = true;
-        }
-
-        if (_arn != null) {
-          context.setSNSTopicARN(_arn);
-          recreateSNSTransport = true;
-        }
-
-        if (context.getAccessKey() == null || context.getSecretKey() == null) {
-          Console.error("Either the Amazon Acccess Key or the Secrey key has not been set.");
-          Console.error("Please setup the Amazon keys using the 'enableSNS -ak <key> -sk <key>' command.");
-          return CommandResult.ERROR;
-        }
-
-        context.setUseSNS(true);
-        if (recreateSNSTransport)
-          context.initializeSNSProbeGenerator();
-        Console.info("Client will now use SNS.");
         return CommandResult.OK;
       }
 
     }
 
     /**
-     * Configure and manage the Multicast Transport probe generator.
+     * List the probe transports that are currently active.
      * 
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "enableMC" }, commandDescription = "enable the Multicast probe generators.")
-    public class UseMC extends Command<ArgoClientContext> {
+    @Parameters(commandNames = { "disable" }, commandDescription = "disables a transport with the given name.")
+    public class Disable extends Command<ArgoClientContext> {
 
-      @Parameter(names = { "-ma", "--multicastAddress" }, description = "Multicast Address")
-      private String _ma;
-
-      @Parameter(names = { "-mp", "--multicastPort" }, description = "Multicast Port")
-      private String _mp;
+      @Parameter(names = { "-n", "--name" }, description = "name of the transport.", required = true)
+      private String _transportName;
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        if (_ma != null) {
-          context.setMulticastAddress(_ma);
-        }
+        ClientTransport transport = context.getClientTransportNamed(_transportName);
 
-        if (_mp != null) {
-          context.setMulticastPort(_mp);
+        if (transport != null) {
+          transport.setEnabled(false);
+        } else {
+          Console.error("No transport named [" + _transportName + "]");
         }
-
-        context.setUseMulticast(true);
-        Console.info("Client will now use Multicast.");
         return CommandResult.OK;
       }
 
     }
 
     /**
-     * Disable the SNS transport.
+     * List the probe transports that are currently active.
      * 
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "disableSNS" }, commandDescription = "Do not the SNS probe generator.")
-    public class NoSNS extends Command<ArgoClientContext> {
+    @Parameters(commandNames = { "reload" }, commandDescription = "reloads a transport with the given name.")
+    public class Reload extends Command<ArgoClientContext> {
+
+      @Parameter(names = { "-n", "--name" }, description = "name of the transport.", required = true)
+      private String _transportName;
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        context.setUseSNS(false);
-        Console.info("Client will not use SNS");
         return CommandResult.OK;
       }
 
     }
 
     /**
-     * Disable the MC transport.
+     * List the probe transports that are currently active.
      * 
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "disableMC" }, commandDescription = "Do not the MC probe generators.")
-    public class NoMC extends Command<ArgoClientContext> {
+    @Parameters(commandNames = { "restart" }, commandDescription = "restart a transport with the given name.")
+    public class Restart extends Command<ArgoClientContext> {
+
+      @Parameter(names = { "-n", "--name" }, description = "name of the transport.", required = true)
+      private String _transportName;
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        context.setUseMulticast(false);
-        Console.info("Client will not use Multicast");
         return CommandResult.OK;
       }
 
@@ -214,16 +212,31 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
      * @author jmsimpson
      *
      */
-    @Parameters(commandNames = { "avail" }, commandDescription = "show available multicast network interfaces.")
+    @Parameters(commandNames = { "avail" }, commandDescription = "show available network interfaces.")
     public class Available extends Command<ArgoClientContext> {
+
+      @Parameter(names = { "-mc", "--multicast" }, description = "show only multicast enabled")
+      private boolean _mcEnabled;
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        Map<String, ProbeGenerator> probeGens = context.getProbeGenerators();
+        List<String> niNames;
+        try {
+          niNames = context.getAvailableNetworkInterfaces(_mcEnabled);
+        } catch (SocketException e1) {
+          Console.error("Issues getting the available network interfaces.");
+          Console.error(e1.getMessage());
+          return CommandResult.ERROR;
+        }
 
-        Console.info("Available Multicast-enabled Network Interfaces");
-        for (String niName : probeGens.keySet()) {
+        if (_mcEnabled) {
+          Console.info("Available Multicast enabled Network Interfaces");
+        } else {
+          Console.info("All Available Network Interfaces");
+        }
+
+        for (String niName : niNames) {
           try {
             NetworkInterface ni = NetworkInterface.getByName(niName);
             StringBuffer buf = new StringBuffer();
@@ -246,8 +259,8 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
     /**
      * Enable or use the specified NI. This will tell the
-     * {@linkplain ArgoClientContext#getProbeGenerators()} call to return the
-     * pre-created MC probe generator in the list of ProbeGenerator to use when
+     * {@linkplain ClientTransport#getSenders()} call to return the
+     * pre-created MC probe sender in the list of ProbeSender to use when
      * sending a probe.
      * 
      * @author jmsimpson
@@ -261,13 +274,6 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
-
-        if (!context.isUseMulticast()) {
-          Console.error("Cannot use network interfaces at the moment as multicast is not in use.");
-          Console.error("Use 'config useMC' command to start using multicast.");
-
-          return CommandResult.OK;
-        }
 
         if (!_niNames.isEmpty()) {
           for (String niName : _niNames) {
@@ -311,13 +317,6 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        if (!context.isUseMulticast()) {
-          Console.error("Cannot use network interfaces at the moment as multicast is not in use.");
-          Console.error("Use 'config useMC' command to start using multicast.");
-
-          return CommandResult.OK;
-        }
-
         if (!_niNames.isEmpty()) {
           for (String niName : _niNames) {
             NetworkInterface ni = null;
@@ -334,8 +333,9 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
                 context.getNIList().remove(niName);
                 Console.info("Ignoring Network Interface named [" + niName + "]");
                 if (context.getNIList().isEmpty()) {
-                  Console.info("ATTENTION:  You are not using any available Network Interfaces to send multicast traffic.  You must use at least one NI to send probes.");
-                  Console.info("This is the same as 'config noMC'.  Please use an avaialable NI.");
+                  Console.info("ATTENTION:  You are not using any available Network Interfaces to send probes that require a NI to work.");
+                  Console.info("ATTENTION:  You must use at least one NI to send probes for those type of transports.");
+                  Console.info("ATTENTION:  Use 'config transport list' to see which transports require a NI.");
                 }
               } else {
                 Console.info("Already ignoring Network Interface named [" + niName + "]");
@@ -360,35 +360,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        if (!context.isUseMulticast()) {
-          Console.error("Cannot use network interfaces at the moment as multicast is not in use.");
-          Console.error("Use 'config useMC' command to start using multicast.");
-
-          return CommandResult.OK;
-        }
-
-        InetAddress localhost;
-        NetworkInterface ni = null;
-        List<String> niList = new ArrayList<String>();
-        try {
-          localhost = InetAddress.getLocalHost();
-          ni = NetworkInterface.getByInetAddress(localhost);
-
-          if (ni != null && context.getProbeGenerators().containsKey(ni.getName())) {
-            niList.add(ni.getName());
-          } else {
-            Console.warn("Unable to get a Probe Generator for NI name [" + ni.getName() + "].");
-            String niName = context.getProbeGenerators().keySet().iterator().next();
-            Console.warn("Using NI name [" + niName + "] instead.");
-            niList.add(niName);
-          }
-
-        } catch (SocketException | UnknownHostException e) {
-          Console.severe("Cannot get the Network Interface for localhost");
-          Console.severe(e.getMessage());
-        }
-
-        context.setNIList(niList);
+        context.resetNIList();
 
         return CommandResult.OK;
 
@@ -412,24 +384,17 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       Console.info("    (use 'config -defaultCID' to change)");
 
       Console.info("\n------------------ Client URL Information --------------------");
-      Console.info("  Client Listener RespondTo URL ... " + context.getURL());
+      Console.info("  Client Listener URL ...... " + context.getListenerURL());
+      Console.info("  Client RespondTo URL ..... " + context.getRespondToURL());
       Console.info("    (use 'config -url' to change.  Setting this will restart the listener)");
 
-      Console.info("\n--------------- Multicast Transport Information ---------------");
-      Console.info("  (use config gen enableMC to enable/set MC transport settings)");
-      Console.info("  Multicast Enabled ......... " + context.isUseMulticast());
-      Console.info("  Multicast Group Address ... " + context.getMulticastAddress());
-      Console.info("  Multicast Port ............ " + context.getMulticastPort());
-      Console.info("  Network Interfaces ........ " + context.getNIList());
-      Console.info("    (use 'config ni avail' to see all available network interfaces)");
-      Console.info("    (use 'config ni use' to use a particular network interface)");
+      Console.info("\n------------------ Configured Transports --------------------");
 
-      Console.info("\n------------- Amazon SNS Transport Information -----------------");
-      Console.info("  SNS Generators Enabled =   " + context.isUseSNS());
-      Console.info("  SNS Topic ARN =            " + context.getSNSTopicARN());
-      Console.info("  Amazon Access Key =        " + context.getAccessKey());
-      Console.info("  Amazon Access Key =        " + context.getSecretKey());
-      Console.info("    (use config gen enableSNS to enable/set SNS transport settings)");
+      List<ClientTransport> transports = context.getClientTransports();
+
+      for (ClientTransport t : transports) {
+        Console.info(t.showConfiguration());
+      }
 
       return CommandResult.OK;
     }

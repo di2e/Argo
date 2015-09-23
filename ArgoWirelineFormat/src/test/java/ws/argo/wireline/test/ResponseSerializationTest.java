@@ -45,7 +45,7 @@ public class ResponseSerializationTest {
   private static String       corruptPayload1;
 
   @BeforeClass
-  public static void setupProbeGenerator() throws IOException {
+  public static void setupProbeSender() throws IOException {
     System.out.println(System.getProperty("java.version"));
     readXMLFiles();
   }

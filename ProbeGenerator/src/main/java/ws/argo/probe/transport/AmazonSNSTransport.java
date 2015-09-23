@@ -1,5 +1,6 @@
 package ws.argo.probe.transport;
 
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,7 +13,7 @@ import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 
 import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeSenderException;
 
 /**
  * The AmazonSNSTransport class encapsulates the mechanics of sending the probe
@@ -29,6 +30,18 @@ public class AmazonSNSTransport implements Transport {
 
   private AmazonSNSClient snsClient;
   private String          argoTopicName = DEFAULT_TOPIC_NAME;
+  private String          ak;
+  private String          sk;
+
+  /**
+   * Default constructor. Usually followed by the
+   * {@linkplain #initialize(Properties, String)} call.
+   * 
+   * @throws TransportConfigException if something goes wrong at the
+   *           network layer
+   */
+  public AmazonSNSTransport() {
+  }
 
   public AmazonSNSTransport(String ak, String sk) {
     AWSCredentials creds = new BasicAWSCredentials(ak, sk);
@@ -41,12 +54,23 @@ public class AmazonSNSTransport implements Transport {
   }
 
   @Override
-  public void sendProbe(Probe probe) throws ProbeGeneratorException {
+  public void initialize(Properties p, String networkInterface) throws TransportConfigException {
+    this.argoTopicName = p.getProperty("argoTopicName", DEFAULT_TOPIC_NAME);
+    this.ak = p.getProperty("amazonAccessKey");
+    this.sk = p.getProperty("amazonSecretKey");
+    if (this.ak == null || this.sk == null)
+      throw new TransportConfigException("The AK and/or the SK was not specified.");
+    AWSCredentials creds = new BasicAWSCredentials(ak, sk);
+    snsClient = new AmazonSNSClient(creds);
+  }
+
+  @Override
+  public void sendProbe(Probe probe) throws ProbeSenderException {
     String msg;
     try {
       msg = probe.asXML();
     } catch (JAXBException e) {
-      throw new ProbeGeneratorException("Error trying to send probe payload", e);
+      throw new ProbeSenderException("Error trying to send probe payload", e);
     }
     PublishRequest publishRequest = new PublishRequest(argoTopicName, msg);
     PublishResult publishResult = snsClient.publish(publishRequest);
@@ -62,7 +86,7 @@ public class AmazonSNSTransport implements Transport {
   }
 
   @Override
-  public void close() throws ProbeGeneratorException {
+  public void close() throws ProbeSenderException {
     // Nothing to do
   }
 
@@ -76,6 +100,11 @@ public class AmazonSNSTransport implements Transport {
         .append(snsClient.toString()).append("]");
 
     return buf.toString();
+  }
+
+  @Override
+  public String getNetworkInterfaceName() {
+    return "UNASSIGNED";
   }
 
 }

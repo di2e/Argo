@@ -78,4 +78,33 @@ public class Cache {
     return descriptions;
   }
 
+  /**
+   * 
+   * @param pretty
+   * @return
+   */
+  public String asJSON(boolean pretty) {
+    JSONSerializer ser = new JSONSerializer();
+    Gson gson = new Gson();
+    Gson prettyJson = new GsonBuilder().setPrettyPrinting().create();
+
+    JsonArray cacheArray = new JsonArray();
+    
+    String cacheAsString;
+
+    for (ServiceWrapper s : cache) {
+      String json = ser.marshalService(s);
+      JsonObject jsonService = gson.fromJson(json, JsonObject.class);
+      cacheArray.add(jsonService);
+    }
+
+    if (pretty) {
+      cacheAsString = prettyJson.toJson(cacheArray);
+    } else {
+      cacheAsString = gson.toJson(cacheArray);
+    }
+
+    return cacheAsString;
+  }
+
 }

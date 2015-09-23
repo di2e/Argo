@@ -1,8 +1,12 @@
 package ws.argo.CLClient;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,14 +26,12 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.glassfish.grizzly.http.server.HttpServer;
 
-
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.CommandLineApplication;
 import net.dharwin.common.tools.cli.api.annotations.CLIEntry;
 import net.dharwin.common.tools.cli.api.console.Console;
 import net.dharwin.common.tools.cli.api.exceptions.CLIInitException;
 import ws.argo.CLClient.listener.ResponseListener;
-import ws.argo.probe.ProbeGenerator;
 
 /**
  * The ArgoClient represents the command line client for sending probes and
@@ -41,14 +43,15 @@ import ws.argo.probe.ProbeGenerator;
 @CLIEntry
 public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 
-  private static final Logger LOGGER = Logger.getLogger(ProbeGenerator.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(ArgoClient.class.getName());
 
-  static final String DEFAULT_TOPIC_NAME = "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
+  static final String DEFAULT_TOPIC_NAME    = "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
   static final String DEFAULT_LISTENER_HOST = "localhost";
 
   private HttpServer server;
-  
-  private Properties _properties;
+
+  private Properties                       _properties;
+  private ArrayList<TransportConfig> _transportConfigs = new ArrayList<TransportConfig>();
 
   public ArgoClient() throws CLIInitException {
     super();
@@ -58,24 +61,31 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     String urlString = getProperties().getProperty("url");
     URI listenerURL = ResponseListener.DEFAULT_LISTENER_URI;
     if (urlString != null)
-      listenerURL = new URI(urlString); //This should not be malformed as it's checked earlier
-    
+      listenerURL = new URI(urlString); // This should not be malformed as it's
+                                        // checked earlier
+
     server = ResponseListener.startServer(listenerURL);
     Client client = ClientBuilder.newClient();
     WebTarget target = client.target(listenerURL);
     _appContext.put("listener", target);
   }
 
-  
   @Override
   public void initialize(String[] args) throws CLIInitException {
-    _properties = parseCommandLine(args);
+    Console.info("Starting Argo Client ...");
+    try {
+      _properties = parseCommandLine(args);
+    } catch (ArgoClientConfigException e) {
+      throw new CLIInitException("Argo Configuration Error", e);
+    }
     setPrompt("Argo");
     super.initialize(args);
     startServices();
   }
 
   /**
+   * This will restart the embedded HTTP(S) Grizzly server that acts as the
+   * listener for the Probe responses.
    * 
    * @param _url the new URL for the listener to use
    */
@@ -110,13 +120,16 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
   protected CLIContext createContext() {
     return new ArgoClientContext(this);
   }
-  
+
   public Properties getProperties() {
     return _properties;
   }
-    
-    
-  private static Properties parseCommandLine(String[] args) {
+
+  public ArrayList<TransportConfig> getTransportConfigs() {
+    return _transportConfigs;
+  }
+
+  private Properties parseCommandLine(String[] args) throws ArgoClientConfigException {
     CommandLineParser parser = new BasicParser();
     Properties cliValues = new Properties();
 
@@ -140,162 +153,150 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 
     return cliValues;
   }
-  
-  private static Properties processCommandLine(CommandLine cl) {
+
+  private Properties processCommandLine(CommandLine cl) throws ArgoClientConfigException {
 
     LOGGER.fine("Parsing command line values:");
 
     Properties propsConfig = new Properties();
 
-    
-    // Might use a Properties file in the future
-    
-//    if (cl.hasOption("pf")) {
-//      String propsFilename = cl.getOptionValue("pf");
-//      try {
-//        propsConfig = processPropertiesValue(propsFilename, propsConfig);
-//      } catch (ResponderConfigException e) {
-//        LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + propsFilename + "] due to:", e);
-//        throw e;
-//      }
-//    } else {
-//      LOGGER.warning("WARNING: no properties file specified.  Working off cli override arguments.");
-//    }
-
-
-    // If the options explicitly do not want you to use multicast
-    propsConfig.put("useMC", !cl.hasOption("noMC"));
-
-    // If the options explicitly want you to use SNS
-    propsConfig.put("useSNS", cl.hasOption("useSNS"));
-    
-    // Listening URL
-    if (cl.hasOption("url")) {
-      
-      // Sanity check on the respondToURL
-      // The requirement for the respondToURL is a REST POST call, so that means
-      // only HTTP and HTTPS schemes.
-      // Localhost is allowed as well as a valid response destination
-      String[] schemes = { "http", "https" };
-      UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
-      
-      String url = cl.getOptionValue("url");
-      
-      if (!urlValidator.isValid(url)) {
-        Console.error("The Response Listener URL specified in the command-line is invalid. Continuing with default.");
-      } else {
-        propsConfig.put("url", url);
-      }
-    }
-    
-    // Subscription URL
-    if (cl.hasOption("surl")) {
-
-      // Sanity check on the respondToURL
-      // The requirement for the respondToURL is a REST POST call, so that means
-      // only HTTP and HTTPS schemes.
-      // Localhost is allowed as well as a valid response destination
-      String[] schemes = { "http", "https" };
-      UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
-      
-      String url = cl.getOptionValue("surl");
-      
-      if (!urlValidator.isValid(url)) {
-        Console.error("The SNS Subscription URL specified in the command-line is invalid. Continuing with default.");
-      } else {
-        propsConfig.put("surl", url);
-      }
-    }
-      
-      
-    // Access Key
-    if (cl.hasOption("ak")) {
-      propsConfig.put("ak", cl.getOptionValue("ak"));
-    } else {
-      if (cl.hasOption("useSNS")) 
-        throw new RuntimeException("Must have Access Key defined if using SNS.  Use the -ak <accessKey> switch on the command line.");
-    }
-    
-    // Secret Key
-    if (cl.hasOption("sk")) {
-      propsConfig.put("sk", cl.getOptionValue("sk"));
-    } else {
-      if (cl.hasOption("useSNS")) 
-        throw new RuntimeException("Must have Secret Key defined if using SNS.  Use the -sk <secretKey> switch on the command line.");
-    }
-
-    // Secret Key
-    if (cl.hasOption("sk")) {
-      propsConfig.put("sk", cl.getOptionValue("sk"));
-    }
-
-    // ARN
-    propsConfig.put("arn", cl.getOptionValue("arn", DEFAULT_TOPIC_NAME));
-
-    // Multicast port
-    if (cl.hasOption("mp")) {
+    if (cl.hasOption("pf")) {
+      String propsFilename = cl.getOptionValue("pf");
       try {
-        int portNum = Integer.parseInt(cl.getOptionValue("mp"));
-        
-        propsConfig.put("mp", portNum);
-        LOGGER.info("Overriding multicast port with command line value");
-      } catch (NumberFormatException e) {
-        throw new RuntimeException("The multicast port number [" + cl.getOptionValue("mp") + "]- is not formattable as an integer", e);
+        propsConfig = processPropertiesFile(propsFilename);
+      } catch (ArgoClientConfigException e) {
+        LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + propsFilename + "] due to:", e);
+        throw e;
       }
+    } else {
+      LOGGER.warning("WARNING: no properties file specified.  Working off defaults - Multicast transport 230.0.0.1:4003.");
     }
 
-    // Multicast group
-    if (cl.hasOption("ma")) {
-      propsConfig.put("ma", cl.getOptionValue("ma"));
-      LOGGER.info("Overriding multicast address with command line value");
-    }
+    // keeping this around as an example of how to do URL validation.
+
+    /*
+     * // Subscription URL if (cl.hasOption("surl")) {
+     * 
+     * // Sanity check on the respondToURL // The requirement for the
+     * respondToURL is a REST POST call, so that means // only HTTP and HTTPS
+     * schemes. // Localhost is allowed as well as a valid response destination
+     * String[] schemes = { "http", "https" }; UrlValidator urlValidator = new
+     * UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
+     * 
+     * String url = cl.getOptionValue("surl");
+     * 
+     * if (!urlValidator.isValid(url)) { Console.error(
+     * "The SNS Subscription URL specified in the command-line is invalid. Continuing with default."
+     * ); } else { propsConfig.put("surl", url); } }
+     */
 
     return propsConfig;
 
   }
 
-  
   @SuppressWarnings("static-access")
   private static Options getOptions() {
     Options options = new Options();
 
-    options.addOption("h", false, "display help for the Responder daemon");
-    options.addOption(OptionBuilder
-        .withDescription("do not use the Multicast Transport (in use by default)")
-        .create("noMC"));
-    options.addOption(OptionBuilder
-        .withDescription("use the SNS Transport")
-        .create("useSNS"));
-    options.addOption(OptionBuilder.withArgName("listenerURL url")
-        .hasArg().withType("")
-        .withDescription("HTTP Listener URL")
-        .create("url"));
-    options.addOption(OptionBuilder.withArgName("subscriptionURL url")
-        .hasArg().withType("")
-        .withDescription("SNS Subscription URL")
-        .create("surl"));
-    options.addOption(OptionBuilder.withArgName("accessKey key")
-        .hasArg().withType("")
-        .withDescription("AWS access key")
-        .create("ak"));
-    options.addOption(OptionBuilder.withArgName("secretKey key").hasArg()
-        .withType("")
-        .withDescription("AWS access key")
-        .create("sk"));
-    options.addOption(OptionBuilder.withArgName("awsArgoTopic").hasArg()
-        .withDescription("the arn of the Argo SNS topic")
-        .create("arn"));
-    options.addOption(OptionBuilder.withArgName("multicastPort").hasArg()
-        .withType(Integer.valueOf(0))
-        .withDescription("the multicast port to broadcast on")
-        .create("mp"));
-    options.addOption(OptionBuilder.withArgName("multicastAddr").hasArg()
-        .withDescription("the multicast group address to broadcast on")
-        .create("ma"));
+    options.addOption("h", false, "display help for the Argo Client");
 
-    // Need some more keystore stuff when we do encryption and https for the listener (and maybe for SNS signing stuff)
-    
+    options.addOption(OptionBuilder.withArgName("properties filename")
+        .hasArg().withType("")
+        .withDescription("fully qualified properties filename")
+        .create("pf"));
+
+    // Need some more keystore stuff when we do encryption and https for the
+    // listener (and maybe for SNS signing stuff)
+
     return options;
+  }
+
+  private Properties processPropertiesFile(String propertiesFilename) throws ArgoClientConfigException {
+    Properties prop = new Properties();
+
+    ArrayList<TransportConfig> transportConfigs = getTransportConfigs();
+
+    InputStream is = null;
+    try {
+      if (ArgoClient.class.getResource(propertiesFilename) != null) {
+        is = ArgoClient.class.getResourceAsStream(propertiesFilename);
+        LOGGER.info("Reading Argo Client properties file [" + propertiesFilename + "] from classpath.");
+      } else {
+        is = new FileInputStream(propertiesFilename);
+        LOGGER.info("Reading Argo Client properties file [" + propertiesFilename + "] from file system.");
+      }
+      prop.load(is);
+    } catch (FileNotFoundException e) {
+      throw new ArgoClientConfigException(e.getLocalizedMessage(), e);
+    } catch (IOException e) {
+      throw new ArgoClientConfigException(e.getLocalizedMessage(), e);
+    } finally {
+      try {
+        is.close();
+      } catch (Exception e) {
+        throw new ArgoClientConfigException(e.getLocalizedMessage(), e);
+      }
+    }
+    
+    // Listening URL
+    
+    String listenerURL = prop.getProperty("listenerURL", ResponseListener.DEFAULT_LISTENER_URI.toString());
+    
+    // Sanity check on the respondToURL
+    // The requirement for the respondToURL is a REST POST call, so that means
+    // only HTTP and HTTPS schemes.
+    // Localhost is allowed as well as a valid response destination
+    String[] schemes = { "http", "https" };
+    UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
+    
+    if (!urlValidator.isValid(listenerURL)) {
+      listenerURL = ResponseListener.DEFAULT_LISTENER_URI.toString();
+      Console.error("The Response Listener URL specified in the config file is invalid. Continuing with default.");
+    }
+    prop.put("listenerURL", listenerURL);
+
+    // RespondTo URL
+    
+    String respondToURL = prop.getProperty("respondToURL", listenerURL);
+        
+    if (!urlValidator.isValid(respondToURL)) {
+      respondToURL = listenerURL;
+      Console.error("The respondTo URL specified in the config file is invalid. Continuing with default.");
+    }
+    prop.put("respondToURL", listenerURL);
+
+    // handle the list of transport information
+
+    // You know, this might be better to do as a JSON (or such) file, but you
+    // can't comment out lines in JSON
+
+    boolean continueProcessing = true;
+    int number = 1;
+    while (continueProcessing) {
+
+      String name = prop.getProperty("transportName." + number);
+      boolean enabled = Boolean.parseBoolean(prop.getProperty("transportEnabledOnStartup." + number));
+      boolean usesNI = Boolean.parseBoolean(prop.getProperty("transportUsesNI." + number));
+      boolean requiresMC = Boolean.parseBoolean(prop.getProperty("transportRequiresMulticast." + number));
+      String classname = prop.getProperty("transportClassname." + number);
+      String configFilename = prop.getProperty("transportConfigFilename." + number, null);
+
+      if (configFilename != null) {
+        TransportConfig config = new TransportConfig(name);
+        config.setClassname(classname);
+        config.setEnabled(enabled);
+        config.setUsesNetworkInterface(usesNI);
+        config.setRequiresMulticast(requiresMC);
+        config.setPropertiesFilename(configFilename);
+
+        transportConfigs.add(config);
+      } else {
+        continueProcessing = false;
+      }
+      number++;
+
+    }
+    return prop;
   }
 
 }

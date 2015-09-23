@@ -334,7 +334,7 @@
     </dependency>
     <dependency>
       <groupId>ws.argo.probe</groupId>
-      <artifactId>ProbeGenerator</artifactId>
+      <artifactId>ProbeSender</artifactId>
       <version>0.4.0-BETA</version>
       <scope>test</scope>
       <exclusions>

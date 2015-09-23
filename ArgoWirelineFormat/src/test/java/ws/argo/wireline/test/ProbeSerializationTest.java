@@ -35,7 +35,7 @@ public class ProbeSerializationTest {
   private static String exemplarFullProbePayload;
 
   @BeforeClass
-  public static void setupProbeGenerator() throws IOException {
+  public static void setupProbeSender() throws IOException {
     readXMLFiles();
   }
 

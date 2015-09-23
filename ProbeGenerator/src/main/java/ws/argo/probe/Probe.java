@@ -57,12 +57,12 @@ public class Probe {
    * @param p the source probe
    * @return the probe frame
    */
-  public static Probe frameProbeFrom(Probe p) throws ProbeGeneratorException {
+  public static Probe frameProbeFrom(Probe p) throws ProbeSenderException {
     Probe fp = null;
     try {
       fp = new Probe(p.getProbeWrapper().getRespondToPayloadType());
     } catch (UnsupportedPayloadType e1) {
-      throw new ProbeGeneratorException("Error in creating frame probe.", e1);
+      throw new ProbeSenderException("Error in creating frame probe.", e1);
     }
 
     fp.setHopLimit(p.getHopLimit());
@@ -71,7 +71,7 @@ public class Probe {
       try {
         fp.addRespondToURL(respondTo.getLabel(), respondTo.getUrl());
       } catch (MalformedURLException e) {
-        throw new ProbeGeneratorException("Error in creating frame probe.", e);
+        throw new ProbeSenderException("Error in creating frame probe.", e);
       }
     }
     return fp;

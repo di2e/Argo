@@ -1,16 +1,3 @@
-# The following are the required properties for the Amazon SNS transport.
-# The listenerURL is the actual URL used by the Grizzly HTTP server that
-# the listener launches for receiving SNS messages.  It should be in terms
-# of the addressable network. The subscriptionURL is the one provided to SNS.
-# It may be different because it may require sending SNS messages across
-# proxies or firewalls with various address translators.
-
-# The default listenerURL is http://localhost:4004
-# The default subscriptionURL is whatever the listenerURL is set to
-
-#listenerURL=
-#subscriptionURL=
-
 # The amazonAK and amazonSK MUST be specified here or the transport
 # initialization will fail.
 

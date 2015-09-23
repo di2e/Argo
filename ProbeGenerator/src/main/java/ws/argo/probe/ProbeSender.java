@@ -27,30 +27,30 @@ import ws.argo.probe.Probe.ProbeIdEntry;
 import ws.argo.probe.transport.Transport;
 
 /**
- * The ProbeGenerator is the mechanism that actually sends out the wireline
+ * The ProbeSender is the mechanism that actually sends out the wireline
  * format over UDP on the network. It will take a probe and then send it
  * according to the transport supplied.
  * 
  * <p>
- * The ProbeGenerator takes an Transport instance to do the actual messy work of
- * sending out the probe. See {@linkplain ProbeGeneratorFactory} to see how you
- * can create instances of a ProbeGenerator.
+ * The ProbeSender takes an Transport instance to do the actual messy work of
+ * sending out the probe. See {@linkplain ProbeSenderFactory} to see how you
+ * can create instances of a ProbeSender.
  * 
  * @author jmsimpson
  *
  */
-public class ProbeGenerator {
+public class ProbeSender {
 
   private Transport probeTransport;
 
   /**
-   * Manually create the ProbeGenerator instance.
+   * Manually create the ProbeSender instance.
    * 
-   * @param transport the transport instance the ProbeGenerator should use. See
+   * @param transport the transport instance the ProbeSender should use. See
    *          {@linkplain Transport}.
-   * @throws ProbeGeneratorException if something went wrong
+   * @throws ProbeSenderException if something went wrong
    */
-  public ProbeGenerator(Transport transport) throws ProbeGeneratorException {
+  public ProbeSender(Transport transport) {
     this.probeTransport = transport;
   }
 
@@ -63,15 +63,15 @@ public class ProbeGenerator {
    * @return the list of actual probes sent (which were created when the
    *         provided probe was spit into smaller ones that complied with the
    *         max payload size of the transport)
-   * @throws ProbeGeneratorException if something goes wrong
+   * @throws ProbeSenderException if something goes wrong
    */
-  public List<Probe> sendProbe(Probe probe) throws ProbeGeneratorException {
+  public List<Probe> sendProbe(Probe probe) throws ProbeSenderException {
 
     List<Probe> actualProbesToSend;
     try {
       actualProbesToSend = splitProbe(probe);
     } catch (MalformedURLException | JAXBException | UnsupportedPayloadType e) {
-      throw new ProbeGeneratorException("Issue splitting the probe.", e);
+      throw new ProbeSenderException("Issue splitting the probe.", e);
     }
 
     for (Probe probeSegment : actualProbesToSend) {
@@ -85,9 +85,9 @@ public class ProbeGenerator {
   /**
    * Close the underlying transport if necessary.
    * 
-   * @throws ProbeGeneratorException if something goes wrong
+   * @throws ProbeSenderException if something goes wrong
    */
-  public void close() throws ProbeGeneratorException {
+  public void close() throws ProbeSenderException {
     probeTransport.close();
   }
 
@@ -105,7 +105,7 @@ public class ProbeGenerator {
    * @throws UnsupportedPayloadType this should never happen in this method
    * @throws MalformedURLException this should never happen in this method
    */
-  private List<Probe> splitProbe(Probe probe) throws ProbeGeneratorException, JAXBException, MalformedURLException, UnsupportedPayloadType {
+  private List<Probe> splitProbe(Probe probe) throws ProbeSenderException, JAXBException, MalformedURLException, UnsupportedPayloadType {
     
     List<Probe> actualProbeList = new ArrayList<Probe>();
     int maxPayloadSize = this.probeTransport.maxPayloadSize();
@@ -133,7 +133,7 @@ public class ProbeGenerator {
       ProbeIdEntry nextId = combinedList.peek();
 
       if (payloadLength + nextId.getId().length() + 40 >= maxPayloadSize) {
-        throw new ProbeGeneratorException("Basic frame violates maxPayloadSize of transport.  Likely due to too many respondTo address.");
+        throw new ProbeSenderException("Basic frame violates maxPayloadSize of transport.  Likely due to too many respondTo address.");
       }
 
       while (!combinedList.isEmpty()) {
@@ -166,13 +166,13 @@ public class ProbeGenerator {
   }
 
   /**
-   * Return the description of the ProbeGenerator.
+   * Return the description of the ProbeSender.
    * 
    * @return description
    */
   public String getDescription() {
     StringBuffer buf = new StringBuffer();
-    buf.append("ProbeGenerator for ");
+    buf.append("ProbeSender for ");
     buf.append(probeTransport.toString());
     return buf.toString();
   }

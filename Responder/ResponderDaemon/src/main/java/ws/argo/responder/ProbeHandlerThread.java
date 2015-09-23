@@ -152,13 +152,15 @@ public class ProbeHandlerThread implements Runnable {
 
     } catch (MalformedURLException e) {
       success = false;
-      LOGGER.log(Level.SEVERE, "MalformedURLException occured  for probeID " + payload.getProbeID() + "\nThe respondTo URL was a no good.  respondTo URL is: " + respondToURL);
+      LOGGER.log(Level.SEVERE, "MalformedURLException occured  for probeID [" + payload.getProbeID() + "]" + "\nThe respondTo URL was a no good.  respondTo URL is: " + respondToURL);
     } catch (IOException e) {
       success = false;
-      LOGGER.log(Level.SEVERE, "An IOException occured for probeID " + payload.getProbeID(), e);
+      LOGGER.log(Level.SEVERE, "An IOException occured for probeID [" + payload.getProbeID() + "]" + " - " + e.getLocalizedMessage());
+      LOGGER.log(Level.FINE, "Stack trace for IOException for probeID [" + payload.getProbeID() + "]", e);
     } catch (Exception e) {
       success = false;
-      LOGGER.log(Level.SEVERE, "Some other error occured for probeID " + payload.getProbeID() + ".  respondTo URL is: " + respondToURL, e);
+      LOGGER.log(Level.SEVERE, "Some other error occured for probeID [" + payload.getProbeID() + "]" + ".  respondTo URL is: " + respondToURL + " - " + e.getLocalizedMessage());
+      LOGGER.log(Level.FINE, "Stack trace for probeID [" + payload.getProbeID() + "]", e);
     }
 
     return success;

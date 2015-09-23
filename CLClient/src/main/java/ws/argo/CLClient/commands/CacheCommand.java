@@ -1,10 +1,10 @@
 package ws.argo.CLClient.commands;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
 import com.beust.jcommander.Parameter;
@@ -30,7 +30,7 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
 
   private Cache createCacheFromListener(ArgoClientContext context) {
     Cache cache = null;
-  
+
     Console.superFine("Getting the responses from the listener ...");
     String responseMsg = context.getListenerTarget().path("listener/responses").request().get(String.class);
     try {
@@ -40,8 +40,48 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-  
+
     return cache;
+  }
+
+  /**
+   * This command will send a REST call the the embedded JAX-RS server to clear
+   * the cache of the response listener.
+   * 
+   * @author jmsimpson
+   *
+   */
+  @Parameters(commandNames = { "export" }, commandDescription = "exports the cache to a file.")
+  public class ExportCache extends Command<ArgoClientContext> {
+
+    @Parameter(names = { "-pretty", "--prettyPayloads" }, description = "pretty print the JSON payloads.")
+    private boolean _prettyPayload;
+
+    @Parameter(names = { "-fn", "--filename" }, description = "filename to export to.")
+    private String _filename;
+
+    @Override
+    protected CommandResult innerExecute(ArgoClientContext context) {
+
+      Cache cache = createCacheFromListener(context);
+
+      if (cache != null) {
+        
+        String cacheAsString = cache.asJSON(_prettyPayload);
+        try (FileWriter writer = new FileWriter(_filename)) {
+          writer.write(cacheAsString);
+        } catch (IOException e) {
+          Console.error("There was an error trying to write the file [" + _filename + "] - " + e.getLocalizedMessage());
+          return CommandResult.ERROR;
+        }
+
+      } else {
+        Console.info("There are no cache results to export.  Aborting command.");
+      }
+      
+      return CommandResult.OK;
+
+    }
   }
 
   /**
@@ -75,15 +115,14 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
   public class ListListenerCache extends Command<ArgoClientContext> {
 
     @Parameter
-    public List<String> _ids = new ArrayList<>();
-    
-    @Parameter(names = { "-p", "--payloads"}, description = "show the full payloads")
+    public List<String> _ids = new ArrayList<String>();
+
+    @Parameter(names = { "-p", "--payloads" }, description = "show the full payloads")
     private boolean _showPayload;
 
-    @Parameter(names = { "-pretty", "--prettyPayloads"}, description = "pretty print the JSON payloads.")
+    @Parameter(names = { "-pretty", "--prettyPayloads" }, description = "pretty print the JSON payloads.")
     private boolean _prettyPayload;
 
-    
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
 
