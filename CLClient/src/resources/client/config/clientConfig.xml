@@ -24,11 +24,28 @@
   The IP addresses in the configuration may not want to be hardcoded and may
   only be known at runtime.  The configuration allows you to provide some
   IP address resolvers that will resolve to an actual run-time IP address and
-  can be used as a replacement varialbe (e.g. ${internalIP}) in other configuration
+  can be used as a replacement variable (e.g. ${internalIP}) in other configuration
   values.
   
-  The internalIP and externalIP items are special items that will follow special rules
-  to resolve to an IP address.  The value of these items can be as follows:
+  Items with the "resolve" tag special items that will follow special rules
+  to resolve to an IP address.  The name attribute of the tag is how you will reference
+  the resolved value in the rest of the configuration file.
+  
+  For example:
+  
+  <resolve name="internalIP">ni:eth0:ipv4</resolve>
+  will resolve to the ipv4 address associated with the network interface named eth0.  You
+  would then reference that value as ${resolve:internalIP} in the rest of the config.
+  
+  <resolve name="mylabel">https://api.ipify.org</resolve>
+  will resolve to the whatever gets returned from the HTTP GET call to the URL provided.
+  In this case, ipify.org will return your external IP address.
+  You would then reference that value as ${resolve:mylabel} in the rest of the config.
+  
+  You can really do whatever you need to create the appropriate interpolation values and the
+  sources of those values.
+  
+  The value of these items can be as follows:
   
   1) a string literal - Example: 192.168.0.1 or dnsname.myorg.org
      The string literal is a direct literal replacement value and is not resolved.  This
@@ -52,10 +69,21 @@
        ni:eth0:ipv6 - this will resolve to the IPV6 IP address (assuming there is one)
        associated with the network interfaces named "eth0"
        
-   3) a URL (http or https) - Example: https://api.ipify.org
+     NOTE:
+       Be careful with these values.  If they don't resolve (meaning that the 
+       interpolation value is the same as the string you specified) it doesn't mean
+       that things are broken.  If a specified interface name doens't exist, then it 
+       won't resolve (check the logs and check ifconfig in linux or ipconfig in Windows).
+       If the specified interface name exists, but doens't have an IP address of the type
+       specified (e.g. some interfaces just don't have an IPv6 or IPv4 address) then it 
+       won't resolve (check the logs and check ifconfig in linux or ipconfig in Windows).
+       
+   3) a URL (http or https only) - Example: https://api.ipify.org
       Specifying a URL in the internalIP or externalIP items will resolve to whatever value
       is returned from a GET call to that URL.  This is important as many cloud environments
-      make it difficult to get the publicly or external address of a VM.
+      make it difficult to get the publicly or external address of a VM.  If you are using
+      HTTPS for a site that requires trust or other SSL certificates, the appropriate certs
+      and keystores must be configured first.
       
       Examples:
         https://api.ipify.org - this is a well-known and useful URL to resolve public IP
@@ -67,27 +95,32 @@
         
   ** Basic client setup **
 
-  The listenerURL is the URL that is used to start up the embedded HTTP listener.
+  The *listenerURL* is the URL that is used to start up the embedded HTTP listener.
   This can be an internal address or a publicly available address depending
   on your needs.
+  
   By default its value is: http://localhost:4005
   Which means that you'll need to make sure that your firewall
   allows traffic on that port, or whatever port you specify.
 
-  The respondToURL is the publicly accessible URL for the listener.  It is the
+  The *respondToURL* is the publicly accessible URL for the listener.  It is the
   address that probe responses will be sent to.
+  
   The respondToURL may be different than the listenerURL if there is some NAT
   or other port forwarding that needs to be done through firewalls.
   By default, this value is the same as the listenerURL.
   
-  Both the listenerURL and the respondToURL can use the internalIP and externalIP
-  replacement variables.
+  Both the listenerURL and the respondToURL can use the interpolation
+  replacement variables defined in the configuration. (e.g. internalIP and externalIP)
   
-  Example:
-    <internalIP>ni:eth0:ipv4</internalIP>
+  Examples:
+    internalIP will resolve to the IPV4 address assigned to the interface named eth0
+    <resolve name="internalIP">ni:eth0:ipv4</resolve>
     <listenerURL>http://${resolve:internalIP}:12345</listenerURL>
     
-    <externalIP>http://169.254.169.254/latest/meta-data/public-ipv4</externalIP>
+    externalIP will resolve to value of the HTTP GET call to the AWS external IP service
+    (Note: this will only work on configurations running in a AWS EC2 instance)
+    <resolve name="externalIP"><http://169.254.169.254/latest/meta-data/public-ipv4/resolve>
     <respondToURL>http://${resolve:externalIP}:80</respondToURL>
     
   The client configuration does a sanity check on all URLs to make sure that are
@@ -120,12 +153,13 @@
   to reuse in the configuration, just add a new element (e.g. <propElem>) and then just
   reference it in other values in the config file
   (e.g. <someValue>The property value is ${propElem}</someValue>
-    ** Other Variable Resolver Prefixes **
+
 -->
 
 <client>
-  <internalIP></internalIP>
-  <externalIP></externalIP>
+  <resolve name="internalIP"></resolve>
+  <resolve name="externalIP"></resolve>
+
   <listenerURL></listenerURL>
   <respondToURL></respondToURL>
   <installDir>@INSTALL_DIR@</installDir>

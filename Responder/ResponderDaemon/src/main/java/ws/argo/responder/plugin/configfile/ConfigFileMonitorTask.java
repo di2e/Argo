@@ -122,6 +122,11 @@ public class ConfigFileMonitorTask extends TimerTask {
     plugin.setServiceList(serviceList);
 
   }
+  
+  private void loadServiceConfig() {
+    
+    
+  }
 
   private ArrayList<ServiceWrapper> constructServiceList(ServicesConfiguration services) {
     ArrayList<ServiceWrapper> serviceList = new ArrayList<ServiceWrapper>();

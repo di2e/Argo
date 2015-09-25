@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
@@ -29,6 +28,11 @@ import ws.argo.CLClient.ArgoClientConfigException;
 import ws.argo.CLClient.TransportConfig;
 import ws.argo.CLClient.listener.ResponseListener;
 
+/**
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ClientConfiguration {
 
   private UrlValidator               _urlValidator;
@@ -42,7 +46,7 @@ public class ClientConfiguration {
   private String _listenerURL;
   private String _responseURL;
 
-  WebTarget _target;
+  WebTarget _listenerTarget;
 
   public ClientConfiguration() {
     initializeDefaults();
@@ -71,7 +75,7 @@ public class ClientConfiguration {
   }
 
   public WebTarget getListenerTarget() {
-    return _target;
+    return _listenerTarget;
   }
 
   /**
@@ -82,11 +86,11 @@ public class ClientConfiguration {
     String newURL = _substitutor.replace(listenerURL);
     boolean changed = false;
     if (!_urlValidator.isValid(newURL)) {
-      Console.error("The Response Listener URL specified is invalid. Continuing with previous value.");
+      error("The Response Listener URL specified is invalid. Continuing with previous value.");
     } else {
       if (!newURL.equalsIgnoreCase(_listenerURL)) {
         _listenerURL = newURL;
-        _target = ClientBuilder.newClient().target(listenerURL);
+        _listenerTarget = ClientBuilder.newClient().target(listenerURL);
         changed = true;
       }
     }
@@ -104,7 +108,7 @@ public class ClientConfiguration {
   public void setResponseURL(String responseURL) {
     String newURL = _substitutor.replace(responseURL);
     if (!_urlValidator.isValid(newURL)) {
-      Console.error("The RespondTo URL specified is invalid. Continuing with previous value.");
+      error("The RespondTo URL specified is invalid. Continuing with previous value.");
     } else {
       this._responseURL = newURL;
     }
@@ -115,14 +119,16 @@ public class ClientConfiguration {
   }
 
   private void initializeResolvers() {
-    String _internaIP = _config.getString("internalIP");
-    String _externaIP = _config.getString("externalIP");
+    List<HierarchicalConfiguration> resolveNames = _config.configurationsAt("resolve");
+    
+    for (HierarchicalConfiguration c : resolveNames) {
+      String name = c.getString("[@name]");
+      String _resolveString = c.getString("");
 
-    String _internalResolution = initializeResolver(_internaIP);
-    String _externalResolution = initializeResolver(_externaIP);
+      String resolvedString = initializeResolver(_resolveString);
+      _interpolatorMap.put(name, resolvedString);
+    }
 
-    _interpolatorMap.put("internalIP", _internalResolution);
-    _interpolatorMap.put("externalIP", _externalResolution);
   }
 
   private void initializeURLValidator() {
@@ -147,18 +153,21 @@ public class ClientConfiguration {
 
     if (!_urlValidator.isValid(listenerURL)) {
       listenerURL = ResponseListener.DEFAULT_LISTENER_URI.toString();
-      Console.error("The Response Listener URL specified in the config file is invalid. Continuing with default.");
+      error("The Response Listener URL specified in the config file is invalid. Continuing with default.");
     }
     _listenerURL = listenerURL;
-    _target = ClientBuilder.newClient().target(listenerURL);
+    _listenerTarget = ClientBuilder.newClient().target(listenerURL);
 
     // RespondTo URL
 
     String respondToURL = _config.getString("respondToURL", listenerURL);
 
-    if (!_urlValidator.isValid(respondToURL)) {
+    if (respondToURL.isEmpty()) {
       respondToURL = listenerURL;
-      Console.error("The respondTo URL specified in the config file is invalid. Continuing with default.");
+      info("The respondTo URL is defaulting to the listenerURL."); 
+    } else if (!_urlValidator.isValid(respondToURL)) {
+      respondToURL = listenerURL;
+      error("The respondTo URL specified in the config file is invalid. Continuing with default.");
     }
     _responseURL = respondToURL;
   }
@@ -220,52 +229,58 @@ public class ClientConfiguration {
 
   }
 
-  private static String initializeResolver(String resolverString) {
+  private String initializeResolver(String resolverString) {
 
     String ipAddress = "UNKNOWN";
+    if (resolverString == null || resolverString.isEmpty())
+      return ipAddress;
 
-    if (resolverString != null || resolverString.isEmpty()) {
-      // Check to see if it's a valid URL
-      ipAddress = ipAddressFromURL(resolverString);
-      if (ipAddress != null) {
-        return ipAddress;
-      }
-
-      // Check to see if it's a NI name
-      ipAddress = ipAddressFromNI(resolverString);
-      if (ipAddress != null) {
-        return ipAddress;
-      }
-
-      // otherwise its a literal
-      ipAddress = resolverString;
-
+    // Check to see if it's a valid URL
+    ipAddress = ipAddressFromURL(resolverString);
+    if (ipAddress != null) {
+      return ipAddress;
     }
+
+    // Check to see if it's a NI name
+    ipAddress = ipAddressFromNI(resolverString);
+    if (ipAddress != null) {
+      return ipAddress;
+    }
+
+    // otherwise its a literal
+    ipAddress = resolverString;
 
     return ipAddress;
 
   }
 
-  private static String ipAddressFromURL(String url) {
+  /**
+   * Resolve the IP address from a URL.
+   * 
+   * @param url and URL that will return an IP address
+   * @return
+   */
+  private String ipAddressFromURL(String url) {
     String ipAddr = null;
-    WebTarget resolver;
-    String[] schemes = { "http", "https" };
-    UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
 
-    if (urlValidator.isValid(url)) {
-      Client resolverClient = ClientBuilder.newClient();
-      resolver = resolverClient.target(url);
+    if (_urlValidator.isValid(url)) {
+      WebTarget resolver = ClientBuilder.newClient().target(url);
       try {
         ipAddr = resolver.request().get(String.class);
       } catch (Exception e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        warn("URL Cannot Resolve. The requested URL is invalid  [" + url + "]");
       }
     }
     return ipAddr;
   }
 
-  private static String ipAddressFromNI(String niSpec) {
+  /**
+   * Resolve the IP address from the special "resolver" network interface format.
+   * 
+   * @param niSpec the special "resolver" network interface format
+   * @return either UNKNOWN, the original string or the resolved IP address
+   */
+  private String ipAddressFromNI(String niSpec) {
     String ipAddress = null;
     NetworkInterface ni = null;
     if (niSpec.startsWith("ni:")) {
@@ -315,7 +330,7 @@ public class ClientConfiguration {
               break;
             case "ipv6":
               if (addr instanceof Inet6Address) {
-                ipAddress = addr.getHostAddress();
+                ipAddress = "[" + addr.getHostAddress() + "]";
               }
               break;
             default:
@@ -332,8 +347,25 @@ public class ClientConfiguration {
   }
 
   private void initializeDefaults() {
-    // TODO Auto-generated method stub
+    // Nothing to do just yet - if in the future we do decide to have defaults,
+    // they will be initialized here.
 
+  }
+
+  private void warn(String string) {
+    Console.warn(string);
+  }
+  
+  private void info(String string) {
+    Console.info(string);
+  }
+
+  private void error(String string) {
+    Console.error(string);
+  }
+
+  private void error(String string, Throwable e) {
+    Console.error(string);
   }
 
 }
