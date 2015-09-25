@@ -39,6 +39,7 @@ public class ResponseCache {
 
   private ConcurrentHashMap<String, ExpiringService> cache = new ConcurrentHashMap<String, ExpiringService>();
 
+  
   /**
    * Basic ArrayList cache.
    * 
@@ -57,13 +58,13 @@ public class ResponseCache {
   public void cacheAll(ArrayList<ExpiringService> list) {
 
     for (ExpiringService service : list) {
-      cache.put(service.service.getId(), service);
+      cache.put(service._service.getId(), service);
     }
 
   }
 
   public void cache(ExpiringService service) {
-    cache.put(service.service.getId(), service);
+    cache.put(service._service.getId(), service);
   }
 
   /**
@@ -79,7 +80,7 @@ public class ResponseCache {
 
     Cache jsonCache = new Cache();
     for (ExpiringService svc : cache.values()) {
-      jsonCache.cache.add(svc.service);
+      jsonCache.cache.add(svc._service);
     }
 
     String json = gson.toJson(jsonCache);

@@ -1,7 +1,11 @@
 package ws.argo.CLClient.commands.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,7 +28,9 @@ import ws.argo.wireline.response.ServiceWrapper;
  */
 public class Cache {
 
-  private List<ServiceWrapper> cache = new ArrayList<ServiceWrapper>();
+  private List<ServiceWrapper> _cache = new ArrayList<ServiceWrapper>();
+  private Set<String> _probeIds = new HashSet<String>();
+  private Set<String> _responseIds = new HashSet<String>();
 
   public Cache(String json) throws ResponseParseException {
     parseJson(json);
@@ -41,7 +47,9 @@ public class Cache {
     for (JsonElement service : services) {
       String jsonString = service.toString();
       ServiceWrapper r = serializer.unmarshalService(jsonString);
-      this.cache.add(r);
+      _cache.add(r);
+      _probeIds.add(r.getProbeId());
+      _responseIds.add(r.getResponseId());
     }
   }
 
@@ -50,31 +58,79 @@ public class Cache {
    * 
    * @return list of description strings
    */
-  public List<String> descriptions(List<String> _ids, boolean payload, boolean pretty) {
+  public List<String> descriptionsForIds(List<String> _ids, boolean payload, boolean pretty) {
     List<String> descriptions = new ArrayList<String>();
-    JSONSerializer ser = new JSONSerializer();
-    Gson gson = new Gson();
-    Gson prettyJson = new GsonBuilder().setPrettyPrinting().create();
 
-    for (ServiceWrapper s : cache) {
+    for (ServiceWrapper s : _cache) {
       if (_ids.isEmpty() || _ids.contains(s.id)) {
-        StringBuffer buf = new StringBuffer();
-        buf.append(s.getServiceName()).append(" [").append(s.getDescription()).append("] : ").append(s.getId());
-        if (payload) {
-          String json = ser.marshalService(s);
-          if (pretty) {
-            JsonObject obj = gson.fromJson(json, JsonObject.class);
-            String prettyJSON = prettyJson.toJson(obj);
-            buf.append("\n").append(prettyJSON).append("\n");
-          } else {
-            buf.append("\n").append(json).append("\n");
-          }
-        }
+        StringBuffer buf = serviceDesciption(payload, pretty, s);
         descriptions.add(buf.toString());
       }
     }
 
     return descriptions;
+  }
+  
+  public int numProbes() {
+    return _probeIds.size();
+  }
+
+  
+  public int numResponses() {
+    return _responseIds.size();
+  }
+  
+  public List<String> descriptionsForResponseIDs(List<String> _ids, boolean payload, boolean pretty) {
+    List<String> descriptions = new ArrayList<String>();
+    
+    for (ServiceWrapper s : _cache) {
+      if (_ids.isEmpty() || _responseIds.contains(s.getResponseId())) {
+        StringBuffer buf = serviceDesciption(payload, pretty, s);
+        descriptions.add(buf.toString());
+      }
+    }
+
+    return descriptions;
+  }
+  
+  /**
+   * 
+   * @param _ids
+   * @param payload
+   * @param pretty
+   * @return
+   */
+  public List<String> descriptionsForProbeIDs(List<String> _ids, boolean payload, boolean pretty) {
+    List<String> descriptions = new ArrayList<String>();
+    
+    for (ServiceWrapper s : _cache) {
+      if (_ids.isEmpty() || _probeIds.contains(s.getProbeId())) {
+        StringBuffer buf = serviceDesciption(payload, pretty, s);
+        descriptions.add(buf.toString());
+      }
+    }
+
+    return descriptions;
+  }
+
+  private StringBuffer serviceDesciption(boolean payload, boolean pretty, ServiceWrapper s) {
+    JSONSerializer ser = new JSONSerializer();
+    Gson gson = new Gson();
+    Gson prettyJson = new GsonBuilder().setPrettyPrinting().create();
+
+    StringBuffer buf = new StringBuffer();
+    buf.append(s.getServiceName()).append(" [").append(s.getDescription()).append("] : ").append(s.getId());
+    if (payload) {
+      String json = ser.marshalService(s);
+      if (pretty) {
+        JsonObject obj = gson.fromJson(json, JsonObject.class);
+        String prettyJSON = prettyJson.toJson(obj);
+        buf.append("\n").append(prettyJSON).append("\n");
+      } else {
+        buf.append("\n").append(json).append("\n");
+      }
+    }
+    return buf;
   }
 
   /**
@@ -91,7 +147,7 @@ public class Cache {
     
     String cacheAsString;
 
-    for (ServiceWrapper s : cache) {
+    for (ServiceWrapper s : _cache) {
       String json = ser.marshalService(s);
       JsonObject jsonService = gson.fromJson(json, JsonObject.class);
       cacheArray.add(jsonService);

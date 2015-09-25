@@ -23,6 +23,10 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.UnrecognizedOptionException;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.glassfish.grizzly.http.server.HttpServer;
 
@@ -31,6 +35,7 @@ import net.dharwin.common.tools.cli.api.CommandLineApplication;
 import net.dharwin.common.tools.cli.api.annotations.CLIEntry;
 import net.dharwin.common.tools.cli.api.console.Console;
 import net.dharwin.common.tools.cli.api.exceptions.CLIInitException;
+import ws.argo.CLClient.config.ClientConfiguration;
 import ws.argo.CLClient.listener.ResponseListener;
 
 /**
@@ -50,31 +55,27 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 
   private HttpServer server;
 
-  private Properties                       _properties;
-  private ArrayList<TransportConfig> _transportConfigs = new ArrayList<TransportConfig>();
+  private ClientConfiguration _config;
 
   public ArgoClient() throws CLIInitException {
     super();
   }
 
   private void startListener() throws IOException, URISyntaxException {
-    String urlString = getProperties().getProperty("url");
+    String urlString = _config.getListenerURL();
     URI listenerURL = ResponseListener.DEFAULT_LISTENER_URI;
     if (urlString != null)
       listenerURL = new URI(urlString); // This should not be malformed as it's
                                         // checked earlier
 
     server = ResponseListener.startServer(listenerURL);
-    Client client = ClientBuilder.newClient();
-    WebTarget target = client.target(listenerURL);
-    _appContext.put("listener", target);
   }
 
   @Override
   public void initialize(String[] args) throws CLIInitException {
     Console.info("Starting Argo Client ...");
     try {
-      _properties = parseCommandLine(args);
+      _config = parseCommandLine(args);
     } catch (ArgoClientConfigException e) {
       throw new CLIInitException("Argo Configuration Error", e);
     }
@@ -90,14 +91,15 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
    * @param _url the new URL for the listener to use
    */
   public void restartListener(String _url) {
-    if (server != null)
-      server.shutdownNow();
-    getProperties().put("url", _url);
-    try {
-      startListener();
-    } catch (IOException | URISyntaxException e) {
-      Console.severe("Unable to start services.");
-      e.printStackTrace();
+    if (getConfig().setListenerURL(_url)) {
+      if (server != null)
+        server.shutdownNow();
+      try {
+        startListener();
+      } catch (IOException | URISyntaxException e) {
+        Console.severe("Unable to start services.");
+        e.printStackTrace();
+      }
     }
   }
 
@@ -121,17 +123,17 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     return new ArgoClientContext(this);
   }
 
-  public Properties getProperties() {
-    return _properties;
+  public ClientConfiguration getConfig() {
+    return _config;
   }
 
   public ArrayList<TransportConfig> getTransportConfigs() {
-    return _transportConfigs;
+    return getConfig().getTransportConfigs();
   }
 
-  private Properties parseCommandLine(String[] args) throws ArgoClientConfigException {
+  private ClientConfiguration parseCommandLine(String[] args) throws ArgoClientConfigException {
     CommandLineParser parser = new BasicParser();
-    Properties cliValues = new Properties();
+    ClientConfiguration config = null;
 
     // Process the help option
     try {
@@ -143,7 +145,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
         return null;
       }
 
-      cliValues = processCommandLine(cl);
+      config = processCommandLine(cl);
 
     } catch (UnrecognizedOptionException e) {
       LOGGER.log(Level.SEVERE, "Error parsing command line:  " + e.getLocalizedMessage());
@@ -151,19 +153,20 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
       LOGGER.log(Level.SEVERE, "Error parsing option.", e);
     }
 
-    return cliValues;
+    return config;
   }
 
-  private Properties processCommandLine(CommandLine cl) throws ArgoClientConfigException {
+  private ClientConfiguration processCommandLine(CommandLine cl) throws ArgoClientConfigException {
 
     LOGGER.fine("Parsing command line values:");
 
-    Properties propsConfig = new Properties();
+    ClientConfiguration config = new ClientConfiguration(); // default
+                                                            // configuration
 
     if (cl.hasOption("pf")) {
       String propsFilename = cl.getOptionValue("pf");
       try {
-        propsConfig = processPropertiesFile(propsFilename);
+        config = processPropertiesFile(propsFilename);
       } catch (ArgoClientConfigException e) {
         LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + propsFilename + "] due to:", e);
         throw e;
@@ -172,25 +175,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
       LOGGER.warning("WARNING: no properties file specified.  Working off defaults - Multicast transport 230.0.0.1:4003.");
     }
 
-    // keeping this around as an example of how to do URL validation.
-
-    /*
-     * // Subscription URL if (cl.hasOption("surl")) {
-     * 
-     * // Sanity check on the respondToURL // The requirement for the
-     * respondToURL is a REST POST call, so that means // only HTTP and HTTPS
-     * schemes. // Localhost is allowed as well as a valid response destination
-     * String[] schemes = { "http", "https" }; UrlValidator urlValidator = new
-     * UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
-     * 
-     * String url = cl.getOptionValue("surl");
-     * 
-     * if (!urlValidator.isValid(url)) { Console.error(
-     * "The SNS Subscription URL specified in the command-line is invalid. Continuing with default."
-     * ); } else { propsConfig.put("surl", url); } }
-     */
-
-    return propsConfig;
+    return config;
 
   }
 
@@ -211,92 +196,11 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     return options;
   }
 
-  private Properties processPropertiesFile(String propertiesFilename) throws ArgoClientConfigException {
-    Properties prop = new Properties();
+  private ClientConfiguration processPropertiesFile(String filename) throws ArgoClientConfigException {
 
-    ArrayList<TransportConfig> transportConfigs = getTransportConfigs();
+    ClientConfiguration config = new ClientConfiguration(filename);
 
-    InputStream is = null;
-    try {
-      if (ArgoClient.class.getResource(propertiesFilename) != null) {
-        is = ArgoClient.class.getResourceAsStream(propertiesFilename);
-        LOGGER.info("Reading Argo Client properties file [" + propertiesFilename + "] from classpath.");
-      } else {
-        is = new FileInputStream(propertiesFilename);
-        LOGGER.info("Reading Argo Client properties file [" + propertiesFilename + "] from file system.");
-      }
-      prop.load(is);
-    } catch (FileNotFoundException e) {
-      throw new ArgoClientConfigException(e.getLocalizedMessage(), e);
-    } catch (IOException e) {
-      throw new ArgoClientConfigException(e.getLocalizedMessage(), e);
-    } finally {
-      try {
-        is.close();
-      } catch (Exception e) {
-        throw new ArgoClientConfigException(e.getLocalizedMessage(), e);
-      }
-    }
-    
-    // Listening URL
-    
-    String listenerURL = prop.getProperty("listenerURL", ResponseListener.DEFAULT_LISTENER_URI.toString());
-    
-    // Sanity check on the respondToURL
-    // The requirement for the respondToURL is a REST POST call, so that means
-    // only HTTP and HTTPS schemes.
-    // Localhost is allowed as well as a valid response destination
-    String[] schemes = { "http", "https" };
-    UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
-    
-    if (!urlValidator.isValid(listenerURL)) {
-      listenerURL = ResponseListener.DEFAULT_LISTENER_URI.toString();
-      Console.error("The Response Listener URL specified in the config file is invalid. Continuing with default.");
-    }
-    prop.put("listenerURL", listenerURL);
-
-    // RespondTo URL
-    
-    String respondToURL = prop.getProperty("respondToURL", listenerURL);
-        
-    if (!urlValidator.isValid(respondToURL)) {
-      respondToURL = listenerURL;
-      Console.error("The respondTo URL specified in the config file is invalid. Continuing with default.");
-    }
-    prop.put("respondToURL", listenerURL);
-
-    // handle the list of transport information
-
-    // You know, this might be better to do as a JSON (or such) file, but you
-    // can't comment out lines in JSON
-
-    boolean continueProcessing = true;
-    int number = 1;
-    while (continueProcessing) {
-
-      String name = prop.getProperty("transportName." + number);
-      boolean enabled = Boolean.parseBoolean(prop.getProperty("transportEnabledOnStartup." + number));
-      boolean usesNI = Boolean.parseBoolean(prop.getProperty("transportUsesNI." + number));
-      boolean requiresMC = Boolean.parseBoolean(prop.getProperty("transportRequiresMulticast." + number));
-      String classname = prop.getProperty("transportClassname." + number);
-      String configFilename = prop.getProperty("transportConfigFilename." + number, null);
-
-      if (configFilename != null) {
-        TransportConfig config = new TransportConfig(name);
-        config.setClassname(classname);
-        config.setEnabled(enabled);
-        config.setUsesNetworkInterface(usesNI);
-        config.setRequiresMulticast(requiresMC);
-        config.setPropertiesFilename(configFilename);
-
-        transportConfigs.add(config);
-      } else {
-        continueProcessing = false;
-      }
-      number++;
-
-    }
-    return prop;
+    return config;
   }
 
 }

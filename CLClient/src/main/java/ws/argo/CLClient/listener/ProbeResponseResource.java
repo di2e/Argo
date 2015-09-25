@@ -57,7 +57,6 @@ public class ProbeResponseResource {
   @Path("/probeResponse")
   @Consumes("application/json")
   public String handleJSONProbeResponse(String probeResponseJSON) {
-    System.out.println("Listener receiving JSON probe response: " + probeResponseJSON);
 
     JSONSerializer serializer = new JSONSerializer();
 
@@ -73,6 +72,8 @@ public class ProbeResponseResource {
     }
 
     for (ServiceWrapper service : response.getServices()) {
+      service.setResponseID(response.getResponseID());
+      service.setProbeID(response.getProbeID());
       cache.cache(new ExpiringService(service));
     }
 
@@ -109,6 +110,8 @@ public class ProbeResponseResource {
     }
 
     for (ServiceWrapper service : response.getServices()) {
+      service.setResponseID(response.getResponseID());
+      service.setProbeID(response.getProbeID());
       cache.cache(new ExpiringService(service));
     }
 

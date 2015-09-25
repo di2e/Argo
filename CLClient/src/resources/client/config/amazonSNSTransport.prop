@@ -1,4 +1,4 @@
-# The amazonAK and amazonSK MUST be specified here or the transport
+# The argoTopicName, amazonAK and amazonSK MUST be specified here or the transport
 # initialization will fail.
 
 #argoTopicName=

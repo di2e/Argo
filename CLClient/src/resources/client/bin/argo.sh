@@ -17,4 +17,4 @@
 # Optional Arguments:
 #
 export ARGO_HOME=/opt/argo
-java -cp $ARGO_HOME/client/lib/@JAR_NAME@.jar -Djava.util.logging.config.file="$ARGO_HOME/client/bin/logging.properties" -Dnet.java.preferIPv4Stack=true net.dharwin.common.tools.cli.api.EntryPoint -pf $ARGO_HOME/client/config/clientConfig.prop "$@"
+java -cp $ARGO_HOME/client/lib/@JAR_NAME@.jar -Djava.util.logging.config.file="$ARGO_HOME/client/bin/logging.properties" -Dnet.java.preferIPv4Stack=true net.dharwin.common.tools.cli.api.EntryPoint -pf $ARGO_HOME/client/config/clientConfig.xml "$@"

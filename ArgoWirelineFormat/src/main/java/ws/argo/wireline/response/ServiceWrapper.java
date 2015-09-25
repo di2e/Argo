@@ -37,7 +37,8 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
   public static final String HUMAN_CONSUMABLE   = "HUMAN_CONSUMABLE";
   public static final String MACHINE_CONSUMABLE = "MACHINE_CONSUMABLE";
 
-  // public Service xmlService;
+  public String responseId;
+  public String probeId;
 
   public String                 id;
   public String                 serviceContractId;
@@ -312,5 +313,23 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
       LOGGER.warning("Error trying to format the string " + ttlString + " into an Integer.");
     }
   }
+
+  public String getResponseId() {
+    return responseId;
+  }
+
+  public void setResponseID(String responseId) {
+    this.responseId = responseId;
+  }
+
+  public String getProbeId() {
+    return probeId;
+  }
+
+  public void setProbeID(String probeId) {
+    this.probeId = probeId;
+  }
+
+  
 
 }

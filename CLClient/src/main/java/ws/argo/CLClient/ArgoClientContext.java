@@ -17,6 +17,7 @@ import javax.ws.rs.client.WebTarget;
 
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.console.Console;
+import ws.argo.CLClient.config.ClientConfiguration;
 import ws.argo.probe.Probe;
 import ws.argo.probe.transport.TransportConfigException;
 
@@ -33,9 +34,6 @@ public class ArgoClientContext extends CLIContext {
   private static final Logger LOGGER = Logger.getLogger(ArgoClientContext.class.getName());
 
   public static final String DEFAULT_CID = "ARGO-CommandLineClient";
-
-  private String listenerURL;
-  private String respondToURL;
 
   private String defaultCID = DEFAULT_CID;
 
@@ -55,11 +53,14 @@ public class ArgoClientContext extends CLIContext {
   public ArgoClientContext(ArgoClient app) {
 
     super(app);
-    listenerURL = app.getProperties().getProperty("listenerURL");
-    respondToURL = app.getProperties().getProperty("respondToURL");
-    initializeLocalhostNI();
-    initializeTransports(app.getTransportConfigs());
 
+    initializeLocalhostNI();
+    initializeTransports(getConfig().getTransportConfigs());
+
+  }
+  
+  public ClientConfiguration getConfig() {
+    return ((ArgoClient) getHostApplication()).getConfig();
   }
 
   /**
@@ -91,16 +92,16 @@ public class ArgoClientContext extends CLIContext {
    * @return Listener HTTP binding URL
    */
   public String getListenerURL() {
-    return listenerURL;
+    return getConfig().getListenerURL();
   }
 
   /**
-   * RespondTo HTTP binding URL (to launch Jersey server).
+   * RespondTo HTTP binding URL.
    * 
    * @return Listener HTTP binding URL
    */
   public String getRespondToURL() {
-    return respondToURL;
+    return getConfig().getResponseURL();
   }
 
   public HashMap<String, Probe> getProbes() {
@@ -196,6 +197,11 @@ public class ArgoClientContext extends CLIContext {
 
   }
 
+  /**
+   * 
+   * @param transportName
+   * @return
+   */
   public ClientTransport getClientTransportNamed(String transportName) {
     
     ClientTransport found = null;
@@ -208,6 +214,10 @@ public class ArgoClientContext extends CLIContext {
     }
     
     return found;
+  }
+  
+  public void restartListener(String url) {
+    ((ArgoClient) getHostApplication()).restartListener(url);
   }
 
 }

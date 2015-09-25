@@ -32,7 +32,7 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
     Cache cache = null;
 
     Console.superFine("Getting the responses from the listener ...");
-    String responseMsg = context.getListenerTarget().path("listener/responses").request().get(String.class);
+    String responseMsg = context.getConfig().getListenerTarget().path("listener/responses").request().get(String.class);
     try {
       cache = new Cache(responseMsg);
     } catch (ResponseParseException e) {
@@ -96,7 +96,7 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
 
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
-      WebTarget target = context.getListenerTarget();
+      WebTarget target = context.getConfig().getListenerTarget();
       String responseMsg = target.path("listener/clearCache").request().get(String.class);
       Console.info(responseMsg);
       return CommandResult.OK;
@@ -114,7 +114,7 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
   @Parameters(commandNames = { "list" }, commandDescription = "list the basic response cache entries.")
   public class ListListenerCache extends Command<ArgoClientContext> {
 
-    @Parameter
+    @Parameter(description = "<service id list>")
     public List<String> _ids = new ArrayList<String>();
 
     @Parameter(names = { "-p", "--payloads" }, description = "show the full payloads")
@@ -130,8 +130,68 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
 
       if (cache != null) {
 
+        List<String> pids = new ArrayList<String>();
+        for (String name : _ids) {
+          if (context.getSentProbes().containsKey(name)) {
+            pids.add(context.getProbe(name).getProbeID());
+          } else {
+            Console.warn("Probe named [" + name + "] is not in the sent probes list. Ignoring.");
+          }
+            
+        }
+        
         int i = 1;
-        for (String desc : cache.descriptions(_ids, _showPayload, _prettyPayload)) {
+        for (String desc : cache.descriptionsForIds(_ids, _showPayload, _prettyPayload)) {
+          Console.info(i + ": " + desc);
+          i++;
+        }
+      } else {
+        Console.info("Empty cache.");
+      }
+
+      return CommandResult.OK;
+    }
+
+  }
+  
+  /**
+   * This command will send a REST call the the embedded JAX-RS server to clear
+   * the cache of the response listener.
+   * 
+   * @author jmsimpson
+   *
+   */
+  @Parameters(commandNames = { "match" }, commandDescription = "list entries that match probe names.")
+  public class MatchListenerCache extends Command<ArgoClientContext> {
+
+    @Parameter(description = "<probe names to match>")
+    public List<String> _probeNames = new ArrayList<String>();
+
+    @Parameter(names = { "-p", "--payloads" }, description = "show the full payloads")
+    private boolean _showPayload;
+
+    @Parameter(names = { "-pretty", "--prettyPayloads" }, description = "pretty print the JSON payloads.")
+    private boolean _prettyPayload;
+
+    @Override
+    protected CommandResult innerExecute(ArgoClientContext context) {
+
+      Cache cache = createCacheFromListener(context);
+
+      if (cache != null) {
+
+        List<String> pids = new ArrayList<String>();
+        for (String name : _probeNames) {
+          if (context.getSentProbes().containsKey(name)) {
+            pids.add(context.getProbe(name).getProbeID());
+          } else {
+            Console.warn("Probe named [" + name + "] is not in the sent probes list. Ignoring.");
+          }
+            
+        }
+        
+        int i = 1;
+        for (String desc : cache.descriptionsForProbeIDs(pids, _showPayload, _prettyPayload)) {
           Console.info(i + ": " + desc);
           i++;
         }

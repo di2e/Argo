@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,6 +52,7 @@ import ws.argo.wireline.probe.ProbeWrapper;
 public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
 
   /**
+   * This command lists all of the sent probes and the times they were sent.
    * 
    * @author jmsimpson
    *
@@ -158,6 +160,14 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
       Probe reifiedProbe;
       try {
         reifiedProbe = new Probe(probe);
+
+        // Should this be configurable? It looks like a magic number to me, but
+        // it's my magic number and not someone else's - ok, I'm rambling.
+        URL rURL = new URL(context.getRespondToURL());
+        
+        String respondToURL = rURL.toString() + "/listener/probeResponse";
+
+        reifiedProbe.addRespondToURL("argo-client", respondToURL);
       } catch (MalformedURLException | UnsupportedPayloadType e1) {
         Console.error("Probe failed: " + probeName);
         Console.error(e1.getMessage());
@@ -208,7 +218,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
   @Parameters(commandNames = { "new" }, commandDescription = "Create a new probe")
   public class NewProbe extends Command<ArgoClientContext> {
 
-    @Parameter(names = { "-n", "--name" }, description = "name of the probe for future reference.", required = true)
+    @Parameter(names = { "-n", "--name" }, description = "name of the probe for future reference.", required = false)
     private String _probeName;
 
     @Parameter(names = { "-cid", "--clientID" }, description = "client ID for the probe", required = false)
@@ -235,19 +245,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
     protected CommandResult innerExecute(ArgoClientContext context) {
 
       try {
-        String urlString = context.getRespondToURL();
-        URI listenerURL = ResponseListener.DEFAULT_LISTENER_URI;
-        if (urlString != null)
-          listenerURL = new URI(urlString); // This should not be malformed as
-                                            // it's checked earlier
-
-        // Should this be configurable? It looks like a magic number to me, but
-        // it's my magic number and not someone else's - ok, I'm rambling.
-        String respondToURL = listenerURL.toString() + "listener/probeResponse";
-
         Probe probe = new Probe(getPayloadType());
-
-        probe.addRespondToURL("cl-client", respondToURL);
 
         if (_clientID != null) {
           probe.setClientID(_clientID);
@@ -263,11 +261,17 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
           probe.addServiceInstanceID(siid);
         }
 
-        context.getProbes().put(_probeName, probe);
+        String name = (_probeName == null) ? "UNNAMED" : _probeName;
 
-        Console.info("Created new probe named " + _probeName);
+        // This really sucks - fix it - but how?
+        if (context.getProbes().containsKey(name))
+          name = name + "(1)";
+        
+        context.getProbes().put(name, probe);
 
-      } catch (UnsupportedPayloadType | MalformedURLException | URISyntaxException e) {
+        Console.info("Created new probe named " + name);
+
+      } catch (UnsupportedPayloadType e) {
         e.printStackTrace();
         return CommandResult.BAD_ARGS;
       }

@@ -63,6 +63,9 @@ public class JSONSerializer {
     ArrayList<Service> jsonServices = new ArrayList<Service>();
 
     for (ServiceWrapper service : response.getServices()) {
+      service.setResponseID(response.getResponseID());
+      service.setProbeID(response.getProbeID());
+      
       Service jsonService = composeServiceFromServiceWrapper(service);
       jsonServices.add(jsonService);
     }
@@ -78,6 +81,8 @@ public class JSONSerializer {
 
     Consumability consumability = Consumability.fromValue(service.getConsumability());
 
+    jsonService.withProbeId(service.getProbeId()).withProbeId(service.getProbeId());
+    
     jsonService.withId(service.getId()).withServiceName(service.getServiceName()).withConsumability(consumability);
     jsonService.withDescription(service.getDescription()).withContractDescription(service.getContractDescription());
     jsonService.withContractId(service.getServiceContractID());
@@ -167,6 +172,9 @@ public class JSONSerializer {
     service.setServiceContractID(jsonService.getContractId());
     service.setServiceName(jsonService.getServiceName());
     service.setTtl(jsonService.getTtl());
+    
+    service.setResponseID(jsonService.getResponseId());
+    service.setProbeID(jsonService.getProbeId());
 
     for (ws.argo.wireline.response.json.AccessPoint ap : jsonService.getAccessPoints()) {
       service.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), ap.getDataType(), ap.getData());

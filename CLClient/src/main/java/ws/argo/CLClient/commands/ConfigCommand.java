@@ -41,6 +41,9 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
   @Parameter(names = { "-url", "--listenerURL" }, description = "URL for the client response listener.  Setting this will restart the listener.")
   private String _url;
 
+  @Parameter(names = { "-rurl", "--respondToURL" }, description = "respondTo URL to use for the probes.")
+  private String _rurl;
+
   /**
    * Manage the configuration of the probe transports.
    * 
@@ -259,9 +262,8 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
     /**
      * Enable or use the specified NI. This will tell the
-     * {@linkplain ClientTransport#getSenders()} call to return the
-     * pre-created MC probe sender in the list of ProbeSender to use when
-     * sending a probe.
+     * {@linkplain ClientTransport#getSenders()} call to return the pre-created
+     * MC probe sender in the list of ProbeSender to use when sending a probe.
      * 
      * @author jmsimpson
      *
@@ -379,14 +381,13 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
 
-      Console.info("-------------------- Basic Information ------------------------");
-      Console.info("  Default CID ... " + context.getDefaultCID());
-      Console.info("    (use 'config -defaultCID' to change)");
-
       Console.info("\n------------------ Client URL Information --------------------");
       Console.info("  Client Listener URL ...... " + context.getListenerURL());
-      Console.info("  Client RespondTo URL ..... " + context.getRespondToURL());
       Console.info("    (use 'config -url' to change.  Setting this will restart the listener)");
+      Console.info("  Client RespondTo URL ..... " + context.getRespondToURL());
+      Console.info("    (use 'config -rurl' to change. All subsequest probes will use that URL)");
+      Console.info("  Default CID ... " + context.getDefaultCID());
+      Console.info("    (use 'config -defaultCID' to change)");
 
       Console.info("\n------------------ Configured Transports --------------------");
 
@@ -410,23 +411,13 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     }
 
     if (_url != null) {
-
-      // Sanity check on the respondToURL
-      // The requirement for the respondToURL is a REST POST call, so that means
-      // only HTTP and HTTPS schemes.
-      // Localhost is allowed as well as a valid response destination
-      String[] schemes = { "http", "https" };
-      UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
-
-      if (!urlValidator.isValid(_url)) {
-        Console.error("The Response Listener URL specified is invalid. Not restarting listener.");
-        return CommandResult.ERROR;
-      } else {
-        ((ArgoClient) context.getHostApplication()).restartListener(_url);
-      }
-
+      context.restartListener(_url);
     }
 
+    if (_rurl != null) {
+      context.getConfig().setResponseURL(_rurl);
+    }
+    
     return CommandResult.OK;
   }
 

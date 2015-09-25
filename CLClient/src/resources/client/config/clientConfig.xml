@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #
+  # Copyright 2015 Jeff Simpson.
+  #
+  # Licensed under the MIT License, (the "License"); 
+  # you may not use this file except in compliance with the License. 
+  # You may obtain a copy of the License at 
+  # 
+  # http://opensource.org/licenses/MIT 
+  # 
+  # Unless required by applicable law or agreed to in writing, software 
+  # distributed under the License is distributed on an "AS IS" BASIS, 
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+  # See the License for the specific language governing permissions and 
+  # limitations under the License. 
+  # 
+  -->
+  
+  
+<!--
+  ** Resolving internal and external addresses **
+  
+  The IP addresses in the configuration may not want to be hardcoded and may
+  only be known at runtime.  The configuration allows you to provide some
+  IP address resolvers that will resolve to an actual run-time IP address and
+  can be used as a replacement varialbe (e.g. ${internalIP}) in other configuration
+  values.
+  
+  The internalIP and externalIP items are special items that will follow special rules
+  to resolve to an IP address.  The value of these items can be as follows:
+  
+  1) a string literal - Example: 192.168.0.1 or dnsname.myorg.org
+     The string literal is a direct literal replacement value and is not resolved.  This
+     is useful when you know exactly what you want.
+     
+  2) a network interface name - Example: ni:eth0:ipv4 or ni:localhost:ipv6 
+     Specifying a network interface name can be useful when you know which network
+     interface device you want to use (e.g. eth0, en0, wlan0, etc) and want this value
+     parameterized and consistent across VMs that may operate in a cluster and will
+     get a dynamic IP address (and you don't want to manually configure each VM instance
+     by hand)  The format is as follow:
+     
+       ni:( available interface name | "localhost" ):("ipv4" | "ipv6" | <blank>)
+       
+       The ipv4 or ipv6 on the end is optional and default to ipv6
+     
+     Examples:  
+       ni:localhost:ipv4 or ni:localhost - this will resolve to the actual IP address of
+         whatever network interface is associated with the "localhost" address.
+         
+       ni:eth0:ipv6 - this will resolve to the IPV6 IP address (assuming there is one)
+       associated with the network interfaces named "eth0"
+       
+   3) a URL (http or https) - Example: https://api.ipify.org
+      Specifying a URL in the internalIP or externalIP items will resolve to whatever value
+      is returned from a GET call to that URL.  This is important as many cloud environments
+      make it difficult to get the publicly or external address of a VM.
+      
+      Examples:
+        https://api.ipify.org - this is a well-known and useful URL to resolve public IP
+        addresses on NAT networks (like home networks).  However, this will likely be used 
+        in conjunction with IP Port forwarding on the router.
+        
+        http://169.254.169.254/latest/meta-data/public-ipv4 - this is a well-known and useful
+        URL to resolve the public IP for EC2 instances in AWS.
+        
+  ** Basic client setup **
+
+  The listenerURL is the URL that is used to start up the embedded HTTP listener.
+  This can be an internal address or a publicly available address depending
+  on your needs.
+  By default its value is: http://localhost:4005
+  Which means that you'll need to make sure that your firewall
+  allows traffic on that port, or whatever port you specify.
+
+  The respondToURL is the publicly accessible URL for the listener.  It is the
+  address that probe responses will be sent to.
+  The respondToURL may be different than the listenerURL if there is some NAT
+  or other port forwarding that needs to be done through firewalls.
+  By default, this value is the same as the listenerURL.
+  
+  Both the listenerURL and the respondToURL can use the internalIP and externalIP
+  replacement variables.
+  
+  Example:
+    <internalIP>ni:eth0:ipv4</internalIP>
+    <listenerURL>http://${resolve:internalIP}:12345</listenerURL>
+    
+    <externalIP>http://169.254.169.254/latest/meta-data/public-ipv4</externalIP>
+    <respondToURL>http://${resolve:externalIP}:80</respondToURL>
+    
+  The client configuration does a sanity check on all URLs to make sure that are
+  well formed (reachable is another matter ... better check your work).
+
+  ** Other Replacement Resolvers **
+  
+  Other then the "resolv" prefix (e.g. ${resolve:internalIP}) there are other prefixes
+  you can use to inject values from other contexts.  The following are supported:
+  
+  Prefix: sys - This prefix marks a variable to be a system property
+  Example: ${sys:user.home}
+  
+  Will search for a system property with the given name and replace the variable by its value.
+  This is a very easy means for accessing the values of system properties.
+  
+  Prefix: env  - Variables can also reference OS-specific environment properties.
+  Example: ${env:JAVA_HOME}
+
+  
+  ** Other Replacement Variables **
+  
+  Any other items in the XML file are candidates for replacement.  Only the internalIP
+  and externalIP require the "resolve" prefix.  Actually, for example if you used just 
+  ${externalIP} you'd get the unresolved value.
+  
+  So, you can define other items in this config file as replacement vars.
+  
+  For example if you had an particular property a configuration property that you'd like
+  to reuse in the configuration, just add a new element (e.g. <propElem>) and then just
+  reference it in other values in the config file
+  (e.g. <someValue>The property value is ${propElem}</someValue>
+    ** Other Variable Resolver Prefixes **
+-->
+
+<client>
+  <internalIP></internalIP>
+  <externalIP></externalIP>
+  <listenerURL></listenerURL>
+  <respondToURL></respondToURL>
+  <installDir>@INSTALL_DIR@</installDir>
+  
+  <transports>
+    <transport>
+      <name>Multicast</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>true</usesNI>
+      <requiresMulticast>true</requiresMulticast>
+      <classname>ws.argo.probe.transport.MulticastTransport</classname>
+      <configFilename>${installDir}/client/config/multicastTransport.prop</configFilename>
+    </transport>
+
+<!-- 
+  Other Potential Transport Plugins.
+  
+  In order to use other transports, you can uncomment the OOTB configuration here.
+  NOTE: Only the SNS transport is available as of Argo 0.4.x
+  
+  You can build your own plugin using the simple plugin interface, include the classes
+  on the classpath and then create an new transport configuration with your values.
+ -->
+
+<!--
+     <transport>
+      <name>SNS</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.AmazonSNSTransport</classname>
+      <configFilename>@INSTALL_DIR@/client/config/amazonSNSTransport.prop</configFilename>
+    </transport>
+    <transport>
+      <name>MQTT</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.MQTTTransport</classname>
+      <configFilename>@INSTALL_DIR@/client/config/mqttTransport.prop</configFilename>
+    </transport>
+    <transport>
+      <name>JMS</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.JMSTransport</classname>
+      <configFilename>@INSTALL_DIR@/client/config/jmsTransport.prop</configFilename>
+    </transport>
+    <transport>
+      <name>MQ</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.MQTransport</classname>
+      <configFilename>@INSTALL_DIR@/client/config/mqTransport.prop</configFilename>
+    </transport> 
+    <transport>
+      <name>AMQP</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.AMQPTransport</classname>
+      <configFilename>@INSTALL_DIR@/client/config/ampqTransport.prop</configFilename>
+    </transport>
+     -->
+
+  </transports>
+
+</client>

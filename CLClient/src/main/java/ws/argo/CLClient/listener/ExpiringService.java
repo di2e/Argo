@@ -33,11 +33,15 @@ public class ExpiringService {
 
   static final long ONE_MINUTE_IN_MILLIS = 60000;
 
-  ServiceWrapper service;
+  ServiceWrapper _service;
   public Date    cacheStartTime = new Date();
 
+  /**
+   * 
+   * @param service
+   */
   public ExpiringService(ServiceWrapper service) {
-    this.service = service;
+    _service = service;
   }
 
   /**
@@ -49,11 +53,11 @@ public class ExpiringService {
    * @return true if the service record should be expired from the cache
    */
   public boolean isExpired() {
-    if (this.service.getTtl() == 0) {
+    if (_service.getTtl() == 0) {
       return false;
     }
     long t = this.cacheStartTime.getTime();
-    Date validTime = new Date(t + (this.service.getTtl() * ONE_MINUTE_IN_MILLIS));
+    Date validTime = new Date(t + (_service.getTtl() * ONE_MINUTE_IN_MILLIS));
     Date now = new Date();
 
     return (now.getTime() > validTime.getTime());
