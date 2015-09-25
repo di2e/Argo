@@ -32,6 +32,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.commons.configuration.ConfigurationException;
+
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration;
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service;
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service.AccessPoints.AccessPoint;
@@ -55,25 +57,27 @@ import ws.argo.wireline.response.ServiceWrapper;
  */
 public class ConfigFileMonitorTask extends TimerTask {
 
-  private static final Logger      LOGGER       = Logger.getLogger(ConfigFileMonitorTask.class.getName());
+  private static final Logger              LOGGER        = Logger.getLogger(ConfigFileMonitorTask.class.getName());
 
-  ConfigFileProbeHandlerPluginImpl plugin;
-  Date                             lastTimeRead = null;
-  File                             xmlConfigFile;
+  private ConfigFileProbeHandlerPluginImpl _plugin;
+  private Date                             _lastTimeRead = null;
+  private File                             _xmlConfigFile;
+  private ServiceListConfiguration         _config;
 
   /**
    * Creates a monitor task with the plugin instance as a parameter. The monitor
    * needs access to the plugin in order to get its config and set the service
    * list
    * 
-   * @param configFileProbeHandlerPluginImpl
+   * @param configFileProbeHandlerPluginImpl the instance of the handler
+   * @throws ConfigurationException if something goes wrong
    * 
    */
-  public ConfigFileMonitorTask(ConfigFileProbeHandlerPluginImpl configFileProbeHandlerPluginImpl) {
-    plugin = configFileProbeHandlerPluginImpl;
-    Properties config = plugin.getConfiguration();
+  public ConfigFileMonitorTask(ConfigFileProbeHandlerPluginImpl configFileProbeHandlerPluginImpl) throws ConfigurationException {
+    _plugin = configFileProbeHandlerPluginImpl;
+    Properties config = _plugin.getConfiguration();
     String xmlConfigFilename = config.getProperty("xmlConfigFilename");
-    xmlConfigFile = new File(xmlConfigFilename);
+    _xmlConfigFile = new File(xmlConfigFilename);
   }
 
   /**
@@ -84,16 +88,14 @@ public class ConfigFileMonitorTask extends TimerTask {
   public void run() {
     LOGGER.fine("begin scan for config file changes ...");
     try {
-      Date lastModified = new Date(xmlConfigFile.lastModified());
+      Date lastModified = new Date(_xmlConfigFile.lastModified());
 
-      if (lastTimeRead == null || lastModified.after(lastTimeRead)) {
+      if (_lastTimeRead == null || lastModified.after(_lastTimeRead)) {
         LOGGER.info("loading config file changes ...");
         this.loadServiceConfigFile();
-        lastTimeRead = new Date();
+        _lastTimeRead = new Date();
       }
-    } catch (JAXBException e) {
-      LOGGER.log(Level.SEVERE, "Error parsing xml configuation file: ", e);
-    } catch (FileNotFoundException e) {
+    } catch (ConfigurationException e) {
       LOGGER.log(Level.SEVERE, "Error loading configuation file: ", e);
     }
     LOGGER.fine("finish scan for config file changes");
@@ -108,25 +110,26 @@ public class ConfigFileMonitorTask extends TimerTask {
    * 
    * @throws JAXBException if there is some issue with the XML
    * @throws FileNotFoundException if the file name does not exist
+   * @throws ConfigurationException
    */
-  private void loadServiceConfigFile() throws JAXBException, FileNotFoundException {
+  private void loadServiceConfigFile() throws ConfigurationException {
 
-    Properties config = plugin.getConfiguration();
+    Properties config = _plugin.getConfiguration();
     String xmlConfigFilename = config.getProperty("xmlConfigFilename");
 
-    ServicesConfiguration services = parseConfigFile(xmlConfigFilename);
+    _config = new ServiceListConfiguration(xmlConfigFilename);
 
-    ArrayList<ServiceWrapper> serviceList = constructServiceList(services);
+    // ServicesConfiguration services = parseConfigFile(xmlConfigFilename);
+
+    // ArrayList<ServiceWrapper> serviceList = constructServiceList(services);
+
+    ArrayList<ServiceWrapper> serviceList = _config.getServiceList();
 
     LOGGER.fine("Setting the service list in the plugin");
-    plugin.setServiceList(serviceList);
+    _plugin.setServiceList(serviceList);
 
   }
-  
-  private void loadServiceConfig() {
-    
-    
-  }
+
 
   private ArrayList<ServiceWrapper> constructServiceList(ServicesConfiguration services) {
     ArrayList<ServiceWrapper> serviceList = new ArrayList<ServiceWrapper>();
@@ -156,21 +159,4 @@ public class ConfigFileMonitorTask extends TimerTask {
     return serviceList;
   }
 
-  private ServicesConfiguration parseConfigFile(String xmlConfigFilename) throws JAXBException, FileNotFoundException {
-    JAXBContext jaxbContext = JAXBContext.newInstance(ServicesConfiguration.class);
-    LOGGER.info("Loading configuration from " + xmlConfigFilename);
-    
-    InputStream is;
-    // try to load the properties file off the classpath first
-
-    if (ConfigFileProbeHandlerPluginImpl.class.getResource(xmlConfigFilename) != null) {
-      is = ConfigFileProbeHandlerPluginImpl.class.getResourceAsStream(xmlConfigFilename);
-    } else {
-      is = new FileInputStream(xmlConfigFilename);
-    }
-
-    Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-    ServicesConfiguration services = (ServicesConfiguration) jaxbUnmarshaller.unmarshal(is);
-    return services;
-  }
 }

@@ -8,13 +8,14 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.interpol.ConfigurationInterpolator;
 import org.apache.commons.lang.text.StrLookup;
@@ -26,18 +27,16 @@ import org.apache.commons.validator.routines.UrlValidator;
  * @author jmsimpson
  *
  */
-public class ClientConfiguration {
+public abstract class XMLResolvingConfiguration {
 
-  private UrlValidator               _urlValidator;
-  private XMLConfiguration           _config;
+  protected UrlValidator        _urlValidator;
+  protected XMLConfiguration  _config;
 
-  private Map<String, String> _interpolatorMap = new HashMap<String, String>();
-  private StrLookup           _lookup          = StrLookup.mapLookup(_interpolatorMap);
-  private StrSubstitutor      _substitutor     = new StrSubstitutor(_lookup);
+  protected Map<String, String> _interpolatorMap = new HashMap<String, String>();
+  protected StrLookup           _lookup          = StrLookup.mapLookup(_interpolatorMap);
+  protected StrSubstitutor      _substitutor     = new StrSubstitutor(_lookup);
 
-  WebTarget _target;
-
-  public ClientConfiguration() {
+  public XMLResolvingConfiguration() {
   }
 
   /**
@@ -45,29 +44,25 @@ public class ClientConfiguration {
    * @param filename
    * @throws ArgoClientConfigException
    */
-  public ClientConfiguration(String filename) throws ConfigurationException {
+  public XMLResolvingConfiguration(String filename) throws ConfigurationException {
     ConfigurationInterpolator.registerGlobalLookup("resolve", _lookup);
-      _config = new XMLConfiguration(filename);
+    _config = new XMLConfiguration(filename);
 
     initializeURLValidator();
     initializeResolvers();
     initializeConfiguration();
   }
 
-  public WebTarget getListenerTarget() {
-    return _target;
-  }
-
-
   private void initializeResolvers() {
-    String _internaIP = _config.getString("internalIP");
-    String _externaIP = _config.getString("externalIP");
+    List<HierarchicalConfiguration> resolveNames = _config.configurationsAt("resolve");
 
-    String _internalResolution = initializeResolver(_internaIP);
-    String _externalResolution = initializeResolver(_externaIP);
+    for (HierarchicalConfiguration c : resolveNames) {
+      String name = c.getString("[@name]");
+      String _resolveString = c.getString("");
 
-    _interpolatorMap.put("internalIP", _internalResolution);
-    _interpolatorMap.put("externalIP", _externalResolution);
+      String resolvedString = initializeResolver(_resolveString);
+      _interpolatorMap.put(name, resolvedString);
+    }
   }
 
   private void initializeURLValidator() {
@@ -79,11 +74,7 @@ public class ClientConfiguration {
     _urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
   }
 
-  private void initializeConfiguration() {
-
-  }
-
-  private static String initializeResolver(String resolverString) {
+  private String initializeResolver(String resolverString) {
 
     String ipAddress = "UNKNOWN";
     if (resolverString == null || resolverString.isEmpty())
@@ -108,26 +99,34 @@ public class ClientConfiguration {
 
   }
 
-  private static String ipAddressFromURL(String url) {
+  /**
+   * Resolve the IP address from a URL.
+   * 
+   * @param url and URL that will return an IP address
+   * @return the result from the HTTP GET operations or null of an error
+   */
+  private String ipAddressFromURL(String url) {
     String ipAddr = null;
-    WebTarget resolver;
-    String[] schemes = { "http", "https" };
-    UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
 
-    if (urlValidator.isValid(url)) {
-      Client resolverClient = ClientBuilder.newClient();
-      resolver = resolverClient.target(url);
+    if (_urlValidator.isValid(url)) {
+      WebTarget resolver = ClientBuilder.newClient().target(url);
       try {
         ipAddr = resolver.request().get(String.class);
       } catch (Exception e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        warn("URL Cannot Resolve. The requested URL is invalid  [" + url + "]");
       }
     }
     return ipAddr;
   }
 
-  private static String ipAddressFromNI(String niSpec) {
+  /**
+   * Resolve the IP address from the special "resolver" network interface
+   * format.
+   * 
+   * @param niSpec the special "resolver" network interface format
+   * @return either UNKNOWN, the original string or the resolved IP address
+   */
+  private String ipAddressFromNI(String niSpec) {
     String ipAddress = null;
     NetworkInterface ni = null;
     if (niSpec.startsWith("ni:")) {
@@ -177,7 +176,7 @@ public class ClientConfiguration {
               break;
             case "ipv6":
               if (addr instanceof Inet6Address) {
-                ipAddress = addr.getHostAddress();
+                ipAddress = "[" + addr.getHostAddress() + "]";
               }
               break;
             default:
@@ -192,5 +191,19 @@ public class ClientConfiguration {
 
     return ipAddress;
   }
+
+  /**
+   * This method NEEDS to be completed. It's the main concrete initialization
+   * method for the configuration.
+   */
+  abstract void initializeConfiguration();
+
+  abstract void warn(String string);
+
+  abstract void info(String string);
+
+  abstract void error(String string);
+
+  abstract void error(String string, Throwable e);
 
 }

@@ -25,6 +25,8 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.logging.Logger;
 
+import org.apache.commons.configuration.ConfigurationException;
+
 import ws.argo.responder.ProbeHandlerPluginIntf;
 import ws.argo.responder.ResponderConfigException;
 import ws.argo.wireline.probe.ProbeWrapper;
@@ -153,8 +155,12 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
     }
 
     // Launch the timer task that will look for changes to the config file
-    configFileScan = new Timer();
-    configFileScan.scheduleAtFixedRate(new ConfigFileMonitorTask(this), 100, 10000);
+    try {
+      configFileScan = new Timer();
+      configFileScan.scheduleAtFixedRate(new ConfigFileMonitorTask(this), 100, 10000);
+    } catch (ConfigurationException e) {
+      throw new ResponderConfigException("Error initializing monitor task.", e);
+    }
 
   }
 
