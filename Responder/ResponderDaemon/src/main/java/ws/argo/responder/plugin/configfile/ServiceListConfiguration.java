@@ -65,7 +65,7 @@ public class ServiceListConfiguration extends XMLResolvingConfiguration {
         String port = ap.getString("port");
         String url = ap.getString("url");
         
-        serviceBean .addAccessPoint(label, ipAddr, port, url, xmlData, dataType);
+        serviceBean .addAccessPoint(label, ipAddr, port, url, dataType, xmlData);
       }
 
       _serviceList.add(serviceBean);
@@ -92,34 +92,6 @@ public class ServiceListConfiguration extends XMLResolvingConfiguration {
   @Override
   void error(String msg, Throwable e) {
     LOGGER.log(Level.SEVERE, msg, e);
-  }
-  
-  private ArrayList<ServiceWrapper> constructServiceList(ServicesConfiguration services) {
-    ArrayList<ServiceWrapper> serviceList = new ArrayList<ServiceWrapper>();
-
-    for (Service service : services.getService()) {
-
-      ServiceWrapper serviceBean = new ServiceWrapper(service.getId());
-
-      serviceBean.setServiceName(service.getServiceName());
-      serviceBean.setDescription(service.getDescription());
-      serviceBean.setContractDescription(service.getContractDescription());
-      serviceBean.setConsumability(service.getConsumability());
-      serviceBean.setServiceContractID(service.getContractID());
-      serviceBean.setTtl(service.getTtl());
-
-      List<AccessPoint> apList = service.getAccessPoints().getAccessPoint();
-
-      for (AccessPoint ap : apList) {
-        Data xmlData = ap.getData();
-        serviceBean
-            .addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), xmlData
-                .getType(), xmlData.getValue());
-      }
-
-      serviceList.add(serviceBean);
-    }
-    return serviceList;
   }
 
 

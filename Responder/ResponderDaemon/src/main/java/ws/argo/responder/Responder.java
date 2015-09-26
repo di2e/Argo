@@ -63,31 +63,31 @@ import ws.argo.wireline.probe.ProbeWrapper;
  */
 public class Responder implements ProbeProcessor {
 
-  private static final String VERSION_PROPERTIES = "/version.properties";
+  private static final String               VERSION_PROPERTIES = "/version.properties";
 
-  private static final Logger LOGGER = Logger.getLogger(Responder.class.getName());
+  private static final Logger               LOGGER             = Logger.getLogger(Responder.class.getName());
 
-  private static String ARGO_VERSION = "UNKNOWN";
+  private static String                     ARGO_VERSION       = "UNKNOWN";
 
-  private ArrayList<Transport> transports = new ArrayList<Transport>();
+  private ArrayList<Transport>              _transports        = new ArrayList<Transport>();
 
-  private ArrayList<ProbeHandlerPluginIntf> handlers = new ArrayList<ProbeHandlerPluginIntf>();
+  private ArrayList<ProbeHandlerPluginIntf> _handlers          = new ArrayList<ProbeHandlerPluginIntf>();
 
-  protected InetAddress maddress;
+  protected InetAddress                     maddress;
 
-  protected CloseableHttpClient httpClient;
+  protected CloseableHttpClient             httpClient;
 
-  private ResponderConfigurationBean cliValues;
+  private ResponderConfigurationBean        _cliValues;
 
-  private ResponderShutdown shutdownHook;
+  private ResponderShutdown                 _shutdownHook;
 
   // This id is for internal reporting and logging reasons
-  private String runtimeId;
+  private String                            _runtimeId;
 
-  ThreadPoolExecutor     executorPool;
-  ResponderMonitorThread monitor;
+  private ThreadPoolExecutor                _executorPool;
+  private ResponderMonitorThread            _monitor           = null;
 
-  ConcurrentLinkedQueue<Instant> messages = new ConcurrentLinkedQueue<Instant>();
+  ConcurrentLinkedQueue<Instant>            messages           = new ConcurrentLinkedQueue<Instant>();
 
   /**
    * Utility class to encaptulate some of the Responder configuration.
@@ -151,10 +151,10 @@ public class Responder implements ProbeProcessor {
    * @param cliValues - the list of command line arguments
    */
   public Responder(ResponderConfigurationBean cliValues) {
-    this.cliValues = cliValues;
+    this._cliValues = cliValues;
     httpClient = HttpClients.createDefault();
     UUID uuid = UUID.randomUUID();
-    runtimeId = uuid.toString();
+    _runtimeId = uuid.toString();
 
     intializeThreadPool();
   }
@@ -166,23 +166,24 @@ public class Responder implements ProbeProcessor {
     ThreadFactory threadFactory = Executors.defaultThreadFactory();
     // creating the ThreadPoolExecutor
 
-    executorPool = new ThreadPoolExecutor(cliValues.threadPoolSize, cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
+    _executorPool = new ThreadPoolExecutor(_cliValues.threadPoolSize, _cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(_cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
 
     // start the monitoring thread
-    if (cliValues.runMonitor)
-      monitor = new ResponderMonitorThread(this, executorPool, cliValues.monitorInterval);
-    Thread monitorThread = new Thread(monitor);
-    monitorThread.start();
+    if (_cliValues.runMonitor) {
+      _monitor = new ResponderMonitorThread(this, _executorPool, _cliValues.monitorInterval);
+      Thread monitorThread = new Thread(_monitor);
+      monitorThread.start();
+    }
 
   }
 
   @Override
   public String getRuntimeID() {
-    return runtimeId;
+    return _runtimeId;
   }
 
   public ArrayList<ProbeHandlerPluginIntf> getHandlers() {
-    return handlers;
+    return _handlers;
   }
 
   /**
@@ -220,7 +221,7 @@ public class Responder implements ProbeProcessor {
 
     handler.initializeWithPropertiesFilename(configFilename);
 
-    handlers.add(handler);
+    _handlers.add(handler);
   }
 
   /**
@@ -255,7 +256,7 @@ public class Responder implements ProbeProcessor {
 
     transport.initialize(this, configFilename);
 
-    transports.add(transport);
+    _transports.add(transport);
   }
 
   /**
@@ -267,9 +268,9 @@ public class Responder implements ProbeProcessor {
    * management procedures.
    */
   public void stopResponder() {
-    LOGGER.info("Force shutdown of Responder [" + runtimeId + "]");
-    shutdownHook.start();
-    Runtime.getRuntime().removeShutdownHook(shutdownHook);
+    LOGGER.info("Force shutdown of Responder [" + _runtimeId + "]");
+    _shutdownHook.start();
+    Runtime.getRuntime().removeShutdownHook(_shutdownHook);
   }
 
   /**
@@ -279,14 +280,14 @@ public class Responder implements ProbeProcessor {
    * going on and exit the run loop.
    */
   public void shutdown() {
-    LOGGER.info("Responder shutting down port " + cliValues.multicastPort + " [" + runtimeId + "]");
-    for (Transport t : transports) {
+    LOGGER.info("Responder shutting down port " + _cliValues.multicastPort + " [" + _runtimeId + "]");
+    for (Transport t : _transports) {
       t.shutdown();
     }
   }
 
   public void setShutdownHook(ResponderShutdown shutdownHook) {
-    this.shutdownHook = shutdownHook;
+    this._shutdownHook = shutdownHook;
   }
 
   /**
@@ -308,7 +309,7 @@ public class Responder implements ProbeProcessor {
     // contained.
 
     Thread transportThread;
-    for (Transport t : transports) {
+    for (Transport t : _transports) {
 
       transportThread = new Thread(t);
       transportThread.setName(t.transportName());
@@ -323,7 +324,7 @@ public class Responder implements ProbeProcessor {
    * This is where the rubber meets the road. The transport module has
    */
   public void processProbe(ProbeWrapper probe) {
-    executorPool.execute(new ProbeHandlerThread(this, probe, cliValues.noBrowser));
+    _executorPool.execute(new ProbeHandlerThread(this, probe, _cliValues.noBrowser));
   }
 
   /**
@@ -337,7 +338,6 @@ public class Responder implements ProbeProcessor {
 
     Instant event = null;
     int events = 0;
-    long deltaTime = 0;
     boolean done = false;
     long timeWindow = 0;
     long oldestTime = 0;
@@ -355,10 +355,9 @@ public class Responder implements ProbeProcessor {
     } while (!done);
 
     timeWindow = now.getMillis() - oldestTime;
-    
+
     float mps = (float) events / timeWindow;
     mps = (float) (mps * 1000.0);
-
 
     return mps;
 
@@ -372,11 +371,9 @@ public class Responder implements ProbeProcessor {
    * Tells the Responder that a message was responded to.
    */
   public void probeProcessed() {
-    messages.add(new Instant());
-
-    long size = messages.size();
-    if (size > 1000)
-      messages.poll();
+    if (_monitor != null) {
+      messages.add(new Instant());
+    }
   }
 
   private void loadHandlerPlugins(ArrayList<PluginConfig> configs) throws ResponderConfigException {
@@ -411,7 +408,7 @@ public class Responder implements ProbeProcessor {
 
     // make sure we have at least 1 active handler. If not, then fail the
     // responder process
-    if (transports.isEmpty()) {
+    if (_transports.isEmpty()) {
       throw new ResponderConfigException("No responder transports created successfully on initialization.  There needs to be a least one transport instance for the Responder to work.");
     }
 
@@ -470,7 +467,7 @@ public class Responder implements ProbeProcessor {
 
     // This needs to be sent to stdout as there is no way to force the logging
     // of this via the LOGGER
-    System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started on " + cliValues.multicastAddress + ":" + cliValues.multicastPort + " [" + responder.runtimeId + "]");
+    System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started on " + cliValues.multicastAddress + ":" + cliValues.multicastPort + " [" + responder._runtimeId + "]");
 
     return responder;
   }

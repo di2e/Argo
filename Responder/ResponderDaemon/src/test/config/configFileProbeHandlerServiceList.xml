@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <servicesConfiguration>
+    <resolve name="internalIP">ni:localhost:ipv4</resolve>
+    <resolve name="externalIP">http://api.ipify.org</resolve>
 	<service id="urn:uuid:87362eb4-043b-4c75-b7e3-73462a7e9fce" contractID="urn:uuid:dbbc5efa-42e3-418c-a753-d2f3392ada07">
 
 		<!-- description block crap -->

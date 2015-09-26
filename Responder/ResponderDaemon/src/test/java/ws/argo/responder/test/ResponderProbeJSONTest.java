@@ -46,7 +46,7 @@ public class ResponderProbeJSONTest extends ResponderProbeTest {
     Probe probe = new Probe(Probe.JSON);
     probe.addRespondToURL("", "http://localhost:9998/listener/probeResponse");
     gen.sendProbe(probe); // Send the naked probe
-    Thread.sleep(1000); // let the responder process the message and post back
+    Thread.sleep(2000); // let the responder process the message and post back
     // to the listener
 
     System.out.println("Getting testNakedProbeJSON cached responses from listener");
