@@ -18,6 +18,7 @@ import javax.ws.rs.client.WebTarget;
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.config.ClientConfiguration;
+import ws.argo.CLClient.config.ClientConfiguration1;
 import ws.argo.probe.Probe;
 import ws.argo.probe.transport.TransportConfigException;
 

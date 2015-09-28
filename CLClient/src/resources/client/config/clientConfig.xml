@@ -120,15 +120,15 @@
     
     externalIP will resolve to value of the HTTP GET call to the AWS external IP service
     (Note: this will only work on configurations running in a AWS EC2 instance)
-    <resolve name="externalIP"><http://169.254.169.254/latest/meta-data/public-ipv4/resolve>
-    <respondToURL>http://${resolve:externalIP}:80</respondToURL>
+    <resolveIP name="externalIP"><http://169.254.169.254/latest/meta-data/public-ipv4/resolveIP>
+    <respondToURL>http://${resolveIP:externalIP}:80</respondToURL>
     
   The client configuration does a sanity check on all URLs to make sure that are
   well formed (reachable is another matter ... better check your work).
 
   ** Other Replacement Resolvers **
   
-  Other then the "resolv" prefix (e.g. ${resolve:internalIP}) there are other prefixes
+  Other then the "resolveIP" prefix (e.g. ${resolveIP:internalIP}) there are other prefixes
   you can use to inject values from other contexts.  The following are supported:
   
   Prefix: sys - This prefix marks a variable to be a system property
@@ -157,8 +157,8 @@
 -->
 
 <client>
-  <resolve name="internalIP"></resolve>
-  <resolve name="externalIP"></resolve>
+  <resolveIP name="internalIP" type="ni"></resolveIP>
+  <resolveIP name="externalIP" type="uri"></resolveIP>
 
   <listenerURL></listenerURL>
   <respondToURL></respondToURL>

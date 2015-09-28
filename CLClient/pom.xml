@@ -16,6 +16,11 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>ws.argo.common</groupId>
+      <artifactId>CommonUtils</artifactId>
+      <version>0.4.0-BETA</version>
+    </dependency>
+    <dependency>
       <groupId>ws.argo.probe</groupId>
       <version>0.4.0-BETA</version>
       <artifactId>ProbeSender</artifactId>

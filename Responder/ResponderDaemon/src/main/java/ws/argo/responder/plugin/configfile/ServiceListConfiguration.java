@@ -8,10 +8,7 @@ import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 
-import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration;
-import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service;
-import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service.AccessPoints.AccessPoint;
-import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service.AccessPoints.AccessPoint.Data;
+import ws.argo.common.config.ResolvingXMLConfiguration;
 import ws.argo.wireline.response.ServiceWrapper;
 
 /**
@@ -20,7 +17,7 @@ import ws.argo.wireline.response.ServiceWrapper;
  * @author jmsimpson
  *
  */
-public class ServiceListConfiguration extends XMLResolvingConfiguration {
+public class ServiceListConfiguration extends ResolvingXMLConfiguration {
 
   private static final Logger LOGGER = Logger.getLogger(ServiceListConfiguration.class.getName());
 
@@ -38,7 +35,7 @@ public class ServiceListConfiguration extends XMLResolvingConfiguration {
   }
 
   @Override
-  void initializeConfiguration() {
+  protected void initializeConfiguration() {
     
     _serviceList = new ArrayList<ServiceWrapper>();
 
@@ -75,22 +72,22 @@ public class ServiceListConfiguration extends XMLResolvingConfiguration {
   }
 
   @Override
-  void warn(String msg) {
+  protected void warn(String msg) {
     LOGGER.warning(msg);
   }
 
   @Override
-  void info(String msg) {
+  protected void info(String msg) {
     LOGGER.info(msg);
   }
 
   @Override
-  void error(String msg) {
+  protected void error(String msg) {
     LOGGER.log(Level.SEVERE, msg);
   }
 
   @Override
-  void error(String msg, Throwable e) {
+  protected void error(String msg, Throwable e) {
     LOGGER.log(Level.SEVERE, msg, e);
   }
 

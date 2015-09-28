@@ -76,7 +76,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     Console.info("Starting Argo Client ...");
     try {
       _config = parseCommandLine(args);
-    } catch (ArgoClientConfigException e) {
+    } catch (ConfigurationException e) {
       throw new CLIInitException("Argo Configuration Error", e);
     }
     setPrompt("Argo");
@@ -131,7 +131,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     return getConfig().getTransportConfigs();
   }
 
-  private ClientConfiguration parseCommandLine(String[] args) throws ArgoClientConfigException {
+  private ClientConfiguration parseCommandLine(String[] args) throws ConfigurationException {
     CommandLineParser parser = new BasicParser();
     ClientConfiguration config = null;
 
@@ -156,7 +156,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     return config;
   }
 
-  private ClientConfiguration processCommandLine(CommandLine cl) throws ArgoClientConfigException {
+  private ClientConfiguration processCommandLine(CommandLine cl) throws ConfigurationException {
 
     LOGGER.fine("Parsing command line values:");
 
@@ -167,7 +167,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
       String propsFilename = cl.getOptionValue("pf");
       try {
         config = processPropertiesFile(propsFilename);
-      } catch (ArgoClientConfigException e) {
+      } catch (ConfigurationException e) {
         LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + propsFilename + "] due to:", e);
         throw e;
       }
@@ -196,7 +196,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     return options;
   }
 
-  private ClientConfiguration processPropertiesFile(String filename) throws ArgoClientConfigException {
+  private ClientConfiguration processPropertiesFile(String filename) throws ConfigurationException {
 
     ClientConfiguration config = new ClientConfiguration(filename);
 
