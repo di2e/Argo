@@ -21,7 +21,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.UUID;
@@ -97,12 +96,9 @@ public class Responder implements ProbeProcessor {
    */
   private static class ResponderConfigurationBean {
 
-    public int                     multicastPort     = 4003;
-    public String                  multicastAddress  = "230.0.0.1";
     public boolean                 noBrowser         = false;
     public ArrayList<PluginConfig> appHandlerConfigs = new ArrayList<PluginConfig>();
     public ArrayList<PluginConfig> transportConfigs  = new ArrayList<PluginConfig>();
-    public String                  networkInterface;
     public boolean                 runMonitor;
     public int                     monitorInterval;
     public int                     threadPoolSize;
@@ -166,7 +162,8 @@ public class Responder implements ProbeProcessor {
     ThreadFactory threadFactory = Executors.defaultThreadFactory();
     // creating the ThreadPoolExecutor
 
-    _executorPool = new ThreadPoolExecutor(_cliValues.threadPoolSize, _cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(_cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
+    _executorPool = new ThreadPoolExecutor(_cliValues.threadPoolSize, _cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS, 
+        new ArrayBlockingQueue<Runnable>(_cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
 
     // start the monitoring thread
     if (_cliValues.runMonitor) {
@@ -280,7 +277,7 @@ public class Responder implements ProbeProcessor {
    * going on and exit the run loop.
    */
   public void shutdown() {
-    LOGGER.info("Responder shutting down port " + _cliValues.multicastPort + " [" + _runtimeId + "]");
+    LOGGER.info("Responder shutting down: [" + _runtimeId + "]");
     for (Transport t : _transports) {
       t.shutdown();
     }
@@ -294,8 +291,7 @@ public class Responder implements ProbeProcessor {
    * This is the main run method for the Argo Responder. It starts up all the
    * configured transports in their own thread and starts their receive loops.
    * 
-   * <p>
-   * Transports run in their own thread. Thus, when all the transports are
+   * <p>Transports run in their own thread. Thus, when all the transports are
    * running, this method will exit. You can shutdown the Responder by calling
    * the {@linkplain #shutdown()} method. This method will be called by the
    * {@linkplain ResponderShutdown} hook.
@@ -467,7 +463,7 @@ public class Responder implements ProbeProcessor {
 
     // This needs to be sent to stdout as there is no way to force the logging
     // of this via the LOGGER
-    System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started on " + cliValues.multicastAddress + ":" + cliValues.multicastPort + " [" + responder._runtimeId + "]");
+    System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started  [" + responder._runtimeId + "]");
 
     return responder;
   }
@@ -549,27 +545,6 @@ public class Responder implements ProbeProcessor {
       LOGGER.info("Responder started in no browser mode.");
     }
 
-    // Network Interface
-    if (cl.hasOption("ni")) {
-      String ni = cl.getOptionValue("ni");
-      propsConfig.networkInterface = ni;
-    }
-
-    if (cl.hasOption("mp")) {
-      try {
-        int portNum = Integer.parseInt(cl.getOptionValue("mp"));
-        propsConfig.multicastPort = portNum;
-        LOGGER.info("Overriding multicast port with command line value");
-      } catch (NumberFormatException e) {
-        throw new ResponderConfigException("The multicast port number [" + cl.getOptionValue("mp") + "]- is not formattable as an integer", e);
-      }
-    }
-
-    if (cl.hasOption("ma")) {
-      propsConfig.multicastAddress = cl.getOptionValue("ma");
-      LOGGER.info("Overriding multicast address with command line value");
-    }
-
     return propsConfig;
 
   }
@@ -598,16 +573,6 @@ public class Responder implements ProbeProcessor {
         throw new ResponderConfigException(e.getLocalizedMessage(), e);
       }
     }
-
-    try {
-      int port = Integer.parseInt(prop.getProperty("multicastPort", "4003"));
-      config.multicastPort = port;
-    } catch (NumberFormatException e) {
-      LOGGER.warning("Error reading port number from properties file.  Using default port of 4003.");
-      config.multicastPort = 4003;
-    }
-
-    config.multicastAddress = prop.getProperty("multicastAddress", "230.0.0.1");
 
     config.runMonitor = Boolean.parseBoolean(prop.getProperty("runMonitor", "false"));
 

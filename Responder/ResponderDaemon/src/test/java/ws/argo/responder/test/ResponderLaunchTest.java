@@ -8,6 +8,7 @@ import ws.argo.responder.Responder;
 import ws.argo.responder.ResponderConfigException;
 
 /**
+ * Lauches the Responder in various guises and see if it works.
  * 
  * @author jmsimpson
  *

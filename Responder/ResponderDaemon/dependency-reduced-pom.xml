@@ -337,12 +337,6 @@
       <artifactId>ProbeSender</artifactId>
       <version>0.4.0-BETA</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-validator</artifactId>
-          <groupId>commons-validator</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
   <properties>

@@ -157,9 +157,11 @@
 -->
 
 <client>
+<!-- 
   <resolveIP name="internalIP" type="ni"></resolveIP>
   <resolveIP name="externalIP" type="uri"></resolveIP>
-
+ -->
+ 
   <listenerURL></listenerURL>
   <respondToURL></respondToURL>
   <installDir>@INSTALL_DIR@</installDir>
@@ -191,7 +193,7 @@
       <usesNI>false</usesNI>
       <requiresMulticast>false</requiresMulticast>
       <classname>ws.argo.probe.transport.AmazonSNSTransport</classname>
-      <configFilename>@INSTALL_DIR@/client/config/amazonSNSTransport.prop</configFilename>
+      <configFilename>${installDir}/client/config/amazonSNSTransport.prop</configFilename>
     </transport>
     <transport>
       <name>MQTT</name>
@@ -199,7 +201,7 @@
       <usesNI>false</usesNI>
       <requiresMulticast>false</requiresMulticast>
       <classname>ws.argo.probe.transport.MQTTTransport</classname>
-      <configFilename>@INSTALL_DIR@/client/config/mqttTransport.prop</configFilename>
+      <configFilename>${installDir}/client/config/mqttTransport.prop</configFilename>
     </transport>
     <transport>
       <name>JMS</name>
@@ -207,7 +209,7 @@
       <usesNI>false</usesNI>
       <requiresMulticast>false</requiresMulticast>
       <classname>ws.argo.probe.transport.JMSTransport</classname>
-      <configFilename>@INSTALL_DIR@/client/config/jmsTransport.prop</configFilename>
+      <configFilename>${installDir}/client/config/jmsTransport.prop</configFilename>
     </transport>
     <transport>
       <name>MQ</name>
@@ -215,7 +217,7 @@
       <usesNI>false</usesNI>
       <requiresMulticast>false</requiresMulticast>
       <classname>ws.argo.probe.transport.MQTransport</classname>
-      <configFilename>@INSTALL_DIR@/client/config/mqTransport.prop</configFilename>
+      <configFilename>${installDir}/client/config/mqTransport.prop</configFilename>
     </transport> 
     <transport>
       <name>AMQP</name>
@@ -223,7 +225,7 @@
       <usesNI>false</usesNI>
       <requiresMulticast>false</requiresMulticast>
       <classname>ws.argo.probe.transport.AMQPTransport</classname>
-      <configFilename>@INSTALL_DIR@/client/config/ampqTransport.prop</configFilename>
+      <configFilename>${installDir}/client/config/ampqTransport.prop</configFilename>
     </transport>
      -->
 

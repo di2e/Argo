@@ -69,7 +69,7 @@ public abstract class ResolvingXMLConfiguration {
    * @throws ArgoClientConfigException
    */
   public ResolvingXMLConfiguration(String filename) throws ConfigurationException {
-    ConfigurationInterpolator.registerGlobalLookup("resolve", _lookup);
+    ConfigurationInterpolator.registerGlobalLookup("resolveIP", _lookup);
     _config = new XMLConfiguration(filename);
 
     initializeURLValidator();

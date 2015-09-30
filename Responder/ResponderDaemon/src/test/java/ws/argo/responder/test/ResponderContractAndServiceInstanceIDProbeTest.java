@@ -10,17 +10,22 @@ import javax.ws.rs.client.WebTarget;
 
 import org.junit.Test;
 
-import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeSenderException;
-import ws.argo.probe.UnsupportedPayloadType;
-import ws.argo.wireline.probe.ProbeWrapper;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 
+import ws.argo.probe.Probe;
+import ws.argo.probe.ProbeSenderException;
+import ws.argo.probe.UnsupportedPayloadType;
+
+/**
+ * Checks for specific queries.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponderContractAndServiceInstanceIDProbeTest extends ResponderProbeTest {
 
   @Test

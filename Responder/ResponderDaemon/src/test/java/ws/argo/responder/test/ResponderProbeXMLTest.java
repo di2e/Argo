@@ -16,6 +16,12 @@ import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.UnsupportedPayloadType;
 import ws.argo.wireline.probe.ProbeWrapper;
 
+/**
+ * Probes with XML as the payload.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponderProbeXMLTest extends ResponderProbeTest {
 
   private  String      nakedProbeXMLResponseFromListener;
