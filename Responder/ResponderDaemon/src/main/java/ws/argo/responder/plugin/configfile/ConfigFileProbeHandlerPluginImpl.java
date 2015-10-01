@@ -40,8 +40,7 @@ import ws.argo.wireline.response.ServiceWrapper;
  * This default probe handler will load up a list of IP addresses and port
  * number associated with a service contract ID (like a UUID).
  * 
- * <p>
- * This handler will read a config xml file which lists the services that it can
+ * <p>This handler will read a config xml file which lists the services that it can
  * respond with.
  * 
  * @see ConfigFileMonitorTask
@@ -74,8 +73,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
    * services list which might change out if the user changes it, is
    * synchronized to make sure nothing weird happens.
    * 
-   * <p>
-   * There is lock on this that will always allow a read unless another thread
+   * <p>There is lock on this that will always allow a read unless another thread
    * is updating the service list.
    * 
    * @param services - the ArrayList of ServiceInfoBeans
@@ -93,8 +91,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
   /**
    * Get the list of services that the handler, well, uh, handles.
    * 
-   * <p>
-   * There is lock on this that will always allow a read unless another thread
+   * <p>There is lock on this that will always allow a read unless another thread
    * is updating the service list.
    * 
    * @return list of services

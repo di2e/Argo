@@ -1,14 +1,9 @@
 package ws.argo.CLClient.commands;
 
-import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.validator.routines.UrlValidator;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -18,10 +13,8 @@ import net.dharwin.common.tools.cli.api.CommandResult;
 import net.dharwin.common.tools.cli.api.CompoundCommand;
 import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
-import ws.argo.CLClient.ArgoClient;
 import ws.argo.CLClient.ArgoClientContext;
 import ws.argo.CLClient.ClientTransport;
-import ws.argo.probe.ProbeSender;
 
 /**
  * This Config command is used to configure various things including the probe
@@ -352,6 +345,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     }
 
     /**
+     * The Clear command clears out the multicast network interfaces.
      * 
      * @author jmsimpson
      *
@@ -371,6 +365,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
   }
 
   /**
+   * The show command shows the current configuration.
    * 
    * @author jmsimpson
    *
@@ -417,7 +412,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     if (_rurl != null) {
       context.getConfig().setResponseURL(_rurl);
     }
-    
+
     return CommandResult.OK;
   }
 

@@ -37,8 +37,9 @@ public class ExpiringService {
   public Date    cacheStartTime = new Date();
 
   /**
+   * Default constructor for the Expiring service.
    * 
-   * @param service
+   * @param service the ServiceWrapper to cache
    */
   public ExpiringService(ServiceWrapper service) {
     _service = service;

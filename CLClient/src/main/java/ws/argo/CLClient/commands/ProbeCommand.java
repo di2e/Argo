@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -35,7 +33,6 @@ import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
 import ws.argo.CLClient.ClientTransport;
 import ws.argo.CLClient.ProbeSentRecord;
-import ws.argo.CLClient.listener.ResponseListener;
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeSender;
 import ws.argo.probe.ProbeSenderException;
@@ -64,7 +61,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
     private List<String> _namePatterns = new ArrayList<String>();
 
     @Parameter(names = "-payload", description = "show the actual probe payload")
-    private boolean _showPayload;
+    private boolean      _showPayload;
 
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
@@ -164,7 +161,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
         // Should this be configurable? It looks like a magic number to me, but
         // it's my magic number and not someone else's - ok, I'm rambling.
         URL rURL = new URL(context.getRespondToURL());
-        
+
         String respondToURL = rURL.toString() + "/listener/probeResponse";
 
         reifiedProbe.addRespondToURL("argo-client", respondToURL);
@@ -204,8 +201,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
    * This class will create a new probe that the CL UI can use over and over
    * again when sending probes.
    *
-   * <p>
-   * The command structure is: create -n : for future reference and use with
+   * <p>The command structure is: create -n : for future reference and use with
    * 'send' command. -cid --clientID : sets the client ID in the probe. -scids
    * --serviceContractIDs : takes a whitespace separated list strings to use as
    * contract IDs -siids --serviceInstanceIDs : takes a whitespace separated
@@ -219,10 +215,10 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
   public class NewProbe extends Command<ArgoClientContext> {
 
     @Parameter(names = { "-n", "--name" }, description = "name of the probe for future reference.", required = false)
-    private String _probeName;
+    private String       _probeName;
 
     @Parameter(names = { "-cid", "--clientID" }, description = "client ID for the probe", required = false)
-    private String _clientID;
+    private String       _clientID;
 
     @Parameter(names = { "-scids", "--serviceContractIDs" }, variableArity = true)
     private List<String> _scids = new ArrayList<>();
@@ -231,7 +227,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
     private List<String> _siids = new ArrayList<>();
 
     @Parameter(names = { "-ptype", "--respondToPayloadType" })
-    private String _payloadType;
+    private String       _payloadType;
 
     private String getPayloadType() {
       if (_payloadType == null) {
@@ -266,7 +262,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
         // This really sucks - fix it - but how?
         if (context.getProbes().containsKey(name))
           name = name + "(1)";
-        
+
         context.getProbes().put(name, probe);
 
         Console.info("Created new probe named " + name);
@@ -282,6 +278,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
   }
 
   /**
+   * The DeleteProbe command deletes an existing probe.
    * 
    * @author jmsimpson
    *
@@ -293,7 +290,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
     private List<String> _probeNames = new ArrayList<String>();
 
     @Parameter(names = { "-a", "--all" }, description = "delete all the probes.")
-    private boolean _deleteAll;
+    private boolean      _deleteAll;
 
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
@@ -328,10 +325,10 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
   public class ModifyProbe extends Command<ArgoClientContext> {
 
     @Parameter(names = { "-n", "--name" }, description = "name of the probe.", required = true)
-    private String _probeName;
+    private String      _probeName;
 
     @Parameter(names = { "-cid", "--clientID" }, description = "cleint ID for the probe")
-    private String _clientID;
+    private String      _clientID;
 
     @Parameter(names = { "-scids", "--serviceContractIDs" }, variableArity = true)
     public List<String> _scids = new ArrayList<>();
@@ -340,7 +337,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
     public List<String> _siids = new ArrayList<>();
 
     @Parameter(names = { "-ptype", "--respondToPayloadType" })
-    private String _payloadType;
+    private String      _payloadType;
 
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
@@ -382,6 +379,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
   }
 
   /**
+   * The ListProbes command will list the configured probes.
    * 
    * @author jmsimpson
    *
@@ -393,13 +391,13 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
     private List<String> _namePatterns = new ArrayList<String>();
 
     @Parameter(names = { "-p", "--payload" }, description = "show the actual probe payload")
-    private boolean _showPayload;
+    private boolean      _showPayload;
 
     @Parameter(names = { "-n", "--namesOnly" }, description = "just list the names")
-    private boolean _namesOnly;
+    private boolean      _namesOnly;
 
     @Parameter(names = "-defaultCID", description = "show the current default CID")
-    private boolean _showDefaultCID;
+    private boolean      _showDefaultCID;
 
     @Override
     protected CommandResult innerExecute(ArgoClientContext context) {
@@ -444,11 +442,12 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
   }
 
   /**
+   * The ImportProbes command will import probes from a file.
    * 
    * @author jmsimpson
    *
    */
-  @Parameters(commandNames = { "import" }, commandDescription = "Export the specified probes")
+  @Parameters(commandNames = { "import" }, commandDescription = "import the specified probes")
   public class ImportProbes extends Command<ArgoClientContext> {
 
     @Parameter(names = { "-f", "--file" }, description = "the filename for import", required = true)
@@ -532,6 +531,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
   }
 
   /**
+   * The ExportProbes command will export the specified probes to a file.
    * 
    * @author jmsimpson
    *
@@ -540,15 +540,13 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
   public class ExportProbes extends Command<ArgoClientContext> {
 
     @Parameter(names = { "-f", "--file" }, description = "the filename of the export", required = true)
-    private String _exportFilename;
+    private String       _exportFilename;
 
     @Parameter
     private List<String> _namePatterns = new ArrayList<String>();
 
-    /**
-     * 
-     */
-    public CommandResult innerExecute(ArgoClientContext context) {
+
+    protected CommandResult innerExecute(ArgoClientContext context) {
       HashMap<String, Probe> probes = context.getProbes();
       List<String> probeNames = new ArrayList<String>();
 

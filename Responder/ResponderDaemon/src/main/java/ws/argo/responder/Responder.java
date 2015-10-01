@@ -416,7 +416,6 @@ public class Responder implements ProbeProcessor {
    * @param args command line arguments
    * @throws ResponderConfigException if bad things happen with the
    *           configuration files
-   * @throws ResponderOperationException if a runtime error occurs
    */
   public static void main(String[] args) throws ResponderConfigException {
 

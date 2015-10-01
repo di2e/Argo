@@ -31,8 +31,7 @@ import ws.argo.wireline.probe.ProbeWrapper.RespondToURL;
  * This class represents a Probe that will be sent from a client. It's a wrapper
  * on ProbeWrapper class (which is a little weird but work with me).
  * 
- * <p>
- * The client should not know anything about any other intermediary classes.
+ * <p>The client should not know anything about any other intermediary classes.
  * 
  * @author jmsimpson
  *
@@ -56,6 +55,7 @@ public class Probe {
    * 
    * @param p the source probe
    * @return the probe frame
+   * @throws ProbeSenderException if something went wrong
    */
   public static Probe frameProbeFrom(Probe p) throws ProbeSenderException {
     Probe fp = null;
@@ -132,6 +132,7 @@ public class Probe {
 
   /**
    * get the hop limit or TTL for the probe.
+   * @return the hop limit
    */
   public int getHopLimit() {
     return ttl;
@@ -232,6 +233,7 @@ public class Probe {
   /**
    * Return the XML string of the probe. Probes are only serialized as XML.
    * 
+   * @return the XML representation
    * @throws JAXBException if there is some issue building XML
    */
   public String asXML() throws JAXBException {

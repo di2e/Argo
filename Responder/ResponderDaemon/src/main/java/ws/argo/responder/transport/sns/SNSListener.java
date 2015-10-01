@@ -65,6 +65,8 @@ public class SNSListener {
    * Start the ResponseListener client. This largely includes starting at
    * Grizzly 2 server.
    * 
+   * @param uri the uri of the service
+   * @param t the link to the transport associated with this listener
    * @return a new HttpServer
    * @throws IOException if something goes wrong creating the http server
    */

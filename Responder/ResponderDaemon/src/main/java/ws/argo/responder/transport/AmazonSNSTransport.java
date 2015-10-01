@@ -34,24 +34,22 @@ import ws.argo.responder.transport.sns.SNSListener;
  */
 public class AmazonSNSTransport implements Transport {
 
-  static final String DEFAULT_TOPIC_NAME = "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
+  private static final Logger LOGGER     = Logger.getLogger(AmazonSNSTransport.class.getName());
 
-  private static final Logger LOGGER = Logger.getLogger(AmazonSNSTransport.class.getName());
+  private HttpServer          server;
+  WebTarget                   target;
 
-  private HttpServer server;
-  WebTarget          target;
-
-  private AmazonSNSClient snsClient;
-  private String          argoTopicName = DEFAULT_TOPIC_NAME;
-  private boolean         inShutdown    = false;
+  private AmazonSNSClient     snsClient;
+  private String              argoTopicName;
+  private boolean             inShutdown = false;
 
   // Configuration params
-  private String         subscriptionArn;
-  private ProbeProcessor processor;
-  private String         listenerURL;
-  private String         amazonAK;
-  private String         amazonSK;
-  private String         subscriptionURL;
+  private String              subscriptionArn;
+  private ProbeProcessor      processor;
+  private String              listenerURL;
+  private String              amazonAK;
+  private String              amazonSK;
+  private String              subscriptionURL;
 
   public AmazonSNSTransport() {
   }
@@ -93,8 +91,8 @@ public class AmazonSNSTransport implements Transport {
   public void initialize(ProbeProcessor p, String propertiesFilename) throws TransportConfigException {
     this.processor = p;
     processPropertiesFile(propertiesFilename);
-    if (amazonAK == null || amazonSK == null)
-      throw new TransportConfigException("The AK and/or the SK was not specified.");
+    if (argoTopicName == null || amazonAK == null || amazonSK == null)
+      throw new TransportConfigException("The Argo TopicName, AK and/or the SK was not specified.");
 
     initializeAWSClient(amazonAK, amazonSK);
   }
@@ -144,13 +142,14 @@ public class AmazonSNSTransport implements Transport {
    */
   public void subscribe() throws URISyntaxException, TransportConfigException {
 
-    /* if this instance of the transport (as there could be several - each with
-     a different topic) is in shutdown mode then don't subscribe.
-     This is a side effect of when you shutdown a sns transport and the
-     listener gets an UnsubscribeConfirmation.
-     In normal operation, when the topic does occasional house keeping and
-     clears out the subscriptions, running transports will just re-subscribe.
-    */
+    /*
+     * if this instance of the transport (as there could be several - each with
+     * a different topic) is in shutdown mode then don't subscribe. This is a
+     * side effect of when you shutdown a sns transport and the listener gets an
+     * UnsubscribeConfirmation. In normal operation, when the topic does
+     * occasional house keeping and clears out the subscriptions, running
+     * transports will just re-subscribe.
+     */
     if (inShutdown)
       return;
 
@@ -218,9 +217,8 @@ public class AmazonSNSTransport implements Transport {
 
     subscriptionURL = prop.getProperty("subscriptionURL");
     listenerURL = prop.getProperty("listenerURL");
-    // networkInterface = prop.getProperty("networkInterface");
 
-    argoTopicName = prop.getProperty("argoTopicName", DEFAULT_TOPIC_NAME);
+    argoTopicName = prop.getProperty("argoTopicName");
     amazonAK = prop.getProperty("amazonAK");
     amazonSK = prop.getProperty("amazonSK");
 

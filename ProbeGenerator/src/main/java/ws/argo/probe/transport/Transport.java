@@ -17,6 +17,8 @@ public interface Transport {
    * Initialize the transport with the values provided in the Properties object.
    * 
    * @param p the Properties object with the initialization values
+   * @param networkInterface name of the network inteface
+   * @throws TransportConfigException if something goes wrong
    */
   public void initialize(Properties p, String networkInterface) throws TransportConfigException;
 
@@ -39,11 +41,13 @@ public interface Transport {
    * @return max payload size in bytes
    */
   public int maxPayloadSize();
-  
+
   public String getNetworkInterfaceName();
 
   /**
    * Close the transport.
+   * 
+   * @throws ProbeSenderException if something bad happened
    */
   public void close() throws ProbeSenderException;
 

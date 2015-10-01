@@ -66,6 +66,10 @@
   -->
 
 <servicesConfiguration>
+<!-- 
+  <resolveIP name="internalIP" type="ni"></resolveIP>
+  <resolveIP name="externalIP" type="uri"></resolveIP>
+ -->
   <service id="YOUR SERVICE ID HERE" contractID="YOUR CONTRACT ID HERE">
 	
 	<!-- description block -->

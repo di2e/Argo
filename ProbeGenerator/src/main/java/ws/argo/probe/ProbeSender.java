@@ -31,8 +31,7 @@ import ws.argo.probe.transport.Transport;
  * format over UDP on the network. It will take a probe and then send it
  * according to the transport supplied.
  * 
- * <p>
- * The ProbeSender takes an Transport instance to do the actual messy work of
+ * <p>The ProbeSender takes an Transport instance to do the actual messy work of
  * sending out the probe. See {@linkplain ProbeSenderFactory} to see how you
  * can create instances of a ProbeSender.
  * 
@@ -48,7 +47,6 @@ public class ProbeSender {
    * 
    * @param transport the transport instance the ProbeSender should use. See
    *          {@linkplain Transport}.
-   * @throws ProbeSenderException if something went wrong
    */
   public ProbeSender(Transport transport) {
     this.probeTransport = transport;
@@ -101,6 +99,7 @@ public class ProbeSender {
    * @param probe the offered probe instance
    * @return the list of probes the original one was split into (might be the
    *         same as the original probe)
+   * @throws ProbeSenderException if there was some issue creating the xml
    * @throws JAXBException if there was some issue creating the xml
    * @throws UnsupportedPayloadType this should never happen in this method
    * @throws MalformedURLException this should never happen in this method

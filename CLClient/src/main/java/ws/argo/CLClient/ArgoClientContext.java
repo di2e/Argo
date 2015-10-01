@@ -170,7 +170,7 @@ public class ArgoClientContext extends CLIContext {
   /**
    * This gets a list of all the available network interface names.
    * 
-   * @param b
+   * @param requiresMulticast return only NIs that are multicast capable
    * 
    * @return the list of the currently available network interface names
    * @throws SocketException if the
@@ -200,9 +200,9 @@ public class ArgoClientContext extends CLIContext {
   }
 
   /**
-   * 
-   * @param transportName
-   * @return
+   * Returns the client transport specified by given name.
+   * @param transportName client transport name
+   * @return the ClientTransport that matches the name
    */
   public ClientTransport getClientTransportNamed(String transportName) {
     

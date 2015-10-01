@@ -28,6 +28,12 @@ import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
 import ws.argo.wireline.response.XMLSerializer;
 
+/**
+ * This is the responder listener.
+ * 
+ * @author jmsimpson
+ *
+ */
 @Path("/listener")
 public class ProbeResponseResource {
 

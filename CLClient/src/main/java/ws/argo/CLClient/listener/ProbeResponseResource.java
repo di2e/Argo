@@ -50,8 +50,6 @@ public class ProbeResponseResource {
    * 
    * @param probeResponseJSON - the actual wireline response payload
    * @return some innocuous string
-   * @throws ResponseParseException if the wireline payload is malformed in some
-   *           way
    */
   @POST
   @Path("/probeResponse")
@@ -88,8 +86,6 @@ public class ProbeResponseResource {
    * 
    * @param probeResponseXML - the actual wireline response payload
    * @return some innocuous string
-   * @throws ResponseParseException if the wireline payload is malformed in some
-   *           way
    */
   @POST
   @Path("/probeResponse")

@@ -15,6 +15,8 @@ import ws.argo.CLClient.listener.ResponseListener;
 import ws.argo.common.config.ResolvingXMLConfiguration;
 
 /**
+ * ClientConfiguration encapsulated the configuration needed to run the Argo
+ * Client.
  * 
  * @author jmsimpson
  *
@@ -22,12 +24,11 @@ import ws.argo.common.config.ResolvingXMLConfiguration;
 public class ClientConfiguration extends ResolvingXMLConfiguration {
 
   private ArrayList<TransportConfig> _transportConfigs;
-  private String _listenerURL;
-  private String _responseURL;
+  private String                     _listenerURL;
+  private String                     _responseURL;
 
-  WebTarget _listenerTarget;
+  WebTarget                          _listenerTarget;
 
-  
   public ClientConfiguration() {
     initializeDefaults();
   }
@@ -41,7 +42,7 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
     initializeURLs();
     initializeTransportConfigurations();
   }
-  
+
   public String getListenerURL() {
     return _listenerURL;
   }
@@ -51,8 +52,11 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
   }
 
   /**
+   * Sets the Listener URL. Checks to see if the URL is valid, or it does
+   * nothing.
    * 
-   * @param listenerURL
+   * @param listenerURL new URL for the client listener 
+   * @return if this actually changed the listener URL
    */
   public boolean setListenerURL(String listenerURL) {
     String newURL = _substitutor.replace(listenerURL);
@@ -74,8 +78,9 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
   }
 
   /**
+   * Sets the respondTo URL for the client probes to use.  If the URL is invalid it does nothing.
    * 
-   * @param responseURL
+   * @param responseURL URL for the client probes to use
    */
   public void setResponseURL(String responseURL) {
     String newURL = _substitutor.replace(responseURL);
@@ -89,7 +94,7 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
   public ArrayList<TransportConfig> getTransportConfigs() {
     return _transportConfigs;
   }
-  
+
   private void initializeURLs() {
     String listenerURL = _config.getString("listenerURL", ResponseListener.DEFAULT_LISTENER_URI.toString());
 
@@ -106,20 +111,20 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
 
     if (respondToURL.isEmpty()) {
       respondToURL = listenerURL;
-      info("The respondTo URL is defaulting to the listenerURL."); 
+      info("The respondTo URL is defaulting to the listenerURL.");
     } else if (!_urlValidator.isValid(respondToURL)) {
       respondToURL = listenerURL;
       error("The respondTo URL specified in the config file is invalid. Continuing with default.");
     }
     _responseURL = respondToURL;
   }
-  
+
   private void initializeTransportConfigurations() {
     // handle the list of transport information
 
     // You know, this might be better to do as a JSON (or such) file, but you
     // can't comment out lines in JSON
-    
+
     _transportConfigs = new ArrayList<TransportConfig>();
 
     List<HierarchicalConfiguration> transports = _config.configurationsAt("transports.transport");
@@ -173,14 +178,12 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
 
   }
 
-
   protected void initializeDefaults() {
     // Nothing to do just yet - if in the future we do decide to have defaults,
     // they will be initialized here.
 
   }
 
-  
   @Override
   protected void warn(String string) {
     Console.warn(string);

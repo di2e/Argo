@@ -1,6 +1,8 @@
 package ws.argo.CLClient;
 
 /**
+ * This exception is thrown when a generic configuration exception occurs in the
+ * Client.
  * 
  * @author jmsimpson
  *
@@ -21,5 +23,4 @@ public class ArgoClientConfigException extends Exception {
     super(message);
   }
 
-  
 }

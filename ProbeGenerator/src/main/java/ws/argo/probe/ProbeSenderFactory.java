@@ -40,8 +40,9 @@ public class ProbeSenderFactory {
    * Create a Multicast ProbeSender specifying the Network Interface to send
    * on.
    * 
+   * @param niName network interface name
    * @return configured ProbeSender instance
-   * @throws ProbeSenderException if something went wrong
+   * @throws TransportConfigException if something went wrong
    */
   public static ProbeSender createMulticastProbeSender(String niName) throws TransportConfigException {
     Transport mcastTransport = new MulticastTransport(niName);
@@ -53,8 +54,9 @@ public class ProbeSenderFactory {
    * Create a Multicast ProbeSender specifying the multicast group and port
    * to send on.
    * 
+   * @param mcastGroup multicast group address string
+   * @param port port number
    * @return configured ProbeSender instance
-   * @throws ProbeSenderException if something went wrong
    * @throws TransportConfigException if there was an issue initializing the transport
    */
   public static ProbeSender createMulticastProbeSender(String mcastGroup, int port) throws TransportConfigException {
@@ -67,6 +69,9 @@ public class ProbeSenderFactory {
    * Create a Multicast ProbeSender specifying the multicast group and port
    * and the Network Interface to send on.
    * 
+   * @param mcastGroup multicast group address string
+   * @param port port number
+   * @param niName network interface name
    * @return configured ProbeSender instance
    * @throws TransportConfigException if something went wrong
    */
@@ -79,6 +84,8 @@ public class ProbeSenderFactory {
   /**
    * Create a AmazonSNS transport ProbeSender using the default values.
    * 
+   * @param ak the amazon access key
+   * @param sk the amazon secret key
    * @return configured ProbeSender instance
    * @throws ProbeSenderException if something went wrong
    */
@@ -92,6 +99,9 @@ public class ProbeSenderFactory {
    * Create a AmazonSNS transport ProbeSender specifying the Argo SNS topic
    * name.
    * 
+   * @param ak the amazon access key
+   * @param sk the amazon secret key
+   * @param argoTopicName the topic name
    * @return configured ProbeSender instance
    * @throws ProbeSenderException if something went wrong
    */

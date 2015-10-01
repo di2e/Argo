@@ -1,10 +1,8 @@
 package ws.argo.CLClient.commands.util;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.Gson;
@@ -28,9 +26,9 @@ import ws.argo.wireline.response.ServiceWrapper;
  */
 public class Cache {
 
-  private List<ServiceWrapper> _cache = new ArrayList<ServiceWrapper>();
-  private Set<String> _probeIds = new HashSet<String>();
-  private Set<String> _responseIds = new HashSet<String>();
+  private List<ServiceWrapper> _cache       = new ArrayList<ServiceWrapper>();
+  private Set<String>          _probeIds    = new HashSet<String>();
+  private Set<String>          _responseIds = new HashSet<String>();
 
   public Cache(String json) throws ResponseParseException {
     parseJson(json);
@@ -56,6 +54,9 @@ public class Cache {
   /**
    * Generate a list of the descriptions of the cache entries (services).
    * 
+   * @param _ids list of the ids to use
+   * @param payload if you want to see the payloads
+   * @param pretty if you want those payloads pretty printed
    * @return list of description strings
    */
   public List<String> descriptionsForIds(List<String> _ids, boolean payload, boolean pretty) {
@@ -70,19 +71,26 @@ public class Cache {
 
     return descriptions;
   }
-  
+
   public int numProbes() {
     return _probeIds.size();
   }
 
-  
   public int numResponses() {
     return _responseIds.size();
   }
-  
+
+  /**
+   * Return the list of description strings for a list of response ids.
+   * 
+   * @param _ids list of response ids
+   * @param payload print the whole payload
+   * @param pretty make it pretty
+   * @return the string of all the specified response payloads
+   */
   public List<String> descriptionsForResponseIDs(List<String> _ids, boolean payload, boolean pretty) {
     List<String> descriptions = new ArrayList<String>();
-    
+
     for (ServiceWrapper s : _cache) {
       if (_ids.isEmpty() || _responseIds.contains(s.getResponseId())) {
         StringBuffer buf = serviceDesciption(payload, pretty, s);
@@ -92,17 +100,18 @@ public class Cache {
 
     return descriptions;
   }
-  
+
   /**
+   * Return the list of description strings for a list of probe ids.
    * 
-   * @param _ids
-   * @param payload
-   * @param pretty
-   * @return
+   * @param _ids list of response ids
+   * @param payload print the whole payload
+   * @param pretty pretty make it pretty
+   * @return the string of all the specified response payloads
    */
   public List<String> descriptionsForProbeIDs(List<String> _ids, boolean payload, boolean pretty) {
     List<String> descriptions = new ArrayList<String>();
-    
+
     for (ServiceWrapper s : _cache) {
       if (_ids.isEmpty() || _probeIds.contains(s.getProbeId())) {
         StringBuffer buf = serviceDesciption(payload, pretty, s);
@@ -134,9 +143,10 @@ public class Cache {
   }
 
   /**
+   * Return the cache as JSON.
    * 
-   * @param pretty
-   * @return
+   * @param pretty make it pretty
+   * @return the string as JSON
    */
   public String asJSON(boolean pretty) {
     JSONSerializer ser = new JSONSerializer();
@@ -144,7 +154,7 @@ public class Cache {
     Gson prettyJson = new GsonBuilder().setPrettyPrinting().create();
 
     JsonArray cacheArray = new JsonArray();
-    
+
     String cacheAsString;
 
     for (ServiceWrapper s : _cache) {

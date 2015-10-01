@@ -24,6 +24,7 @@ import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.commons.validator.routines.UrlValidator;
 
 /**
+ * The ResolvingXMLConfiguration allows for the custom resolution of ip addresses.
  * 
  * @author jmsimpson
  *
@@ -64,9 +65,10 @@ public abstract class ResolvingXMLConfiguration {
   }
 
   /**
+   * Construct a new XML Configuration given the filename.
    * 
-   * @param filename
-   * @throws ArgoClientConfigException
+   * @param filename xml config file
+   * @throws ConfigurationException if something goes wonky
    */
   public ResolvingXMLConfiguration(String filename) throws ConfigurationException {
     ConfigurationInterpolator.registerGlobalLookup("resolveIP", _lookup);
@@ -134,7 +136,7 @@ public abstract class ResolvingXMLConfiguration {
    * Resolve the IP address from a URL.
    * 
    * @param url and URL that will return an IP address
-   * @param name
+   * @param name the name of the variable
    * @return the result from the HTTP GET operations or null of an error
    */
   private String ipAddressFromURL(String url, String name) {

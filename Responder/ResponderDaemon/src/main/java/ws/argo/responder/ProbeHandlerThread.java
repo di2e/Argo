@@ -68,6 +68,7 @@ public class ProbeHandlerThread implements Runnable {
    * Create a new ProbeHandler thread that will process a probe in a
    * multi-threaded way.
    * 
+   * @param responder pointer to the instance of a responder associated
    * @param probe - the actual probe payload
    * @param noBrowser - a flag that indicated whether a naked probe should be
    *          processed

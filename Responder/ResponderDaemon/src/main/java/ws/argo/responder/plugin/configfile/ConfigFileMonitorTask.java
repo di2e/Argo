@@ -17,9 +17,7 @@
 package ws.argo.responder.plugin.configfile;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -28,9 +26,7 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.configuration.ConfigurationException;
 
@@ -47,8 +43,7 @@ import ws.argo.wireline.response.ServiceWrapper;
  * the responder. This class will pick up those changes and then re-initialize
  * the ConfigFile handler plugin with the new configuration atomically.
  * 
- * <p>
- * This class also will read the config file initially - there is no other
+ * <p>This class also will read the config file initially - there is no other
  * mechanism to read the config file.
  * 
  * @see ConfigFileProbeHandlerPluginImpl
@@ -110,7 +105,7 @@ public class ConfigFileMonitorTask extends TimerTask {
    * 
    * @throws JAXBException if there is some issue with the XML
    * @throws FileNotFoundException if the file name does not exist
-   * @throws ConfigurationException
+   * @throws ConfigurationException if something went wrong
    */
   private void loadServiceConfigFile() throws ConfigurationException {
 

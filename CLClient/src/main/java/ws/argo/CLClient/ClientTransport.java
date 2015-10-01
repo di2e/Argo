@@ -15,13 +15,15 @@ import ws.argo.probe.transport.Transport;
 import ws.argo.probe.transport.TransportConfigException;
 
 /**
+ * The ClientTransport is an encapsulation object that containers the
+ * ProbeSenders configured for the Client.
  * 
  * @author jmsimpson
  *
  */
 public class ClientTransport {
 
-  private static final Logger LOGGER = Logger.getLogger(ClientTransport.class.getName());
+  private static final Logger    LOGGER  = Logger.getLogger(ClientTransport.class.getName());
 
   private TransportConfig        config;
   private Properties             transportProps;
@@ -105,6 +107,7 @@ public class ClientTransport {
   }
 
   /**
+   * Show the configuration for a Client Transport.
    * 
    * @return the configuration description of the ClientTransport
    */

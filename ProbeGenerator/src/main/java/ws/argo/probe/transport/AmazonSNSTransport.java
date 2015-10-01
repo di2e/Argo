@@ -24,21 +24,20 @@ import ws.argo.probe.ProbeSenderException;
  */
 public class AmazonSNSTransport implements Transport {
 
-//  static final String DEFAULT_TOPIC_NAME = "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
+  // static final String DEFAULT_TOPIC_NAME =
+  // "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
 
   private static final Logger LOGGER = Logger.getLogger(AmazonSNSTransport.class.getName());
 
-  private AmazonSNSClient snsClient;
-  private String          argoTopicName;;
-  private String          ak;
-  private String          sk;
+  private AmazonSNSClient     snsClient;
+  private String              argoTopicName;
+  private String              ak;
+  private String              sk;
 
   /**
    * Default constructor. Usually followed by the
    * {@linkplain #initialize(Properties, String)} call.
    * 
-   * @throws TransportConfigException if something goes wrong at the
-   *           network layer
    */
   public AmazonSNSTransport() {
   }
@@ -58,12 +57,12 @@ public class AmazonSNSTransport implements Transport {
     this.argoTopicName = p.getProperty("argoTopicName");
     this.ak = p.getProperty("amazonAccessKey");
     this.sk = p.getProperty("amazonSecretKey");
-    
+
     // Gotta have all three configuration items or KABOOM.
     // Can't really have a default for any of these.
     if (this.argoTopicName == null || this.ak == null || this.sk == null)
       throw new TransportConfigException("The Topic Name, AK and/or the SK was not specified.");
-    
+
     AWSCredentials creds = new BasicAWSCredentials(ak, sk);
     snsClient = new AmazonSNSClient(creds);
   }

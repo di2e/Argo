@@ -57,8 +57,8 @@ public class SNSListenerResource {
   /**
    * Inbound JSON responses get processed here.
    * 
+   * @param message the JSON SNS message
    * @return some innocuous string
-   * @throws ResponseParseException if the wireline payload is malformed
    */
   @POST
   @Path("/sns")

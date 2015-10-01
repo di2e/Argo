@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.core.UriBuilder;
@@ -71,6 +70,7 @@ public class ResponseListener {
    * Start the ResponseListener client. This largely includes starting at
    * Grizzly 2 server.
    * 
+   * @param listenerURI the uri of the listener for the http server
    * @return a new HttpServer
    * @throws IOException if something goes wrong creating the http server
    */
