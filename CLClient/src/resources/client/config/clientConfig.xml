@@ -33,65 +33,26 @@
   
   For example:
   
-  <resolve name="internalIP">ni:eth0:ipv4</resolve>
-  will resolve to the ipv4 address associated with the network interface named eth0.  You
-  would then reference that value as ${resolve:internalIP} in the rest of the config.
-  
-  <resolve name="mylabel">https://api.ipify.org</resolve>
-  will resolve to the whatever gets returned from the HTTP GET call to the URL provided.
-  In this case, ipify.org will return your external IP address.
-  You would then reference that value as ${resolve:mylabel} in the rest of the config.
-  
-  You can really do whatever you need to create the appropriate interpolation values and the
-  sources of those values.
-  
-  The value of these items can be as follows:
-  
-  1) a string literal - Example: 192.168.0.1 or dnsname.myorg.org
-     The string literal is a direct literal replacement value and is not resolved.  This
-     is useful when you know exactly what you want.
-     
-  2) a network interface name - Example: ni:eth0:ipv4 or ni:localhost:ipv6 
-     Specifying a network interface name can be useful when you know which network
-     interface device you want to use (e.g. eth0, en0, wlan0, etc) and want this value
-     parameterized and consistent across VMs that may operate in a cluster and will
-     get a dynamic IP address (and you don't want to manually configure each VM instance
-     by hand)  The format is as follow:
-     
-       ni:( available interface name | "localhost" ):("ipv4" | "ipv6" | <blank>)
-       
-       The ipv4 or ipv6 on the end is optional and default to ipv6
-     
-     Examples:  
-       ni:localhost:ipv4 or ni:localhost - this will resolve to the actual IP address of
-         whatever network interface is associated with the "localhost" address.
-         
-       ni:eth0:ipv6 - this will resolve to the IPV6 IP address (assuming there is one)
-       associated with the network interfaces named "eth0"
-       
-     NOTE:
-       Be careful with these values.  If they don't resolve (meaning that the 
-       interpolation value is the same as the string you specified) it doesn't mean
-       that things are broken.  If a specified interface name doens't exist, then it 
-       won't resolve (check the logs and check ifconfig in linux or ipconfig in Windows).
-       If the specified interface name exists, but doens't have an IP address of the type
-       specified (e.g. some interfaces just don't have an IPv6 or IPv4 address) then it 
-       won't resolve (check the logs and check ifconfig in linux or ipconfig in Windows).
-       
-   3) a URL (http or https only) - Example: https://api.ipify.org
-      Specifying a URL in the internalIP or externalIP items will resolve to whatever value
-      is returned from a GET call to that URL.  This is important as many cloud environments
-      make it difficult to get the publicly or external address of a VM.  If you are using
-      HTTPS for a site that requires trust or other SSL certificates, the appropriate certs
-      and keystores must be configured first.
-      
-      Examples:
-        https://api.ipify.org - this is a well-known and useful URL to resolve public IP
-        addresses on NAT networks (like home networks).  However, this will likely be used 
-        in conjunction with IP Port forwarding on the router.
-        
-        http://169.254.169.254/latest/meta-data/public-ipv4 - this is a well-known and useful
-        URL to resolve the public IP for EC2 instances in AWS.
+  The XML processing in Argo XML files allows for replacement variables.
+  For example, if you have an item named `<installDir>/opt/argo</installDir>` defined 
+  in the file, if you use the replacement variable syntax in the file, the value defined
+  in the item will be inserted.  
+   
+  For example, `<configuration>${installDir}/myconfig/config.xml</configuration>` 
+  would resolve to `<configuration>/opt/argo/myconfig/config.xml</configuration>`.
+  It’s a well understood and convenient way to parameterize a configuration file.
+
+ The `<resolveIP>` items are a special kind of replacement variable that can be used in the file to help facilitate a configuration that can be used on hosts without direct editing of this configuration file but still get all the IP address and URLs correct in the defined services. There are two types of resolveIP items:
+
+  * ni - meaning a network interface type
+  * uri - meaning a URI type
+ 
+ A resolveIP item that looks like:
+   `<resolveIP name="internalIP" type="ni">eth0:ipv4</resolveIP>`
+ will resolve to the first IPv4 address associated with network interface named `eth0`.
+ The full syntax and usage can be found [here]().
+ 
+
         
   ** Basic client setup **
 
@@ -110,18 +71,24 @@
   or other port forwarding that needs to be done through firewalls.
   By default, this value is the same as the listenerURL.
   
+  ** Replacement Variables **
+  
+  This XML file is capable of replacement variables.  The Argo configuration XML files has a special
+  replacement variable resolution capability called the `resolveIP` item.  The values of
+  this item will be resolved in special ways depending on the type and the value of the item.
+  
   Both the listenerURL and the respondToURL can use the interpolation
-  replacement variables defined in the configuration. (e.g. internalIP and externalIP)
+  replacement variables defined in the configuration.
   
   Examples:
     internalIP will resolve to the IPV4 address assigned to the interface named eth0
-    <resolve name="internalIP">ni:eth0:ipv4</resolve>
-    <listenerURL>http://${resolve:internalIP}:12345</listenerURL>
+    <resolveIP name="internalIP" type=ni">eth0:ipv4</resolve>
+    <listenerURL>http://${resolveIP:internalIP}:12345</listenerURL>
     
     externalIP will resolve to value of the HTTP GET call to the AWS external IP service
     (Note: this will only work on configurations running in a AWS EC2 instance)
-    <resolveIP name="externalIP"><http://169.254.169.254/latest/meta-data/public-ipv4/resolveIP>
-    <respondToURL>http://${resolveIP:externalIP}:80</respondToURL>
+    <resolveIP name="externalDNS">http://169.254.169.254/latest/meta-data/hostname</resolveIP>
+    <respondToURL>http://${resolveIP:externalDNS}:80</respondToURL>
     
   The client configuration does a sanity check on all URLs to make sure that are
   well formed (reachable is another matter ... better check your work).
@@ -140,20 +107,6 @@
   Prefix: env  - Variables can also reference OS-specific environment properties.
   Example: ${env:JAVA_HOME}
 
-  
-  ** Other Replacement Variables **
-  
-  Any other items in the XML file are candidates for replacement.  Only the internalIP
-  and externalIP require the "resolve" prefix.  Actually, for example if you used just 
-  ${externalIP} you'd get the unresolved value.
-  
-  So, you can define other items in this config file as replacement vars.
-  
-  For example if you had an particular property a configuration property that you'd like
-  to reuse in the configuration, just add a new element (e.g. <propElem>) and then just
-  reference it in other values in the config file
-  (e.g. <someValue>The property value is ${propElem}</someValue>
-
 -->
 
 <client>
@@ -161,11 +114,11 @@
   <resolveIP name="internalIP" type="ni"></resolveIP>
   <resolveIP name="externalIP" type="uri"></resolveIP>
  -->
- 
+
   <listenerURL></listenerURL>
   <respondToURL></respondToURL>
   <installDir>@INSTALL_DIR@</installDir>
-  
+
   <transports>
     <transport>
       <name>Multicast</name>

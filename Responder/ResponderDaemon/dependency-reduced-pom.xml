@@ -309,9 +309,6 @@
                 <goals>
                   <goal>jar</goal>
                 </goals>
-                <configuration>
-                  <excludePackageNames>*.xml</excludePackageNames>
-                </configuration>
               </execution>
             </executions>
             <configuration>

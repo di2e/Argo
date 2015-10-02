@@ -51,6 +51,14 @@ public class Cache {
     }
   }
 
+  public int numProbes() {
+    return _probeIds.size();
+  }
+
+  public int numResponses() {
+    return _responseIds.size();
+  }
+
   /**
    * Generate a list of the descriptions of the cache entries (services).
    * 
@@ -61,23 +69,15 @@ public class Cache {
    */
   public List<String> descriptionsForIds(List<String> _ids, boolean payload, boolean pretty) {
     List<String> descriptions = new ArrayList<String>();
-
+  
     for (ServiceWrapper s : _cache) {
       if (_ids.isEmpty() || _ids.contains(s.id)) {
         StringBuffer buf = serviceDesciption(payload, pretty, s);
         descriptions.add(buf.toString());
       }
     }
-
+  
     return descriptions;
-  }
-
-  public int numProbes() {
-    return _probeIds.size();
-  }
-
-  public int numResponses() {
-    return _responseIds.size();
   }
 
   /**

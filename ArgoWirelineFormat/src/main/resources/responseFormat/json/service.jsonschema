@@ -6,7 +6,7 @@
   "type" : "object",
   "properties" : {
     "id" : { "type" : "string" },
-    "contractId" : { "type" : "string" },
+    "serviceContractId" : { "type" : "string" },
     "serviceName" : { "type" : "string" },
     "consumability" : { "type" : "string", "enum" : [ "HUMAN_CONSUMABLE", "MACHINE_CONSUMABLE" ] },
     "description" : { "type" : "string" },
@@ -16,6 +16,6 @@
     "responseId" : { "type" : "string" },
     "probeId" : { "type" : "string" }
   },
-  "required": ["id", "contractId", "serviceName", "consumability"]
+  "required": ["id", "serviceContractId", "serviceName", "consumability"]
 
 }

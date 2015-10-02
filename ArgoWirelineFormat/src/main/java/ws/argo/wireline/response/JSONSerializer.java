@@ -81,11 +81,11 @@ public class JSONSerializer {
 
     Consumability consumability = Consumability.fromValue(service.getConsumability());
 
-    jsonService.withProbeId(service.getProbeId()).withProbeId(service.getProbeId());
+    jsonService.withProbeId(service.getProbeId()).withResponseId(service.getResponseId());
     
     jsonService.withId(service.getId()).withServiceName(service.getServiceName()).withConsumability(consumability);
     jsonService.withDescription(service.getDescription()).withContractDescription(service.getContractDescription());
-    jsonService.withContractId(service.getServiceContractID());
+    jsonService.withServiceContractId(service.getServiceContractID());
     if (service.getTtl() != null)
       jsonService.withTtl(service.getTtl().toString());
 
@@ -169,7 +169,7 @@ public class JSONSerializer {
       service.setConsumability(jsonService.getConsumability().name());
     service.setDescription(jsonService.getDescription());
     service.setContractDescription(jsonService.getContractDescription());
-    service.setServiceContractID(jsonService.getContractId());
+    service.setServiceContractID(jsonService.getServiceContractId());
     service.setServiceName(jsonService.getServiceName());
     service.setTtl(jsonService.getTtl());
     

@@ -63,6 +63,43 @@
   
   Try it, you'll like it.
   
+  ** Replacement Variables **
+  
+  This XML file is capable of replacement variables.  The Argo configuration XML files have a special
+  replacement variable resolution capability called the `resolveIP` item.  The values of
+  this item will be resolved in special ways depending on the type and the value of the item.
+  
+  Both the listenerURL and the respondToURL can use the interpolation
+  replacement variables defined in the configuration.
+  
+  Examples:
+    internalIP will resolve to the IPV4 address assigned to the interface named eth0
+    <resolveIP name="internalIP" type=ni">eth0:ipv4</resolve>
+    <listenerURL>http://${resolveIP:internalIP}:12345</listenerURL>
+    
+    externalIP will resolve to value of the HTTP GET call to the AWS external IP service
+    (Note: this will only work on configurations running in a AWS EC2 instance)
+    <resolveIP name="externalDNS">http://169.254.169.254/latest/meta-data/hostname</resolveIP>
+    <respondToURL>http://${resolveIP:externalDNS}:80</respondToURL>
+    
+  The client configuration does a sanity check on all URLs to make sure that are
+  well formed (reachable is another matter ... better check your work).
+
+  ** Other Replacement Resolvers **
+  
+  Other then the "resolveIP" prefix (e.g. ${resolveIP:internalIP}) there are other prefixes
+  you can use to inject values from other contexts.  The following are supported:
+  
+  Prefix: sys - This prefix marks a variable to be a system property
+  Example: ${sys:user.home}
+  
+  Will search for a system property with the given name and replace the variable by its value.
+  This is a very easy means for accessing the values of system properties.
+  
+  Prefix: env  - Variables can also reference OS-specific environment properties.
+  Example: ${env:JAVA_HOME}
+  
+  
   -->
 
 <servicesConfiguration>
@@ -70,6 +107,14 @@
   <resolveIP name="internalIP" type="ni"></resolveIP>
   <resolveIP name="externalIP" type="uri"></resolveIP>
  -->
+ 
+ <!-- AWS Example  -->
+ <!-- 
+  <resolveIP name="externalDNS" type="uri">http://169.254.169.254/latest/meta-data/hostname</resolveIP>
+ -->
+ <!-- You can use it like this:  ${resolveIP:externalDNS} to insert the public DNS name where you
+  need it in the configuration  -->
+ 
   <service id="YOUR SERVICE ID HERE" contractID="YOUR CONTRACT ID HERE">
 	
 	<!-- description block -->
