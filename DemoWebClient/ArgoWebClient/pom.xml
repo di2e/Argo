@@ -5,11 +5,11 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>DemoWebClient</artifactId>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.4.0-BETA</version>
   </parent>
   <groupId>ws.argo.DemoWebClient</groupId>
   <artifactId>ArgoWebClient</artifactId>
-  <version>0.3.2-SNAPSHOT</version>
+  <version>0.4.0-BETA</version>
   <packaging>war</packaging>
   <name>Argo Client Webapp</name>
   <url>http://www.argo.ws</url>
@@ -33,8 +33,8 @@
     </dependency>
 	<dependency>
 	  <groupId>ws.argo.probe</groupId>
-	  <version>0.3.2-SNAPSHOT</version>
-	  <artifactId>ProbeGenerator</artifactId>
+	  <version>0.4.0-BETA</version>
+	  <artifactId>ProbeSender</artifactId>
     </dependency>
     <dependency>
 	  <groupId>org.apache.httpcomponents</groupId>

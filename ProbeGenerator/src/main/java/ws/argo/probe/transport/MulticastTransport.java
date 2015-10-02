@@ -1,20 +1,4 @@
-/*
- * Copyright 2015 Jeff Simpson.
- *
- * Licensed under the MIT License, (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://opensource.org/licenses/MIT
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package ws.argo.probe;
+package ws.argo.probe.transport;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -24,32 +8,29 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBException;
 
+import ws.argo.probe.Probe;
+import ws.argo.probe.ProbeSenderException;
+
 /**
- * The ProbeGenerator is the mechanism that actually sends out the wireline
- * format over UDP on the network. The ProbeGenerator can be initialized to work
- * on any multicast group and port, but it defaults to the Argo protocol group
- * and port.
- * 
- * <p>
- * The ProbeGenerator can also be initialized with a particular Network
- * Interface (NI) name. This is useful when you need to send probe UDP packets
- * on a particular network because you have specific network requirements or
- * limitations.
+ * The MulticastTransport class encapsulates the mechanics of sending the probe
+ * payloads out via multicast.
  * 
  * @author jmsimpson
  *
  */
-public class ProbeGenerator {
+public class MulticastTransport implements Transport {
 
-  private static final String DEFAULT_ARGO_GROUP = "230.0.0.1";
+  public static final String DEFAULT_ARGO_GROUP       = "230.0.0.1";
+  public static final String DEFAULT_ARGO_PORT_STRING = "4003";
+  public static final int DEFAULT_ARGO_PORT = 4003;
 
-  private static final int DEFAULT_ARGO_PORT = 4003;
-
-  private static final Logger LOGGER = Logger.getLogger(ProbeGenerator.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(MulticastTransport.class.getName());
 
   public String multicastAddress;
 
@@ -60,62 +41,88 @@ public class ProbeGenerator {
   protected MulticastSocket outboundSocket = null;
 
   /**
-   * Create a new ProbeGenerator.
+   * Default constructor. Usually followed by the
+   * {@linkplain #initialize(Properties, String)} call.
    * 
-   * @param multicastAddress the multicast group
-   * @param multicastPort the port
-   * @param niName the Network Interface name
-   * @throws ProbeGeneratorException if something goes wrong at the network
-   *           layer
    */
-  public ProbeGenerator(String multicastAddress, int multicastPort, String niName) throws ProbeGeneratorException {
-    this.multicastAddress = multicastAddress;
-    this.multicastPort = multicastPort;
-
-    joinGroup(niName);
-
-    LOGGER.info("ProbeGenerator ready to send on " + niName);
-
+  public MulticastTransport() {
   }
 
   /**
-   * Create a ProbeGenerator that will attach to the specified interface.
+   * Create a MulticastTransport that will attach to the specified interface.
    * 
    * @param niName - the name of the NetworkInterface - see
    *          {@linkplain NetworkInterface#getByName(String)}
-   * @throws ProbeGeneratorException if something goes wrong at the network
-   *           layer
+   * @throws TransportConfigException if something goes wrong at the
+   *           network layer
    */
-  public ProbeGenerator(String niName) throws ProbeGeneratorException {
+  public MulticastTransport(String niName) throws TransportConfigException {
     this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT, niName);
   }
 
   /**
-   * Create a ProbeGenerator that connects to the network interface associated
-   * with localhost - see {@linkplain InetAddress#getLocalHost()}.
-   * 
-   * @throws ProbeGeneratorException if something goes wrong at the network
-   *           layer
-   */
-  public ProbeGenerator() throws ProbeGeneratorException {
-    this(DEFAULT_ARGO_GROUP, DEFAULT_ARGO_PORT);
-  }
-
-  /**
-   * Create a new ProbeGenerator.
+   * Create a new MulticastTransport.
    * 
    * @param multicastAddress the multicast group
    * @param multicastPort the port
-   * @throws ProbeGeneratorException if there is a problem joining the multicast
-   *           group
+   * @throws TransportConfigException if there is a problem joining the
+   *           multicast group
    */
-  public ProbeGenerator(String multicastAddress, int multicastPort) throws ProbeGeneratorException {
+  public MulticastTransport(String multicastAddress, int multicastPort) throws TransportConfigException {
     this.multicastAddress = multicastAddress;
     this.multicastPort = multicastPort;
 
-    joinGroup("");
-    LOGGER.info("ProbeGenerator ready to send on [" + multicastAddress + "]");
+    initialize(""); // This will attach to the localhost NI
 
+  }
+
+  /**
+   * Create a new MulticastTransport.
+   * 
+   * @param multicastAddress the multicast group
+   * @param multicastPort the port
+   * @param niName the Network Interface name
+   * @throws TransportConfigException if something goes wrong at the
+   *           network layer
+   */
+  public MulticastTransport(String multicastAddress, int multicastPort, String niName) throws TransportConfigException {
+    this.multicastAddress = multicastAddress;
+    this.multicastPort = multicastPort;
+
+    initialize(niName);
+
+  }
+
+  @Override
+  public void initialize(Properties p, String networkInterface) throws TransportConfigException {
+    this.multicastAddress = p.getProperty("multicastAddress", DEFAULT_ARGO_GROUP);
+
+    try {
+      String multicastPort = p.getProperty("multicastPort", DEFAULT_ARGO_PORT_STRING);
+      this.multicastPort = Integer.parseInt(multicastPort);
+    } catch (NumberFormatException e) {
+      LOGGER.log(Level.WARNING, "MulticastTransport initialization error.  Unable to read multicastPort during initialization.");
+      LOGGER.log(Level.WARNING, "Value provided is [" + multicastPort + "].  Using default port of [" + DEFAULT_ARGO_PORT + "]");
+      this.multicastPort = DEFAULT_ARGO_PORT;
+    }
+
+    initialize(networkInterface);
+
+  }
+
+  /**
+   * This is the private initialization function that will actually to the
+   * connection to the network. This only gets called after a legitimate
+   * construction pattern is followed.
+   * 
+   * @param niName the name of the network interface to use or an empty string
+   *          to denote the localhost interface.
+   * @throws TransportConfigException if some thing went wrong joining
+   *           the multicast group.
+   */
+  private void initialize(String niName) throws TransportConfigException {
+    joinGroup(niName);
+    LOGGER.info("MulticastTransport ready to send on " + niName);
   }
 
   /**
@@ -130,7 +137,7 @@ public class ProbeGenerator {
    * 
    * @param niName the name of the Network Interface
    */
-  void joinGroup(String niName) throws ProbeGeneratorException {
+  void joinGroup(String niName) throws TransportConfigException {
     InetSocketAddress socketAddress = new InetSocketAddress(multicastAddress, multicastPort);
 
     try {
@@ -158,7 +165,7 @@ public class ProbeGenerator {
     } catch (IOException e) {
 
       if (networkInterface == null) {
-        throw new ProbeGeneratorException("Error attempting to joint multicast address: ", e);
+        throw new TransportConfigException("Error attempting to joint multicast address: ", e);
       } else {
 
         StringBuffer buf = new StringBuffer();
@@ -184,7 +191,7 @@ public class ProbeGenerator {
         }
         buf.append("v:" + networkInterface.isVirtual() + ") ");
 
-        throw new ProbeGeneratorException(networkInterface.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString(), e);
+        throw new TransportConfigException(networkInterface.getName() + " " + buf.toString() + ": could not join group " + socketAddress.toString(), e);
       }
     }
   }
@@ -193,13 +200,14 @@ public class ProbeGenerator {
    * Actually send the probe out on the wire.
    * 
    * @param probe the Probe instance that has been pre-configured
-   * @throws ProbeGeneratorException if something bad happened when sending the
+   * @throws ProbeSenderException if something bad happened when sending the
    *           probe
    */
-  public void sendProbe(Probe probe) throws ProbeGeneratorException {
+  @Override
+  public void sendProbe(Probe probe) throws ProbeSenderException {
 
     LOGGER.info("Sending probe [" + probe.getProbeID() + "] on network inteface [" + networkInterface.getName() + "] at port [" + multicastAddress + ":" + multicastPort + "]");
-    LOGGER.finest("Probe requesting TTL of [" + probe.ttl + "]");
+    LOGGER.finest("Probe requesting TTL of [" + probe.getHopLimit() + "]");
 
     try {
       String msg = probe.asXML();
@@ -212,25 +220,25 @@ public class ProbeGenerator {
       // send discovery string
       InetAddress group = InetAddress.getByName(multicastAddress);
       DatagramPacket packet = new DatagramPacket(msgBytes, msgBytes.length, group, multicastPort);
-      outboundSocket.setTimeToLive(probe.ttl);
+      outboundSocket.setTimeToLive(probe.getHopLimit());
       outboundSocket.send(packet);
 
       LOGGER.finest("Probe sent on port [" + multicastAddress + ":" + multicastPort + "]");
 
     } catch (IOException e) {
-      throw new ProbeGeneratorException("Unable to send probe. Issue sending UDP packets.", e);
+      throw new ProbeSenderException("Unable to send probe. Issue sending UDP packets.", e);
     } catch (JAXBException e) {
-      throw new ProbeGeneratorException("Unable to send probe because it could not be serialized to XML", e);
+      throw new ProbeSenderException("Unable to send probe because it could not be serialized to XML", e);
     }
 
   }
 
-  public void close() {
+  public void close() throws ProbeSenderException {
     this.outboundSocket.close();
   }
 
   /**
-   * Return the name of the NetworkInterface this ProbeGenerator is attached to.
+   * Return the name of the NetworkInterface this ProbeSender is attached to.
    * If for some reason it's null, then return UNKNOWN.
    * 
    * @return the name of the NetworkInterface
@@ -241,6 +249,33 @@ public class ProbeGenerator {
     } else {
       return networkInterface.getName();
     }
+  }
+
+  @Override
+  public int maxPayloadSize() {
+    try {
+      return networkInterface.getMTU();
+    } catch (SocketException e) {
+      LOGGER.log(Level.FINE, "Multicast Transport maxPayloadSize reqequested.  No Network Interface assigned. Returning max int value.");
+      return Integer.MAX_VALUE;
+    }
+  }
+
+  /**
+   * Return the description of this Transport.
+   */
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("Multicast Transport - ");
+    buf.append(" mcast group [").append(multicastAddress).append("] - port [")
+        .append(multicastPort).append("] on NI [").append(getNIName()).append("]");
+
+    return buf.toString();
+  }
+
+  @Override
+  public String getNetworkInterfaceName() {
+    return getNIName();
   }
 
 }

@@ -17,13 +17,13 @@
 package ws.argo.CLClient.listener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
-import ws.argo.wireline.response.ServiceWrapper;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
+
+import ws.argo.wireline.response.ServiceWrapper;
 
 /**
  * The ResponseCache is a utility class for an Argo client that will maintain a
@@ -37,8 +37,9 @@ import com.google.gson.Gson;
  */
 public class ResponseCache {
 
-  private HashMap<String, ExpiringService> cache = new HashMap<String, ExpiringService>();
+  private ConcurrentHashMap<String, ExpiringService> cache = new ConcurrentHashMap<String, ExpiringService>();
 
+  
   /**
    * Basic ArrayList cache.
    * 
@@ -54,16 +55,16 @@ public class ResponseCache {
    * 
    * @param list the list of service to put in the cache
    */
-  public synchronized void cacheAll(ArrayList<ExpiringService> list) {
+  public void cacheAll(ArrayList<ExpiringService> list) {
 
     for (ExpiringService service : list) {
-      cache.put(service.service.getId(), service);
+      cache.put(service._service.getId(), service);
     }
 
   }
 
-  public synchronized void cache(ExpiringService service) {
-    cache.put(service.service.getId(), service);
+  public void cache(ExpiringService service) {
+    cache.put(service._service.getId(), service);
   }
 
   /**
@@ -79,7 +80,7 @@ public class ResponseCache {
 
     Cache jsonCache = new Cache();
     for (ExpiringService svc : cache.values()) {
-      jsonCache.cache.add(svc.service);
+      jsonCache.cache.add(svc._service);
     }
 
     String json = gson.toJson(jsonCache);
@@ -87,7 +88,7 @@ public class ResponseCache {
     return json;
   }
 
-  private synchronized void clearExpired() {
+  private void clearExpired() {
 
     Iterator<Entry<String, ExpiringService>> it = cache.entrySet().iterator();
     while (it.hasNext()) {

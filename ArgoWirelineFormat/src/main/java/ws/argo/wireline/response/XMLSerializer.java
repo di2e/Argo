@@ -158,6 +158,10 @@ public class XMLSerializer {
       xmlService.getAccessPoints().getAccessPoint().add(ap);
 
     }
+    
+    xmlService.setResponseID(service.getResponseId());
+    xmlService.setProbeID(service.getProbeId());
+    
     return xmlService;
 
   }
@@ -227,6 +231,9 @@ public class XMLSerializer {
         service.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), ap.getData().getType(), ap.getData().getValue());
       }
     }
+    
+    service.setResponseID(xmlService.getResponseID());
+    service.setProbeID(xmlService.getProbeID());
 
     return service;
 

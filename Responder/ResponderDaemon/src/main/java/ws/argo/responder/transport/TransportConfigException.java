@@ -14,25 +14,29 @@
  * limitations under the License.
  */
 
-package ws.argo.responder.test.listener;
+package ws.argo.responder.transport;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+/**
+ * TransportConfigException is an exception that can occur if the Transport is
+ * provided bad configuration parameters.
+ * 
+ * @author jmsimpson
+ *
+ */
+public class TransportConfigException extends Exception {
 
-@Path("/helloworld")
-public class HelloWorldResource {
+  private static final long serialVersionUID = 4913095738616220364L;
 
-  public HelloWorldResource() {
-    System.out.println("Instantiating HelloWorld");
+  public TransportConfigException() {
+    super();
   }
 
-  // The Java method will process HTTP GET requests
-  @GET
-  // The Java method will produce content identified by the MIME Media
-  // type "text/plain"
-  @Produces("text/plain")
-  public String getIt() {
-    return "Hello World";
+  public TransportConfigException(String message, Throwable cause) {
+    super(message, cause);
   }
+
+  public TransportConfigException(String message) {
+    super(message);
+  }
+
 }

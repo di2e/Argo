@@ -63,6 +63,9 @@ public class JSONSerializer {
     ArrayList<Service> jsonServices = new ArrayList<Service>();
 
     for (ServiceWrapper service : response.getServices()) {
+      service.setResponseID(response.getResponseID());
+      service.setProbeID(response.getProbeID());
+      
       Service jsonService = composeServiceFromServiceWrapper(service);
       jsonServices.add(jsonService);
     }
@@ -78,9 +81,11 @@ public class JSONSerializer {
 
     Consumability consumability = Consumability.fromValue(service.getConsumability());
 
+    jsonService.withProbeId(service.getProbeId()).withResponseId(service.getResponseId());
+    
     jsonService.withId(service.getId()).withServiceName(service.getServiceName()).withConsumability(consumability);
     jsonService.withDescription(service.getDescription()).withContractDescription(service.getContractDescription());
-    jsonService.withContractId(service.getServiceContractID());
+    jsonService.withServiceContractId(service.getServiceContractID());
     if (service.getTtl() != null)
       jsonService.withTtl(service.getTtl().toString());
 
@@ -90,7 +95,7 @@ public class JSONSerializer {
 
       ws.argo.wireline.response.json.AccessPoint jsonap = new ws.argo.wireline.response.json.AccessPoint();
 
-      jsonap.withLabel(ap.label).withIpAddress(ap.ipAddress).withPort(ap.port).withUrl(ap.port);
+      jsonap.withLabel(ap.label).withIpAddress(ap.ipAddress).withPort(ap.port).withUrl(ap.url);
       jsonap.withDataType(ap.dataType).withData(ap.data);
 
       accessPoints.add(jsonap);
@@ -164,9 +169,12 @@ public class JSONSerializer {
       service.setConsumability(jsonService.getConsumability().name());
     service.setDescription(jsonService.getDescription());
     service.setContractDescription(jsonService.getContractDescription());
-    service.setServiceContractID(jsonService.getContractId());
+    service.setServiceContractID(jsonService.getServiceContractId());
     service.setServiceName(jsonService.getServiceName());
     service.setTtl(jsonService.getTtl());
+    
+    service.setResponseID(jsonService.getResponseId());
+    service.setProbeID(jsonService.getProbeId());
 
     for (ws.argo.wireline.response.json.AccessPoint ap : jsonService.getAccessPoints()) {
       service.addAccessPoint(ap.getLabel(), ap.getIpAddress(), ap.getPort(), ap.getUrl(), ap.getDataType(), ap.getData());

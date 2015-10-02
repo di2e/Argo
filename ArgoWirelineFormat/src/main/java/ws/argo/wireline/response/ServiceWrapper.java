@@ -37,7 +37,8 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
   public static final String HUMAN_CONSUMABLE   = "HUMAN_CONSUMABLE";
   public static final String MACHINE_CONSUMABLE = "MACHINE_CONSUMABLE";
 
-  // public Service xmlService;
+  public String responseId;
+  public String probeId;
 
   public String                 id;
   public String                 serviceContractId;
@@ -201,14 +202,12 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
    * providing connection Information for different contracts, then you've done
    * something wrong.
    * 
-   * <p>
-   * Understand that you don't need to fill out all the fields in the service
+   * <p>Understand that you don't need to fill out all the fields in the service
    * record. Just the ones you need to provide to the client to satisfy the
    * service contract. For example, a REST services likely only needs the URL
    * provided and a database might need the IP address, port and URL.
    * 
-   * <p>
-   * Or, it could be a total free-for-all and you can put in totally obscure and
+   * <p>Or, it could be a total free-for-all and you can put in totally obscure and
    * whacky connection information into the data field.
    * 
    * @param label - hint about why you might need this access point e.g.
@@ -312,5 +311,23 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
       LOGGER.warning("Error trying to format the string " + ttlString + " into an Integer.");
     }
   }
+
+  public String getResponseId() {
+    return responseId;
+  }
+
+  public void setResponseID(String responseId) {
+    this.responseId = responseId;
+  }
+
+  public String getProbeId() {
+    return probeId;
+  }
+
+  public void setProbeID(String probeId) {
+    this.probeId = probeId;
+  }
+
+  
 
 }

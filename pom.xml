@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ws.argo</groupId>
   <artifactId>Argo</artifactId>
-  <version>0.3.2-SNAPSHOT</version>
+  <version>0.4.0-BETA</version>
   <packaging>pom</packaging>
   <description>Parent project for the Runtime Service Discovery components</description>
   
@@ -19,6 +19,7 @@
     <module>clui</module>
     <module>ArgoWirelineFormat</module>
     <module>DemoWebClient</module>
+    <module>CommonUtils</module>
   </modules>
   <licenses>
     <license>
@@ -88,7 +89,7 @@
             <dependency>
               <groupId>ws.argo</groupId>
               <artifactId>build-tools</artifactId>
-              <version>0.3.2-SNAPSHOT</version>
+              <version>0.4.0-BETA</version>
             </dependency>
           </dependencies>
         </plugin>

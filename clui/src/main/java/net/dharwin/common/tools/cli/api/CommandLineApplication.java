@@ -54,12 +54,9 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	
 	/**
 	 * Initialize the application. This loads the known commands.
-	 * @throws CLIInitException Thrown when commands fail to properly load.
 	 */
-	public CommandLineApplication() throws CLIInitException {
-		_commands = loadCommands();
-		_appContext = createContext();
-		_clParser = new CommandLineParserImpl();
+	public CommandLineApplication() {
+	  // empty constructor
 	}
 	
 	public void setPrompt(String prompt) {
@@ -69,9 +66,8 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	/**
 	 * Start the application. This will continuously loop until
 	 * the user exits the application.
-	 * @param args the java command line arguments
 	 */
-	public void start(String[] args) {
+	public void start() {
 		setDefaultLogLevel();
 		
 		/*
@@ -82,21 +78,25 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 		 */
 		if (Boolean.getBoolean("jlineDisable")) {
 			Scanner scan = new Scanner(System.in);
-			while (true) {
+			boolean run = true;
+			while (run) {
 				System.out.print(_prompt + " (no jline) >");
 				String nextLine = scan.nextLine();
-				processInputLine(nextLine);
+				run = processInputLine(nextLine);
 			}
+			scan.close();
 		}
 		else {
 			try {
 				ConsoleReader reader = new ConsoleReader();
 				reader.setBellEnabled(_appContext.getBoolean("cliapi.bellenabled", false));
 				reader.addCompleter(new StringsCompleter(this.getCommandNames().toArray(new String[0])));
-				while (true) {
+	      boolean run = true;
+				while (run) {
 					String nextLine = reader.readLine(_prompt + " >");
-					processInputLine(nextLine);
+					run = processInputLine(nextLine);
 				}
+				
 			}
 			catch (IOException e) {
 				System.err.println("Error reading from input.");
@@ -106,45 +106,48 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected void processInputLine(String inputLine) {
+	protected boolean processInputLine(String inputLine) {
 		String[] rawArgs = _clParser.parse(inputLine);
 		if (rawArgs.length == 0) {
-			return;
+			return true;
 		}
 		String commandName = rawArgs[0];
 		Command command = null;
+		FindCommandResult findResult = null;
 		try {
-			command = findAndCreateCommand(commandName.toLowerCase());
-		}
-		catch (CommandInitException e) {
+		  findResult = findAndCreateCommand(rawArgs);
+		} catch (CommandInitException e) {
 			Console.error("Unable to init command ["+e.getCommandName()+"].");
-			return;
+			return true;
 		}
 		
-		if (command == null) {
+		if (findResult == null) {
 			Console.error("Command not recognized: " + commandName);
-			return;
+			return true;
 		}
+		
+		rawArgs = findResult.getRemainingArguments();
+		command = findResult.getFoundCommand();
 		
 		/*
 		 * I wanted to avoid a special case here in CommandLineApplication...
 		 * But here it is anyway. If the user typed a command name followed
 		 * by "--help", then the command usage is printed.
 		 */
-		if (rawArgs.length == 2 && rawArgs[1].equalsIgnoreCase("--help")) {
+		if (rawArgs.length == 1 && rawArgs[0].equalsIgnoreCase("--help")) {
 			command.usage();
-			return;
+			return true;
 		}
 		
 		// Hand our command to JCommander to be parsed.
 		JCommander commander = new JCommander(command);
 		try {
-			commander.parse(StringUtils.stripArgs(rawArgs, 1));
+			commander.parse(rawArgs);
 		}
 		catch (ParameterException e) {
 			Console.error("Arguments cannot be parsed: " + e.getMessage());
 			command.usage();
-			return;
+			return true;
 		}
 		catch (ArrayIndexOutOfBoundsException e) {
 			/*
@@ -155,12 +158,12 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 			 */
 			Console.error("Error parsing arguments: Did you specify a value after providing an option?");
 			command.usage();
-			return;
+			return true;
 		}
 		catch (Exception e) {
 			// Catch any funny business.
 			Console.error("Unknown error while parsing arguments: " + e.getMessage());
-			return;
+			return true;
 		}
 		
 		CommandResult result = command.execute(_appContext);
@@ -172,23 +175,32 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 		
 		if (result.getType() == CommandResultType.EXIT) {
 			this.shutdown();
-			System.exit(0);
+			return false;
 		}
+    return true;
 	}
 	
 	/**
 	 * Find and create the command instance.
-	 * @param commandName The command name.
+	 * @param args the actual residual command line.
 	 * @return The command, or null if the command name is not recognized.
 	 * @throws CommandInitException Thrown when the command is recognized but failed to load.
 	 */
-	protected Command<? extends CLIContext> findAndCreateCommand(String commandName) throws CommandInitException {
-		Class<? extends Command<? extends CLIContext>> commandClass = _commands.get(commandName);
+	protected FindCommandResult findAndCreateCommand(String[] args) throws CommandInitException {
+	  String commandName = args[0];
+	  String[] remainingArguments = StringUtils.stripArgs(args, 1);
+		
+	  // Check top level commands for app
+	  Class<? extends Command<? extends CLIContext>> commandClass = _commands.get(commandName);
+		
 		if (commandClass == null) {
 			return null;
 		}
 		try {
-			return (Command<? extends CLIContext>)commandClass.newInstance();
+		  // Create the instance of the root class and let that class hunt for any subcommands
+		  Command<? extends CLIContext> rootCmd = (Command<? extends CLIContext>)commandClass.newInstance();
+		  
+			return rootCmd.findAndCreateCommand(remainingArguments);
 		}
 		catch (Exception e) {
 			throw new CommandInitException(commandName);
@@ -221,8 +233,7 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 			new HashMap<String, Class<? extends Command<? extends CLIContext>>>();
 		
 		Discoverer discoverer = new ClasspathDiscoverer();
-		CLIAnnotationDiscovereryListener discoveryListener =
-			new CLIAnnotationDiscovereryListener(new String[] {CLICommand.class.getName()});
+		CLIAnnotationDiscovereryListener discoveryListener = new CLIAnnotationDiscovereryListener(new String[] {CLICommand.class.getName()});
 		discoverer.addAnnotationListener(discoveryListener);
 		discoverer.discover(true, true, true, true, true);
 		
@@ -296,4 +307,10 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	 * Called when the user has cleanly exited the application.
 	 */
 	protected abstract void shutdown();
+
+  public void initialize(String[] args) throws CLIInitException {
+    _commands = loadCommands();
+    _appContext = createContext();
+    _clParser = new CommandLineParserImpl();
+  }
 }

@@ -12,9 +12,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.UnsupportedPayloadType;
 
+/**
+ * Test the Responder using JSON as the payload format.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponderProbeJSONTest extends ResponderProbeTest {
 
   private String nakedProbeJSONResponseFromListener;
@@ -36,19 +42,19 @@ public class ResponderProbeJSONTest extends ResponderProbeTest {
   }
 
   @Test
-  public void testNakedProbeJSON() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeGeneratorException {
+  public void testNakedProbeJSON() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeSenderException {
     Probe probe = new Probe(Probe.JSON);
     probe.addRespondToURL("", "http://localhost:9998/listener/probeResponse");
     gen.sendProbe(probe); // Send the naked probe
-    Thread.sleep(1000); // let the responder process the message and post back
+    Thread.sleep(2000); // let the responder process the message and post back
     // to the listener
 
     System.out.println("Getting testNakedProbeJSON cached responses from listener");
 
-    String responseMsg = target.path("listener/responses").get(String.class);
+    String responseMsg = target.path("listener/responses").request().get(String.class);
     assertEquals(nakedProbeJSONResponseFromListener, responseMsg);
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
 

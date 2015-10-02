@@ -12,10 +12,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.UnsupportedPayloadType;
 import ws.argo.wireline.probe.ProbeWrapper;
 
+/**
+ * Probes with XML as the payload.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponderProbeXMLTest extends ResponderProbeTest {
 
   private  String      nakedProbeXMLResponseFromListener;
@@ -38,19 +44,19 @@ public class ResponderProbeXMLTest extends ResponderProbeTest {
   }
   
   @Test
-  public void testNakedProbeXML() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeGeneratorException {
+  public void testNakedProbeXML() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeSenderException {
     Probe probe = new Probe(ProbeWrapper.XML);
     probe.addRespondToURL("", "http://localhost:9998/listener/probeResponse");
     gen.sendProbe(probe); // Send the naked probe
-    Thread.sleep(1000); // let the responder process the message and post back
+    Thread.sleep(2000); // let the responder process the message and post back
                         // to the listener
     
     System.out.println("Getting testNakedProbeXML cached responses from listener");
 
-    String responseMsg = target.path("listener/responses").get(String.class);
+    String responseMsg = target.path("listener/responses").request().get(String.class);
     assertEquals(nakedProbeXMLResponseFromListener.length(), responseMsg.length());
 
-    String cacheClearedMsg = target.path("listener/clearCache").get(String.class);
+    String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);
     assertEquals("Cleared Cache", cacheClearedMsg);
   }
 

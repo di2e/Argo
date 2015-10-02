@@ -45,15 +45,19 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeGenerator;
-import ws.argo.probe.ProbeGeneratorException;
+import ws.argo.probe.ProbeSender;
+import ws.argo.probe.ProbeSenderException;
+import ws.argo.probe.ProbeSenderFactory;
 import ws.argo.probe.UnsupportedPayloadType;
+import ws.argo.probe.transport.TransportConfigException;
 
-/*
+/**
+ * The BrowserController implements all the functions that I couldn't do in
+ * javascript. It implements them as REST API calls.
+ * 
  * @author Jeff Simpson
  * @since v0.0.1
  */
-
 @Path("controller")
 public class BrowserController {
 
@@ -79,11 +83,18 @@ public class BrowserController {
     return "this is a test service for the controller.  yea.";
   }
 
+  /**
+   * Return the ip info of where the web host lives that supports the browser
+   * app.
+   * 
+   * @return the ip addr info
+   * @throws UnknownHostException if something goes wrong
+   */
   @GET
   @Path("/ipAddrInfo")
   public String getIPAddrInfo() throws UnknownHostException {
 
-    Properties clientProps = getPropeGeneratorProps();
+    Properties clientProps = getPropeSenderProps();
 
     StringBuffer buf = new StringBuffer();
 
@@ -115,12 +126,21 @@ public class BrowserController {
     return buf.toString();
   }
 
+  /**
+   * Actually launch a probe.
+   * 
+   * @return some confirmation string back to the client
+   * @throws IOException if there is some transport issues
+   * @throws UnsupportedPayloadType shouldn't happen as we always ask for JSON
+   *           here
+   * @throws ProbeSenderException if something else goes wrong
+   */
   @GET
   @Path("/launchProbe")
   @Produces("application/txt")
-  public String launchProbe() throws IOException, UnsupportedPayloadType, ProbeGeneratorException {
+  public String launchProbe() throws IOException, UnsupportedPayloadType, ProbeSenderException {
 
-    Properties clientProps = getPropeGeneratorProps();
+    Properties clientProps = getPropeSenderProps();
 
     String multicastGroupAddr = clientProps.getProperty("multicastGroupAddr", DEFAULT_MULTICAST_GROUP_ADDR);
     String multicastPortString = clientProps.getProperty("multicastPort", DEFAULT_MULTICAST_PORT.toString());
@@ -131,46 +151,51 @@ public class BrowserController {
 
     Integer multicastPort = Integer.parseInt(multicastPortString);
 
-    ProbeGenerator gen = new ProbeGenerator(multicastGroupAddr, multicastPort);
+    ProbeSender gen;
+    try {
+      gen = ProbeSenderFactory.createMulticastProbeSender(multicastGroupAddr, multicastPort);
 
-    // loop over the "respond to addresses" specified in the properties file.
-    // TODO: Clean out the commented out code.
-    // for (ProbeRespondToAddress rta : respondToAddresses) {
-    //
-    // Probe probe = new Probe(Probe.JSON);
-    // probe.addRespondToURL("http://"+rta.respondToAddress+":"+rta.respondToPort+listenerURLPath);
-    // // The following is a "naked" probe - no service contract IDs, etc.
-    // // No specified service contract IDs implies "all"
-    // // This will evoke responses from all reachable responders except those
-    // configured to "noBrowser"
-    // gen.sendProbe(probe);
-    // }
-    Probe probe = new Probe(Probe.JSON);
-    for (ProbeRespondToAddress rta : respondToAddresses) {
-      probe.addRespondToURL("browser", "http://" + rta.respondToAddress + ":" + rta.respondToPort + listenerURLPath);
+      // loop over the "respond to addresses" specified in the properties file.
+      // TODO: Clean out the commented out code.
+      // for (ProbeRespondToAddress rta : respondToAddresses) {
+      //
+      // Probe probe = new Probe(Probe.JSON);
+      // probe.addRespondToURL("http://"+rta.respondToAddress+":"+rta.respondToPort+listenerURLPath);
+      // // The following is a "naked" probe - no service contract IDs, etc.
+      // // No specified service contract IDs implies "all"
+      // // This will evoke responses from all reachable responders except those
+      // configured to "noBrowser"
+      // gen.sendProbe(probe);
+      // }
+      Probe probe = new Probe(Probe.JSON);
+      for (ProbeRespondToAddress rta : respondToAddresses) {
+        probe.addRespondToURL("browser", "http://" + rta.respondToAddress + ":" + rta.respondToPort + listenerURLPath);
+      }
+      // The following is a "naked" probe - no service contract IDs, etc.
+      // No specified service contract IDs implies "all"
+      // This will evoke responses from all reachable responders except those
+      // configured to "noBrowser"
+      gen.sendProbe(probe);
+      gen.close();
+
+      return "Launched " + respondToAddresses.size() + " probe(s) successfully on " + multicastGroupAddr + ":" + multicastPort;
+
+    } catch (TransportConfigException e) {
+      return "Launched Failed: " + e.getLocalizedMessage();
     }
-    // The following is a "naked" probe - no service contract IDs, etc.
-    // No specified service contract IDs implies "all"
-    // This will evoke responses from all reachable responders except those
-    // configured to "noBrowser"
-    gen.sendProbe(probe);
-    gen.close();
-
-    return "Launched " + respondToAddresses.size() + " probe(s) successfully on " + multicastGroupAddr + ":" + multicastPort;
-
   }
 
   /**
    * Returns a list of the responses collected in the listener.
    * 
    * @return list of the responses collected in the listener
-   * @throws UnknownHostException if the ProbeGenerator props throws it 
+   * @throws UnknownHostException if the ProbeSender props throws it
    */
   @GET
   @Path("/responses")
   @Produces("application/json")
-  public String getResponses() throws UnknownHostException  {
-    Properties clientProps = getPropeGeneratorProps();
+  public String getResponses() throws UnknownHostException {
+    Properties clientProps = getPropeSenderProps();
 
     String listenerIPAddress = clientProps.getProperty("listenerIPAddress");
     String listenerPort = clientProps.getProperty("listenerPort");
@@ -191,7 +216,7 @@ public class BrowserController {
   @Path("/clearCache")
   @Produces("application/json")
   public String clearCache() throws UnknownHostException {
-    Properties clientProps = getPropeGeneratorProps();
+    Properties clientProps = getPropeSenderProps();
 
     String listenerIPAddress = clientProps.getProperty("listenerIPAddress");
     String listenerPort = clientProps.getProperty("listenerPort");
@@ -280,7 +305,7 @@ public class BrowserController {
     return hostIPAddr;
   }
 
-  private static synchronized Properties getPropeGeneratorProps() throws UnknownHostException {
+  private static synchronized Properties getPropeSenderProps() throws UnknownHostException {
 
     if (clientProps != null)
       return clientProps;
@@ -294,7 +319,7 @@ public class BrowserController {
         clientProps.load(in);
       } catch (IOException e) {
         // Should log the props file issue
-        setDefaultProbeGeneratorProperties(clientProps);
+        setDefaultProbeSenderProperties(clientProps);
       }
 
     }
@@ -339,7 +364,7 @@ public class BrowserController {
     return clientProps;
   }
 
-  private static void setDefaultProbeGeneratorProperties(Properties props) {
+  private static void setDefaultProbeSenderProperties(Properties props) {
     props.put("multicastPort", DEFAULT_MULTICAST_PORT);
     props.put("multicastGroupAddr", DEFAULT_MULTICAST_GROUP_ADDR);
     props.put("listenerIPAddress", "");

@@ -15,6 +15,16 @@ import ws.argo.wireline.probe.ProbeParseException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.XMLSerializer;
 
+/**
+ * This test class will test all of the probe serializations to make sure that
+ * the probe is marshalled and unmarshalled into text format correctly.
+ * 
+ * <p>
+ * Look at src/test/resources for the text formats that are used for the tests.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ProbeSerializationTest {
 
   private static String testNakedProbePayload;
@@ -25,7 +35,7 @@ public class ProbeSerializationTest {
   private static String exemplarFullProbePayload;
 
   @BeforeClass
-  public static void setupProbeGenerator() throws IOException {
+  public static void setupProbeSender() throws IOException {
     readXMLFiles();
   }
 
@@ -47,44 +57,42 @@ public class ProbeSerializationTest {
     try (InputStream is = ProbeSerializationTest.class.getResourceAsStream("/corruptPayload1.txt")) {
       corruptProbePayload1 = IOUtils.toString(is, "UTF-8");
     }
-    
+
     // Read the probe test file that has typos in the xml
     assertNotNull("testProbePayloadWithTypos.txt file missing", ProbeSerializationTest.class.getResource("/testProbePayloadWithTypos.txt"));
     try (InputStream is = ProbeSerializationTest.class.getResourceAsStream("/testProbePayloadWithTypos.txt")) {
       testProbePayloadWithTypos = IOUtils.toString(is, "UTF-8");
     }
-    
+
     assertNotNull("exemplarNakedProbePayload.xml file missing", ProbeSerializationTest.class.getResource("/exemplarNakedProbePayload.xml"));
     try (InputStream is = ProbeSerializationTest.class.getResourceAsStream("/exemplarNakedProbePayload.xml")) {
       exemplarNakedProbePayload = IOUtils.toString(is, "UTF-8");
     }
-    
+
     assertNotNull("exemplarFullProbePayload.xml file missing", ProbeSerializationTest.class.getResource("/exemplarFullProbePayload.xml"));
     try (InputStream is = ProbeSerializationTest.class.getResourceAsStream("/exemplarFullProbePayload.xml")) {
       exemplarFullProbePayload = IOUtils.toString(is, "UTF-8");
     }
-   
-    
-    
+
   }
 
-  @Test(expected=ProbeParseException.class)
+  @Test(expected = ProbeParseException.class)
   public void testCorruptProbePayload() throws ProbeParseException {
-    
+
     XMLSerializer serializer = new XMLSerializer();
 
     serializer.unmarshal(corruptProbePayload1);
-   
+
   }
-  
-  @Test(expected=ProbeParseException.class)
+
+  @Test(expected = ProbeParseException.class)
   public void testPayloadWithTypos() throws ProbeParseException {
     XMLSerializer serializer = new XMLSerializer();
 
     serializer.unmarshal(testProbePayloadWithTypos);
-   
+
   }
-  
+
   @Test
   public void testParsingNakedProbe() throws ProbeParseException {
 
@@ -106,21 +114,21 @@ public class ProbeSerializationTest {
     assertFalse(probe.isNaked());
 
   }
-  
+
   @Test
   public void testMarshallingNakedProbe() {
     ProbeWrapper probe = new ProbeWrapper("--ID--");
     probe.setClientId("yomama");
     probe.setRespondToPayloadType(ProbeWrapper.XML);
-    
+
     XMLSerializer serializer = new XMLSerializer();
 
     String payload = serializer.marshal(probe);
-    
+
     assertTrue(payload.equals(exemplarNakedProbePayload));
   }
-  
-  @Test 
+
+  @Test
   public void testMarshallingFullProbe() throws ProbeParseException {
     ProbeWrapper probe = new ProbeWrapper("--ID--");
     probe.setClientId("yomama");
@@ -131,22 +139,22 @@ public class ProbeSerializationTest {
     probe.addServiceContractID("uuid:03d55093-a954-4667-b682-8116c417925b");
     probe.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925c");
     probe.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
-    
+
     XMLSerializer serializer = new XMLSerializer();
 
     String payload = serializer.marshal(probe);
-    
+
     ProbeWrapper parsedProbe = serializer.unmarshal(payload);
     ProbeWrapper knownGoodProbe = serializer.unmarshal(exemplarFullProbePayload);
-    
+
     assertTrue(parsedProbe.equals(knownGoodProbe));
-//    assertTrue(payload.equals(exemplarFullProbePayload));
-    
+    // assertTrue(payload.equals(exemplarFullProbePayload));
+
   }
-  
+
   @Test
   public void testEqualityWithSomeNullValues() {
-    
+
     ProbeWrapper probe1 = new ProbeWrapper("--ID--");
     probe1.setClientId("yomama");
     probe1.setRespondToPayloadType(ProbeWrapper.XML);
@@ -168,12 +176,12 @@ public class ProbeSerializationTest {
     probe2.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
 
     assertFalse(probe1.equals(probe2));
-    
+
   }
 
   @Test
   public void testEqualityWithSomeLeadingAndTrailingSpaces() {
-    
+
     ProbeWrapper probe1 = new ProbeWrapper("--ID--");
     probe1.setClientId("  yomama");
     probe1.setRespondToPayloadType(ProbeWrapper.XML);
@@ -195,8 +203,7 @@ public class ProbeSerializationTest {
     probe2.addServiceInstanceID("  uuid:03d55093-a954-4667-b682-8116c417925d");
 
     assertFalse(probe1.equals(probe2));
-    
+
   }
 
-  
 }

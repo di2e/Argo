@@ -297,5 +297,48 @@ public class ProbeWrapper {
     return serializer.marshal(this);
 
   }
+  
+  /**
+   * Returns the string form of the payload as an XML fragment.
+   * 
+   * @return the XML payload
+   */
+  public String asXMLFragment() {
+    XMLSerializer serializer = new XMLSerializer();
+
+    return serializer.marshalFragment(this);
+
+  }
+  
+  /**
+   * This will return the single-line textual representation. This was crafted
+   * for the command line client. Your mileage may vary.
+   * 
+   * @return the single line description
+   */
+  public String asString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append(" PID: [ ").append(this.id).append(" ]");;
+    buf.append(" CID: [ ").append(this.clientId).append(" ]");;
+    buf.append(" DES: [ ").append(this.desVersion).append(" ]");;
+    buf.append(" SCIDS: [ " );
+    for (String scid : serviceContractIDs) {
+      buf.append(scid).append(" ");
+    }
+    buf.append("]");
+    buf.append(" SIIDS: [ " );
+    for (String siid : serviceInstanceIDs) {
+      buf.append(siid).append(" ");
+    }
+    buf.append("]");
+    buf.append(" RESPOND_TO: [ " );
+    for (RespondToURL rt : respondToURLs) {
+      buf.append(rt.label).append(", ").append(rt.url).append(" ");
+    }
+    buf.append("]");
+    buf.append(" PAYLOAD_TYPE: [ ").append(respondToPayloadType).append(" ]");
+    
+    return buf.toString();
+  }
 
 }

@@ -22,4 +22,4 @@ REM       authenticated probes from resulting in providing ALL services in a net
 REM -ni <networkInteface Name> : this tells the responder to listen for mulitcast traffic from a particular 
 REM       network interface.  Some multi-home systems have specific interfaces that allow outside traffic in.
 
-java -cp %ARGO_HOME%/client/lib/@JAR_NAME@.jar -Djava.util.logging.config.file="$ARGO_HOME/client/bin/logging.properties" -Dnet.java.preferIPv4Stack=true net.dharwin.common.tools.cli.api.EntryPoint %*
+java -cp %ARGO_HOME%/client/lib/@JAR_NAME@.jar -Djava.util.logging.config.file="%ARGO_HOME%/client/bin/logging.properties" -Dnet.java.preferIPv4Stack=true net.dharwin.common.tools.cli.api.EntryPoint -pf %ARGO_HOME%/client/config/clientConfig.xml %*

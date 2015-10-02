@@ -3,12 +3,12 @@
   <parent>
     <artifactId>Responder</artifactId>
     <groupId>ws.argo.responder</groupId>
-    <version>0.3.1</version>
+    <version>0.4.0-BETA</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ResponderDaemon</artifactId>
   <name>Responder Daemon</name>
-  <version>0.3.1</version>
+  <version>0.4.0-BETA</version>
   <description>This project is the actual Responder daemon and its accompanying script files.</description>
   <url>http://www.argo.ws</url>
   <build>
@@ -19,13 +19,31 @@
         <version>1.5.3</version>
         <executions>
           <execution>
+            <id>process-version-config</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <filesToInclude>${basedir}/src/main/resources/*</filesToInclude>
+              <inputFilePattern>(.*).template</inputFilePattern>
+              <outputFilePattern>$1</outputFilePattern>
+              <replacements>
+                <replacement>
+                  <token>@ARGO_VERSION@</token>
+                  <value>${project.version}</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+          <execution>
             <id>process-test-config</id>
             <phase>process-resources</phase>
             <goals>
               <goal>replace</goal>
             </goals>
             <configuration>
-              <outputDir>${basedir}/target/generated-test-config/config</outputDir>
+              <outputDir>${basedir}/target/generated-test-config/responder/config</outputDir>
               <preserveDir>false</preserveDir>
               <filesToInclude>${basedir}/src/test/config/**/*</filesToInclude>
               <inputFilePattern>(.*)</inputFilePattern>
@@ -108,11 +126,11 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.18.1</version>
         <configuration>
-          <argLine>-DconfigFile=${basedir}/target/generated-test-config/responderConfig.prop</argLine>
+          <argLine>-DconfigFile=${basedir}/target/generated-test-config/responder/config/responderConfig.prop</argLine>
           <systemProperties>
             <property>
               <name>configFile</name>
-              <value>${basedir}/target/generated-test-config/config/responderConfig.prop</value>
+              <value>${basedir}/target/generated-test-config/responder/config/responderConfig.prop</value>
             </property>
           </systemProperties>
         </configuration>
@@ -291,9 +309,6 @@
                 <goals>
                   <goal>jar</goal>
                 </goals>
-                <configuration>
-                  <excludePackageNames>*.xml</excludePackageNames>
-                </configuration>
               </execution>
             </executions>
             <configuration>
@@ -318,52 +333,13 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-grizzly2</artifactId>
-      <version>1.19</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>grizzly-http</artifactId>
-          <groupId>org.glassfish.grizzly</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>grizzly-http-server</artifactId>
-          <groupId>org.glassfish.grizzly</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jersey-server</artifactId>
-          <groupId>com.sun.jersey</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-      <version>1.19</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>jersey-core</artifactId>
-          <groupId>com.sun.jersey</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>ws.argo.probe</groupId>
-      <artifactId>ProbeGenerator</artifactId>
-      <version>0.3.1</version>
+      <artifactId>ProbeSender</artifactId>
+      <version>0.4.0-BETA</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-validator</artifactId>
-          <groupId>commons-validator</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
   <properties>
-    <jersey-version>1.19</jersey-version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <rpm-package-name>argo-responder</rpm-package-name>

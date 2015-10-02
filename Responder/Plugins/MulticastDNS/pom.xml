@@ -3,7 +3,7 @@
   <parent>
     <groupId>ws.argo.responder.plugins</groupId>
     <artifactId>Plugins</artifactId>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.4.0-BETA</version>
   </parent>
   <artifactId>MulticastDNS</artifactId>
   <name>mDNS Plugin for Argo Responder</name>
@@ -11,12 +11,12 @@
     <dependency>
       <groupId>ws.argo.responder</groupId>
       <artifactId>PluginClient</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.4.0-BETA</version>
     </dependency>
     <dependency>
       <groupId>ws.argo.wireline</groupId>
       <artifactId>ArgoWirelineFormat</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.4.0-BETA</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

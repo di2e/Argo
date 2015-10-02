@@ -57,7 +57,7 @@ public class GSHandlerThread extends Thread {
       // if this packet is sourced locally, then don't send it. This avoids
       // loopbacks with a 2-way gateway.
       // The downside of this is that a 2-way gateway cannot have a probe
-      // generator (Argo client) on it.
+      // sender (Argo client) on it.
       boolean isFromLocalhost = source.equals(localhostIP);
       if (!allowLoopback & isFromLocalhost) {
         LOGGER.info("Ignoring packet sourced from localhost");

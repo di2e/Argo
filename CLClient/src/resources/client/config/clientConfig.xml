@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #
+  # Copyright 2015 Jeff Simpson.
+  #
+  # Licensed under the MIT License, (the "License"); 
+  # you may not use this file except in compliance with the License. 
+  # You may obtain a copy of the License at 
+  # 
+  # http://opensource.org/licenses/MIT 
+  # 
+  # Unless required by applicable law or agreed to in writing, software 
+  # distributed under the License is distributed on an "AS IS" BASIS, 
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+  # See the License for the specific language governing permissions and 
+  # limitations under the License. 
+  # 
+  -->
+  
+  
+<!--
+  ** Resolving internal and external addresses **
+  
+  The IP addresses in the configuration may not want to be hardcoded and may
+  only be known at runtime.  The configuration allows you to provide some
+  IP address resolvers that will resolve to an actual run-time IP address and
+  can be used as a replacement variable (e.g. ${internalIP}) in other configuration
+  values.
+  
+  Items with the "resolve" tag special items that will follow special rules
+  to resolve to an IP address.  The name attribute of the tag is how you will reference
+  the resolved value in the rest of the configuration file.
+  
+  For example:
+  
+  The XML processing in Argo XML files allows for replacement variables.
+  For example, if you have an item named `<installDir>/opt/argo</installDir>` defined 
+  in the file, if you use the replacement variable syntax in the file, the value defined
+  in the item will be inserted.  
+   
+  For example, `<configuration>${installDir}/myconfig/config.xml</configuration>` 
+  would resolve to `<configuration>/opt/argo/myconfig/config.xml</configuration>`.
+  It’s a well understood and convenient way to parameterize a configuration file.
+
+ The `<resolveIP>` items are a special kind of replacement variable that can be used in the file to help facilitate a configuration that can be used on hosts without direct editing of this configuration file but still get all the IP address and URLs correct in the defined services. There are two types of resolveIP items:
+
+  * ni - meaning a network interface type
+  * uri - meaning a URI type
+ 
+ A resolveIP item that looks like:
+   `<resolveIP name="internalIP" type="ni">eth0:ipv4</resolveIP>`
+ will resolve to the first IPv4 address associated with network interface named `eth0`.
+ The full syntax and usage can be found [here]().
+ 
+
+        
+  ** Basic client setup **
+
+  The *listenerURL* is the URL that is used to start up the embedded HTTP listener.
+  This can be an internal address or a publicly available address depending
+  on your needs.
+  
+  By default its value is: http://localhost:4005
+  Which means that you'll need to make sure that your firewall
+  allows traffic on that port, or whatever port you specify.
+
+  The *respondToURL* is the publicly accessible URL for the listener.  It is the
+  address that probe responses will be sent to.
+  
+  The respondToURL may be different than the listenerURL if there is some NAT
+  or other port forwarding that needs to be done through firewalls.
+  By default, this value is the same as the listenerURL.
+  
+  ** Replacement Variables **
+  
+  This XML file is capable of replacement variables.  The Argo configuration XML files has a special
+  replacement variable resolution capability called the `resolveIP` item.  The values of
+  this item will be resolved in special ways depending on the type and the value of the item.
+  
+  Both the listenerURL and the respondToURL can use the interpolation
+  replacement variables defined in the configuration.
+  
+  Examples:
+    internalIP will resolve to the IPV4 address assigned to the interface named eth0
+    <resolveIP name="internalIP" type=ni">eth0:ipv4</resolve>
+    <listenerURL>http://${resolveIP:internalIP}:12345</listenerURL>
+    
+    externalIP will resolve to value of the HTTP GET call to the AWS external IP service
+    (Note: this will only work on configurations running in a AWS EC2 instance)
+    <resolveIP name="externalDNS">http://169.254.169.254/latest/meta-data/hostname</resolveIP>
+    <respondToURL>http://${resolveIP:externalDNS}:80</respondToURL>
+    
+  The client configuration does a sanity check on all URLs to make sure that are
+  well formed (reachable is another matter ... better check your work).
+
+  ** Other Replacement Resolvers **
+  
+  Other then the "resolveIP" prefix (e.g. ${resolveIP:internalIP}) there are other prefixes
+  you can use to inject values from other contexts.  The following are supported:
+  
+  Prefix: sys - This prefix marks a variable to be a system property
+  Example: ${sys:user.home}
+  
+  Will search for a system property with the given name and replace the variable by its value.
+  This is a very easy means for accessing the values of system properties.
+  
+  Prefix: env  - Variables can also reference OS-specific environment properties.
+  Example: ${env:JAVA_HOME}
+
+-->
+
+<client>
+<!-- 
+  <resolveIP name="internalIP" type="ni"></resolveIP>
+  <resolveIP name="externalIP" type="uri"></resolveIP>
+ -->
+
+  <listenerURL></listenerURL>
+  <respondToURL></respondToURL>
+  <installDir>@INSTALL_DIR@</installDir>
+
+  <transports>
+    <transport>
+      <name>Multicast</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>true</usesNI>
+      <requiresMulticast>true</requiresMulticast>
+      <classname>ws.argo.probe.transport.MulticastTransport</classname>
+      <configFilename>${installDir}/client/config/multicastTransport.prop</configFilename>
+    </transport>
+
+<!-- 
+  Other Potential Transport Plugins.
+  
+  In order to use other transports, you can uncomment the OOTB configuration here.
+  NOTE: Only the SNS transport is available as of Argo 0.4.x
+  
+  You can build your own plugin using the simple plugin interface, include the classes
+  on the classpath and then create an new transport configuration with your values.
+ -->
+
+<!--
+     <transport>
+      <name>SNS</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.AmazonSNSTransport</classname>
+      <configFilename>${installDir}/client/config/amazonSNSTransport.prop</configFilename>
+    </transport>
+    <transport>
+      <name>MQTT</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.MQTTTransport</classname>
+      <configFilename>${installDir}/client/config/mqttTransport.prop</configFilename>
+    </transport>
+    <transport>
+      <name>JMS</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.JMSTransport</classname>
+      <configFilename>${installDir}/client/config/jmsTransport.prop</configFilename>
+    </transport>
+    <transport>
+      <name>MQ</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.MQTransport</classname>
+      <configFilename>${installDir}/client/config/mqTransport.prop</configFilename>
+    </transport> 
+    <transport>
+      <name>AMQP</name>
+      <enableOnStartup>true</enableOnStartup>
+      <usesNI>false</usesNI>
+      <requiresMulticast>false</requiresMulticast>
+      <classname>ws.argo.probe.transport.AMQPTransport</classname>
+      <configFilename>${installDir}/client/config/ampqTransport.prop</configFilename>
+    </transport>
+     -->
+
+  </transports>
+
+</client>

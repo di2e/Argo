@@ -20,16 +20,15 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.core.UriBuilder;
 
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
 
-import com.sun.jersey.api.container.grizzly2.GrizzlyServerFactory;
-import com.sun.jersey.api.core.PackagesResourceConfig;
-import com.sun.jersey.api.core.ResourceConfig;
+
 
 /**
  * The ResponseListener is a client used in providing the REST API for the Argo
@@ -41,21 +40,20 @@ import com.sun.jersey.api.core.ResourceConfig;
 public class ResponseListener {
 
   private static final Logger LOGGER = Logger.getLogger(ResponseListener.class.getName());
+  
+  public static final URI DEFAULT_LISTENER_URI = getDefaultBaseURI();
 
-  private static int getPort(int defaultPort) {
-    // grab port from environment, otherwise fall back to default port 9998
-    String httpPort = System.getProperty("jersey.test.port");
-    if (null != httpPort) {
-      try {
-        return Integer.parseInt(httpPort);
-      } catch (NumberFormatException e) {
-        LOGGER.log(Level.INFO, "Error in port number format", e);
-      }
-    }
-    return defaultPort;
-  }
 
-  private static URI getBaseURI() {
+
+  /**
+   * This is the default URL for the client listener. It's just the localhost
+   * address. This may not be the one that you want to use (and likely isn't in
+   * a complex environment). You can set the url you want to use with the -surl
+   * switch on the command line.
+   * 
+   * @return the default URI
+   */
+  private static URI getDefaultBaseURI() {
     InetAddress localAddr;
     String addr;
     try {
@@ -65,23 +63,24 @@ public class ResponseListener {
       LOGGER.warning("Issues finding ip address of locahost.  Using string 'localhost' for listener address binding");
       addr = "localhost";
     }
-    return UriBuilder.fromUri("http://" + addr + "/").port(getPort(9998)).build();
+    return UriBuilder.fromUri("http://" + addr + "/").port(4005).build();
   }
-
-  public static final URI BASE_URI = getBaseURI();
 
   /**
    * Start the ResponseListener client. This largely includes starting at
    * Grizzly 2 server.
    * 
+   * @param listenerURI the uri of the listener for the http server
    * @return a new HttpServer
    * @throws IOException if something goes wrong creating the http server
    */
-  public static HttpServer startServer() throws IOException {
-    ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.CLClient.listener");
+  public static HttpServer startServer(URI listenerURI) throws IOException {
+    ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.CLClient.listener");
 
     LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
-    HttpServer httpServer = GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
+    HttpServer httpServer =  GrizzlyHttpServerFactory.createHttpServer(listenerURI, resourceConfig, false);
+    httpServer.getServerConfiguration().setName("Argo Client Listener");
+    httpServer.start();
     LOGGER.info("Started Jersey-Grizzly2 JAX-RS listener.");
 
     return httpServer;

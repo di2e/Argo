@@ -23,7 +23,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Timer;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
+
+import org.apache.commons.configuration.ConfigurationException;
 
 import ws.argo.responder.ProbeHandlerPluginIntf;
 import ws.argo.responder.ResponderConfigException;
@@ -31,13 +36,11 @@ import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
 
-
 /**
  * This default probe handler will load up a list of IP addresses and port
  * number associated with a service contract ID (like a UUID).
  * 
- * <p>
- * This handler will read a config xml file which lists the services that it can
+ * <p>This handler will read a config xml file which lists the services that it can
  * respond with.
  * 
  * @see ConfigFileMonitorTask
@@ -47,15 +50,19 @@ import ws.argo.wireline.response.ServiceWrapper;
  */
 public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf {
 
-  private static final Logger LOGGER      = Logger.getLogger(ConfigFileProbeHandlerPluginImpl.class.getName());
+  private static final Logger LOGGER        = Logger.getLogger(ConfigFileProbeHandlerPluginImpl.class.getName());
 
-  Properties                  config      = new Properties();
+  Properties                  config        = new Properties();
 
   // This really needs to be better than an O(n^2) lookup - like an O(n log n)
   // with a HashMap with a list value. But I'm lazy at the moment
-  ArrayList<ServiceWrapper>   serviceList = new ArrayList<ServiceWrapper>();
+  ArrayList<ServiceWrapper>   serviceList   = new ArrayList<ServiceWrapper>();
 
   private Timer               configFileScan;
+
+  private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+  private final Lock          readLock      = readWriteLock.readLock();
+  private final Lock          writeLock     = readWriteLock.writeLock();
 
   public Properties getConfiguration() {
     return config;
@@ -66,14 +73,36 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
    * services list which might change out if the user changes it, is
    * synchronized to make sure nothing weird happens.
    * 
+   * <p>There is lock on this that will always allow a read unless another thread
+   * is updating the service list.
+   * 
    * @param services - the ArrayList of ServiceInfoBeans
    */
-  public synchronized void setServiceList(ArrayList<ServiceWrapper> services) {
-    this.serviceList = services;
+  public void setServiceList(ArrayList<ServiceWrapper> services) {
+    writeLock.lock();
+    try {
+      LOGGER.info("Updating service list by " + Thread.currentThread().getName());
+      this.serviceList = services;
+    } finally {
+      writeLock.unlock();
+    }
   }
 
-  public synchronized ArrayList<ServiceWrapper> getServiceList() {
-    return this.serviceList;
+  /**
+   * Get the list of services that the handler, well, uh, handles.
+   * 
+   * <p>There is lock on this that will always allow a read unless another thread
+   * is updating the service list.
+   * 
+   * @return list of services
+   */
+  public ArrayList<ServiceWrapper> getServiceList() {
+    readLock.lock();
+    try {
+      return this.serviceList;
+    } finally {
+      readLock.unlock();
+    }
   }
 
   /**
@@ -153,8 +182,12 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
     }
 
     // Launch the timer task that will look for changes to the config file
-    configFileScan = new Timer();
-    configFileScan.scheduleAtFixedRate(new ConfigFileMonitorTask(this), 100, 10000);
+    try {
+      configFileScan = new Timer();
+      configFileScan.scheduleAtFixedRate(new ConfigFileMonitorTask(this), 100, 10000);
+    } catch (ConfigurationException e) {
+      throw new ResponderConfigException("Error initializing monitor task.", e);
+    }
 
   }
 

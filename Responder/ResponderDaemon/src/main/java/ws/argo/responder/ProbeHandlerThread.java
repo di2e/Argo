@@ -48,7 +48,7 @@ import ws.argo.wireline.response.ResponseWrapper;
  * @author jmsimpson
  *
  */
-public class ProbeHandlerThread extends Thread {
+public class ProbeHandlerThread implements Runnable {
 
   private static final Logger LOGGER = Logger.getLogger(ProbeHandlerThread.class.getName());
 
@@ -62,22 +62,22 @@ public class ProbeHandlerThread extends Thread {
   ArrayList<ProbeHandlerPluginIntf> handlers;
   ProbeWrapper                      probe;
   boolean                           noBrowser;
+  Responder                         responder;
 
   /**
    * Create a new ProbeHandler thread that will process a probe in a
    * multi-threaded way.
    * 
-   * @param handlers is the list of common handlers - these need to be
-   *          multi-thread capable
+   * @param responder pointer to the instance of a responder associated
    * @param probe - the actual probe payload
-   * @param httpClient - a reusable httpClient for sending back responses
    * @param noBrowser - a flag that indicated whether a naked probe should be
    *          processed
    */
-  public ProbeHandlerThread(ArrayList<ProbeHandlerPluginIntf> handlers, ProbeWrapper probe, CloseableHttpClient httpClient, boolean noBrowser) {
-    this.handlers = handlers;
+  public ProbeHandlerThread(Responder responder, ProbeWrapper probe, boolean noBrowser) {
+    this.responder = responder;
+    this.handlers = responder.getHandlers();
     this.probe = probe;
-    this.httpClient = httpClient;
+    this.httpClient = responder.httpClient;
     this.noBrowser = noBrowser;
   }
 
@@ -153,13 +153,15 @@ public class ProbeHandlerThread extends Thread {
 
     } catch (MalformedURLException e) {
       success = false;
-      LOGGER.log(Level.SEVERE, "MalformedURLException occured  for probeID " + payload.getProbeID() + "\nThe respondTo URL was a no good.  respondTo URL is: " + respondToURL);
+      LOGGER.log(Level.SEVERE, "MalformedURLException occured  for probeID [" + payload.getProbeID() + "]" + "\nThe respondTo URL was a no good.  respondTo URL is: " + respondToURL);
     } catch (IOException e) {
       success = false;
-      LOGGER.log(Level.SEVERE, "An IOException occured for probeID " + payload.getProbeID(), e);
+      LOGGER.log(Level.SEVERE, "An IOException occured for probeID [" + payload.getProbeID() + "]" + " - " + e.getLocalizedMessage());
+      LOGGER.log(Level.FINE, "Stack trace for IOException for probeID [" + payload.getProbeID() + "]", e);
     } catch (Exception e) {
       success = false;
-      LOGGER.log(Level.SEVERE, "Some other error occured for probeID " + payload.getProbeID() + ".  respondTo URL is: " + respondToURL, e);
+      LOGGER.log(Level.SEVERE, "Some other error occured for probeID [" + payload.getProbeID() + "]" + ".  respondTo URL is: " + respondToURL + " - " + e.getLocalizedMessage());
+      LOGGER.log(Level.FINE, "Stack trace for probeID [" + payload.getProbeID() + "]", e);
     }
 
     return success;
@@ -211,15 +213,18 @@ public class ProbeHandlerThread extends Thread {
         for (ProbeHandlerPluginIntf handler : handlers) {
           response = handler.handleProbeEvent(probe);
           if (!response.isEmpty()) {
-            LOGGER.fine("Response includes " + response.numberOfServices());
+            LOGGER.fine("Response to probe [" + probe.getProbeId() + "] includes " + response.numberOfServices());
             Iterator<RespondToURL> respondToURLs = probe.getRespondToURLs().iterator();
 
+            if (probe.getRespondToURLs().isEmpty())
+              LOGGER.warning("Processed probe [" + probe.getProbeId() + "] with no respondTo address. That's odd.");
+            
             if (respondToURLs.hasNext()) {
               RespondToURL respondToURL = respondToURLs.next();
               // we are ignoring the label for now
               boolean success = sendResponse(respondToURL.url, probe.getRespondToPayloadType(), response);
               if (!success) {
-                LOGGER.warning("Issue sending response to " + respondToURL.url);
+                LOGGER.warning("Issue sending probe [" + probe.getProbeId() + "] response to [" + respondToURL.url + "]");
               }
             }
 
@@ -231,6 +236,8 @@ public class ProbeHandlerThread extends Thread {
       }
 
       markProbeAsHandled(probe.getProbeId());
+
+      responder.probeProcessed();
 
     } else {
       LOGGER.info("Discarding duplicate/handled probe with id: " + probe.getProbeId());
