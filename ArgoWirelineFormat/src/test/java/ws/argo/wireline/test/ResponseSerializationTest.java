@@ -16,7 +16,6 @@
 
 package ws.argo.wireline.test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -33,6 +32,12 @@ import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
 import ws.argo.wireline.response.XMLSerializer;
 
+/**
+ * Test the response wireline payloads.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ResponseSerializationTest {
 
   private static final String TESTING_RESPONSE_ID = "urn:uuid:9c6bd8aa-bf9b-45aa-9348-24897d89e86f";

@@ -11,6 +11,8 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.gson.Gson;
+
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.UnsupportedPayloadType;
@@ -52,6 +54,10 @@ public class ResponderProbeJSONTest extends ResponderProbeTest {
     System.out.println("Getting testNakedProbeJSON cached responses from listener");
 
     String responseMsg = target.path("listener/responses").request().get(String.class);
+    Gson gson = new Gson();
+    
+//    JSONObject responseJSON = gson.fromJson(responseMsg, JSONObject.class);
+    
     assertEquals(nakedProbeJSONResponseFromListener, responseMsg);
 
     String cacheClearedMsg = target.path("listener/clearCache").request().get(String.class);

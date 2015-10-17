@@ -34,7 +34,6 @@ import ws.argo.responder.transport.TransportConfigException;
 import ws.argo.wireline.probe.ProbeParseException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.XMLSerializer;
-import ws.argo.wireline.response.ResponseParseException;
 
 /**
  * This is the CL UI probe listener resource used by the JAX-RS container. It

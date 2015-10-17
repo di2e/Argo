@@ -72,13 +72,7 @@ public class ResponseListener {
     HttpServer httpServer =  GrizzlyHttpServerFactory.createHttpServer(BASE_URI, resourceConfig);
     LOGGER.info("Started Jersey-Grizzly2 JAX-RS listener.");
 
-    
-//    ResourceConfig resourceConfig = new PackagesResourceConfig("ws.argo.responder.test.listener");
-//
-//    System.out.println("Starting grizzly2...");
-//    HttpServer httpServer = GrizzlyServerFactory.createHttpServer(BASE_URI, resourceConfig);
-
-    return httpServer;
+        return httpServer;
   }
 
 }

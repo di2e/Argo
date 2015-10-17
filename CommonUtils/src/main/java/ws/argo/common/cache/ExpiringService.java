@@ -14,21 +14,35 @@
  * limitations under the License.
  */
 
-package ws.argo.DemoWebClient.AsynchListener.ResponseCache;
+package ws.argo.common.cache;
 
 import java.util.Date;
 
 import ws.argo.wireline.response.ServiceWrapper;
 
+/**
+ * The ExpiringService is a wrapper on a {@link ServiceWrapper} that will tell
+ * the listener cache if its expired. Expiring services out of a cache is not an
+ * Argo specific domain behavior and therefore that behavior is not in the Argo
+ * domain classes.
+ * 
+ * @author jmsimpson
+ *
+ */
 public class ExpiringService {
 
   static final long ONE_MINUTE_IN_MILLIS = 60000;
 
-  ServiceWrapper    service;
-  public Date       cacheStartTime       = new Date();
+  ServiceWrapper _service;
+  public Date    cacheStartTime = new Date();
 
+  /**
+   * Default constructor for the Expiring service.
+   * 
+   * @param service the ServiceWrapper to cache
+   */
   public ExpiringService(ServiceWrapper service) {
-    this.service = service;
+    _service = service;
   }
 
   /**
@@ -40,13 +54,18 @@ public class ExpiringService {
    * @return true if the service record should be expired from the cache
    */
   public boolean isExpired() {
-    if (this.service.getTtl() == 0)
+    if (_service.getTtl() == 0) {
       return false;
+    }
     long t = this.cacheStartTime.getTime();
-    Date validTime = new Date(t + (this.service.getTtl() * ONE_MINUTE_IN_MILLIS));
+    Date validTime = new Date(t + (_service.getTtl() * ONE_MINUTE_IN_MILLIS));
     Date now = new Date();
 
     return (now.getTime() > validTime.getTime());
+  }
+  
+  public ServiceWrapper getService() {
+    return _service;
   }
 
 }

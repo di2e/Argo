@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package ws.argo.DemoWebClient.AsynchListener.ResponseCache;
+package ws.argo.common.cache;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
-import ws.argo.wireline.response.ServiceWrapper;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
+
+import ws.argo.wireline.response.ServiceWrapper;
 
 /**
  * The ResponseCache is a utility class for an Argo client that will maintain a
@@ -37,9 +37,16 @@ import com.google.gson.Gson;
  */
 public class ResponseCache {
 
-  private HashMap<String, ExpiringService> cache = new HashMap<String, ExpiringService>();
+  private ConcurrentHashMap<String, ExpiringService> cache = new ConcurrentHashMap<String, ExpiringService>();
 
-  private class Cache {
+  
+  /**
+   * Basic ArrayList cache.
+   * 
+   * @author jmsimpson
+   *
+   */
+  private static class Cache {
     public ArrayList<ServiceWrapper> cache = new ArrayList<ServiceWrapper>();
   }
 
@@ -48,16 +55,16 @@ public class ResponseCache {
    * 
    * @param list the list of service to put in the cache
    */
-  public synchronized void cacheAll(ArrayList<ExpiringService> list) {
+  public void cacheAll(ArrayList<ExpiringService> list) {
 
     for (ExpiringService service : list) {
-      cache.put(service.service.getId(), service);
+      cache.put(service.getService().getId(), service);
     }
 
   }
 
-  public synchronized void cache(ExpiringService service) {
-    cache.put(service.service.getId(), service);
+  public void cache(ExpiringService service) {
+    cache.put(service.getService().getId(), service);
   }
 
   /**
@@ -73,7 +80,7 @@ public class ResponseCache {
 
     Cache jsonCache = new Cache();
     for (ExpiringService svc : cache.values()) {
-      jsonCache.cache.add(svc.service);
+      jsonCache.cache.add(svc.getService());
     }
 
     String json = gson.toJson(jsonCache);
@@ -81,14 +88,15 @@ public class ResponseCache {
     return json;
   }
 
-  private synchronized void clearExpired() {
+  private void clearExpired() {
 
     Iterator<Entry<String, ExpiringService>> it = cache.entrySet().iterator();
     while (it.hasNext()) {
       Entry<String, ExpiringService> pair = it.next();
       ExpiringService infoBean = (ExpiringService) pair.getValue();
-      if (infoBean.isExpired())
+      if (infoBean.isExpired()) {
         it.remove(); // avoids a ConcurrentModificationException
+      }
     }
 
   }
