@@ -129,16 +129,6 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
       Cache cache = createCacheFromListener(context);
 
       if (cache != null) {
-
-        List<String> pids = new ArrayList<String>();
-        for (String name : _ids) {
-          if (context.getSentProbes().containsKey(name)) {
-            pids.add(context.getProbe(name).getProbeID());
-          } else {
-            Console.warn("Probe named [" + name + "] is not in the sent probes list. Ignoring.");
-          }
-            
-        }
         
         int i = 1;
         for (String desc : cache.descriptionsForIds(_ids, _showPayload, _prettyPayload)) {

@@ -20,7 +20,6 @@
     <module>ArgoWirelineFormat</module>
     <module>DemoWebClient</module>
     <module>CommonUtils</module>
-    <module>ArgoPluginFramework</module>
     <module>PluginFramework</module>
   </modules>
   <licenses>

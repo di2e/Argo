@@ -45,8 +45,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import ws.argo.plugin.transport.sender.TransportConfigException;
+import ws.argo.plugin.transport.sender.TransportException;
 import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeIntf;
 import ws.argo.probe.ProbeSender;
 import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.ProbeSenderFactory;
@@ -135,11 +135,12 @@ public class BrowserController {
    * @throws UnsupportedPayloadType shouldn't happen as we always ask for JSON
    *           here
    * @throws ProbeSenderException if something else goes wrong
+   * @throws TransportException if something else goes wrong
    */
   @GET
   @Path("/launchProbe")
   @Produces("application/txt")
-  public String launchProbe() throws IOException, UnsupportedPayloadType, ProbeSenderException {
+  public String launchProbe() throws IOException, UnsupportedPayloadType, ProbeSenderException, TransportException {
 
     Properties clientProps = getPropeSenderProps();
 
@@ -168,7 +169,7 @@ public class BrowserController {
       // configured to "noBrowser"
       // gen.sendProbe(probe);
       // }
-      Probe probe = new Probe(ProbeIntf.JSON);
+      Probe probe = new Probe(Probe.JSON);
       for (ProbeRespondToAddress rta : respondToAddresses) {
         probe.addRespondToURL("browser", "http://" + rta.respondToAddress + ":" + rta.respondToPort + listenerURLPath);
       }
