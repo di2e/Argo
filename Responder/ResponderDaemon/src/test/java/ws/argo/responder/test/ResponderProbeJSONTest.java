@@ -54,7 +54,7 @@ public class ResponderProbeJSONTest extends ResponderProbeTest {
     System.out.println("Getting testNakedProbeJSON cached responses from listener");
 
     String responseMsg = target.path("listener/responses").request().get(String.class);
-    Gson gson = new Gson();
+//    Gson gson = new Gson();
     
 //    JSONObject responseJSON = gson.fromJson(responseMsg, JSONObject.class);
     

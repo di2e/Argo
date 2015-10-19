@@ -19,8 +19,8 @@ import javax.ws.rs.client.WebTarget;
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.config.ClientConfiguration;
+import ws.argo.plugin.transport.sender.TransportConfigException;
 import ws.argo.probe.Probe;
-import ws.argo.probe.transport.TransportConfigException;
 
 /**
  * The ArgoClientContext class encapsulated any state that the

@@ -30,7 +30,8 @@ import java.util.logging.Logger;
 
 import org.apache.commons.configuration.ConfigurationException;
 
-import ws.argo.responder.ProbeHandlerPluginIntf;
+import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
+import ws.argo.plugin.probehandler.ProbeHandlerPluginIntf;
 import ws.argo.responder.ResponderConfigException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
@@ -154,7 +155,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
   /**
    * Initialize the handler.
    */
-  public void initializeWithPropertiesFilename(String filename) throws ResponderConfigException {
+  public void initializeWithPropertiesFilename(String filename) throws ProbeHandlerConfigException {
 
     InputStream is;
     // try to load the properties file off the classpath first
@@ -165,19 +166,19 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
       try {
         is = new FileInputStream(filename);
       } catch (FileNotFoundException e) {
-        throw new ResponderConfigException("Error loading handler config for [" + this.getClass().getName() + "]", e);
+        throw new ProbeHandlerConfigException("Error loading handler config for [" + this.getClass().getName() + "]", e);
       }
     }
 
     try {
       config.load(is);
     } catch (IOException e) {
-      throw new ResponderConfigException("Error loading handler config for [" + this.getClass().getName() + "]", e);
+      throw new ProbeHandlerConfigException("Error loading handler config for [" + this.getClass().getName() + "]", e);
     } finally {
       try {
         is.close();
       } catch (IOException e) {
-        throw new ResponderConfigException("Error closing handler config for {" + this.getClass().getName() + "]", e);
+        throw new ProbeHandlerConfigException("Error closing handler config for {" + this.getClass().getName() + "]", e);
       }
     }
 
@@ -186,7 +187,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
       configFileScan = new Timer();
       configFileScan.scheduleAtFixedRate(new ConfigFileMonitorTask(this), 100, 10000);
     } catch (ConfigurationException e) {
-      throw new ResponderConfigException("Error initializing monitor task.", e);
+      throw new ProbeHandlerConfigException("Error initializing monitor task.", e);
     }
 
   }

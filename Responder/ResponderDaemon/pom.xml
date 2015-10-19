@@ -51,19 +51,13 @@
       <version>2.4</version>
     </dependency>
     <dependency>
-      <groupId>ws.argo.responder</groupId>
-      <artifactId>PluginClient</artifactId>
-      <version>0.4.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
       <groupId>ws.argo.common</groupId>
       <artifactId>CommonUtils</artifactId>
       <version>0.4.1-SNAPSHOT</version>
     </dependency>
-
     <dependency>
-      <groupId>ws.argo.wireline</groupId>
-      <artifactId>ArgoWirelineFormat</artifactId>
+      <groupId>ws.argo.plugin</groupId>
+      <artifactId>PluginFramework</artifactId>
       <version>0.4.1-SNAPSHOT</version>
     </dependency>
     <dependency>

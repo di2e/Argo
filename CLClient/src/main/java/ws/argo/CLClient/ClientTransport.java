@@ -10,9 +10,9 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import ws.argo.plugin.transport.sender.Transport;
+import ws.argo.plugin.transport.sender.TransportConfigException;
 import ws.argo.probe.ProbeSender;
-import ws.argo.probe.transport.Transport;
-import ws.argo.probe.transport.TransportConfigException;
 
 /**
  * The ClientTransport is an encapsulation object that containers the
@@ -53,7 +53,6 @@ public class ClientTransport {
           try {
             Transport transport = instantiateTransportClass(config.getClassname());
             transport.initialize(transportProps, niName);
-            // transports.add(transport);
             ProbeSender sender = new ProbeSender(transport);
             senders.add(sender);
           } catch (TransportConfigException e) {
@@ -66,7 +65,6 @@ public class ClientTransport {
     } else {
       Transport transport = instantiateTransportClass(config.getClassname());
       transport.initialize(transportProps, "");
-      // transports.add(transport);
       ProbeSender sender = new ProbeSender(transport);
       senders.add(sender);
     }
@@ -137,7 +135,7 @@ public class ClientTransport {
     try {
       transportClass = cl.loadClass(classname);
     } catch (ClassNotFoundException e1) {
-      throw new TransportConfigException("Error loading the handler class", e1);
+      throw new TransportConfigException("Error loading the Transport class [" +classname + "]", e1);
     }
 
     Transport transport;
@@ -145,8 +143,8 @@ public class ClientTransport {
     try {
       transport = (Transport) transportClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
-      LOGGER.warning("Could not create an instance of the configured transport class - " + classname);
-      throw new TransportConfigException("Error instantiating the transport class " + classname, e);
+      LOGGER.warning("Could not create an instance of the configured transport class [" + classname +"]");
+      throw new TransportConfigException("Error instantiating the transport class [" + classname +"]", e);
     }
     return transport;
 

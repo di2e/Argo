@@ -46,6 +46,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.joda.time.Instant;
 
+import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
+import ws.argo.plugin.probehandler.ProbeHandlerPluginIntf;
 import ws.argo.responder.transport.ProbeProcessor;
 import ws.argo.responder.transport.Transport;
 import ws.argo.responder.transport.TransportConfigException;
@@ -194,14 +196,14 @@ public class Responder implements ProbeProcessor {
    * @throws ResponderConfigException if there is some issues with the config
    *           file
    */
-  private void addHandler(String classname, String configFilename) throws ResponderConfigException {
+  private void addHandler(String classname, String configFilename) throws ProbeHandlerConfigException {
 
     ClassLoader cl = ClassLoader.getSystemClassLoader();
     Class<?> handlerClass;
     try {
       handlerClass = cl.loadClass(classname);
     } catch (ClassNotFoundException e1) {
-      throw new ResponderConfigException("Error loading the handler class", e1);
+      throw new ProbeHandlerConfigException("Error loading the handler class", e1);
     }
     ProbeHandlerPluginIntf handler;
 
@@ -209,7 +211,7 @@ public class Responder implements ProbeProcessor {
       handler = (ProbeHandlerPluginIntf) handlerClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
       LOGGER.warning("Could not create an instance of the configured handler class - " + classname);
-      throw new ResponderConfigException("Error instantiating the handler class " + classname, e);
+      throw new ProbeHandlerConfigException("Error instantiating the handler class " + classname, e);
       // LOGGER.warning("Using default handler");
       // LOGGER.fine("The issue was:");
       // LOGGER.fine(e.getMessage());
@@ -372,13 +374,13 @@ public class Responder implements ProbeProcessor {
     }
   }
 
-  private void loadHandlerPlugins(ArrayList<PluginConfig> configs) throws ResponderConfigException {
+  private void loadHandlerPlugins(ArrayList<PluginConfig> configs) throws ProbeHandlerConfigException {
 
     for (PluginConfig appConfig : configs) {
 
       try {
         addHandler(appConfig.classname, appConfig.configFilename);
-      } catch (ResponderConfigException e) {
+      } catch (ProbeHandlerConfigException e) {
         LOGGER.log(Level.SEVERE, "Error loading handler for [" + appConfig.classname + "]. Skipping handler", e);
       }
     }
@@ -386,7 +388,7 @@ public class Responder implements ProbeProcessor {
     // make sure we have at least 1 active handler. If not, then fail the
     // responder process
     if (getHandlers().isEmpty()) {
-      throw new ResponderConfigException("No responders created successfully on initialization.");
+      throw new ProbeHandlerConfigException("No responders created successfully on initialization.");
     }
 
   }
@@ -451,7 +453,11 @@ public class Responder implements ProbeProcessor {
     Responder responder = new Responder(cliValues);
 
     // load up the handler classes specified in the configuration parameters
-    responder.loadHandlerPlugins(cliValues.appHandlerConfigs);
+    try {
+      responder.loadHandlerPlugins(cliValues.appHandlerConfigs);
+    } catch (ProbeHandlerConfigException e) {
+      throw new ResponderConfigException("Error loading handler plugins: ", e);
+    }
 
     // load up the transport classes specified in the configuration parameters
     responder.loadTransportPlugins(cliValues.transportConfigs);

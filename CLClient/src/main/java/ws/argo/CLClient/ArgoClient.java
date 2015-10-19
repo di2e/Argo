@@ -91,12 +91,13 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     }
   }
 
-  private void startServices() {
+  private void startServices() throws CLIInitException {
     try {
       startListener();
     } catch (IOException | URISyntaxException e) {
-      Console.severe("Unable to start services.");
-      e.printStackTrace();
+//      Console.severe("Unable to start services.");
+//      e.printStackTrace();
+      throw new CLIInitException("Unable to start services", e);
     }
   }
 

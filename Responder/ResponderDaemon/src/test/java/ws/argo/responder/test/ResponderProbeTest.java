@@ -10,10 +10,11 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import ws.argo.plugin.transport.sender.TransportConfigException;
+import ws.argo.plugin.transport.sender.TransportException;
 import ws.argo.probe.ProbeSender;
 import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.ProbeSenderFactory;
-import ws.argo.probe.transport.TransportConfigException;
 import ws.argo.responder.Responder;
 import ws.argo.responder.ResponderConfigException;
 import ws.argo.responder.test.listener.ResponseListener;
@@ -98,7 +99,7 @@ public abstract class ResponderProbeTest {
    * @throws ProbeSenderException if some problem occurred closing the transport
    */
   @AfterClass
-  public static void tearDown() throws InterruptedException, ProbeSenderException {
+  public static void tearDown() throws InterruptedException, TransportException {
 
     responder.stopResponder();
     gen.close();

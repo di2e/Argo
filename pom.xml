@@ -12,7 +12,7 @@
   
   <modules>
     <module>Responder</module>
-    <module>ProbeGenerator</module>
+    <module>ProbeSender</module>
     <module>MulticastGateway</module>
     <module>build-tools</module>
     <module>CLClient</module>
@@ -20,6 +20,8 @@
     <module>ArgoWirelineFormat</module>
     <module>DemoWebClient</module>
     <module>CommonUtils</module>
+    <module>ArgoPluginFramework</module>
+    <module>PluginFramework</module>
   </modules>
   <licenses>
     <license>

@@ -149,32 +149,6 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
       }
     }
 
-    /*
-     * boolean continueProcessing = true; int number = 1; while
-     * (continueProcessing) {
-     * 
-     * String name = prop.getProperty("transportName." + number); boolean
-     * enabled =
-     * Boolean.parseBoolean(prop.getProperty("transportEnabledOnStartup." +
-     * number)); boolean usesNI =
-     * Boolean.parseBoolean(prop.getProperty("transportUsesNI." + number));
-     * boolean requiresMC =
-     * Boolean.parseBoolean(prop.getProperty("transportRequiresMulticast." +
-     * number)); String classname = prop.getProperty("transportClassname." +
-     * number); String configFilename =
-     * prop.getProperty("transportConfigFilename." + number, null);
-     * 
-     * if (configFilename != null) { TransportConfig config = new
-     * TransportConfig(name); config.setClassname(classname);
-     * config.setEnabled(enabled); config.setUsesNetworkInterface(usesNI);
-     * config.setRequiresMulticast(requiresMC);
-     * config.setPropertiesFilename(configFilename);
-     * 
-     * transportConfigs.add(config); } else { continueProcessing = false; }
-     * number++;
-     * 
-     * }
-     */
 
   }
 

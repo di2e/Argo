@@ -32,6 +32,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
+import ws.argo.plugin.probehandler.ProbeHandlerPluginIntf;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.ProbeWrapper.RespondToURL;
 import ws.argo.wireline.response.ResponseWrapper;

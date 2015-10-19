@@ -44,12 +44,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import ws.argo.plugin.transport.sender.TransportConfigException;
 import ws.argo.probe.Probe;
+import ws.argo.probe.ProbeIntf;
 import ws.argo.probe.ProbeSender;
 import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.ProbeSenderFactory;
 import ws.argo.probe.UnsupportedPayloadType;
-import ws.argo.probe.transport.TransportConfigException;
 
 /**
  * The BrowserController implements all the functions that I couldn't do in
@@ -167,7 +168,7 @@ public class BrowserController {
       // configured to "noBrowser"
       // gen.sendProbe(probe);
       // }
-      Probe probe = new Probe(Probe.JSON);
+      Probe probe = new Probe(ProbeIntf.JSON);
       for (ProbeRespondToAddress rta : respondToAddresses) {
         probe.addRespondToURL("browser", "http://" + rta.respondToAddress + ":" + rta.respondToPort + listenerURLPath);
       }
