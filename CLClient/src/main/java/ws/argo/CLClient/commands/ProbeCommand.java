@@ -31,7 +31,7 @@ import net.dharwin.common.tools.cli.api.CompoundCommand;
 import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
-import ws.argo.CLClient.ClientTransport;
+import ws.argo.CLClient.ClientProbeSenders;
 import ws.argo.CLClient.ProbeSentRecord;
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeSender;
@@ -152,7 +152,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
 
     private CommandResult sendProbe(ArgoClientContext context, String probeName, Probe probe) {
 
-      ArrayList<ClientTransport> transports = context.getClientTransports();
+      ArrayList<ClientProbeSenders> transports = context.getClientTransports();
 
       Probe reifiedProbe;
       try {
@@ -173,7 +173,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
         return CommandResult.ERROR;
       }
 
-      for (ClientTransport t : transports) {
+      for (ClientProbeSenders t : transports) {
         if (t.isEnabled()) {
           for (ProbeSender sender : t.getSenders()) {
             try {

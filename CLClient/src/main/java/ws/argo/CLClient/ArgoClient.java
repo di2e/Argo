@@ -41,7 +41,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
   static final String DEFAULT_TOPIC_NAME    = "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
   static final String DEFAULT_LISTENER_HOST = "localhost";
 
-  private HttpServer server;
+  private HttpServer _server;
 
   private ClientConfiguration _config;
 
@@ -56,7 +56,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
       listenerURL = new URI(urlString); // This should not be malformed as it's
                                         // checked earlier
 
-    server = ResponseListener.startServer(listenerURL);
+    _server = ResponseListener.startServer(listenerURL);
   }
 
   @Override
@@ -80,8 +80,8 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
    */
   public void restartListener(String _url) {
     if (getConfig().setListenerURL(_url)) {
-      if (server != null)
-        server.shutdownNow();
+      if (_server != null)
+        _server.shutdownNow();
       try {
         startListener();
       } catch (IOException | URISyntaxException e) {
@@ -103,7 +103,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 
   @Override
   protected void shutdown() {
-    server.shutdownNow();
+    _server.shutdownNow();
     System.out.println("Shutting down ArgoClient.");
   }
 

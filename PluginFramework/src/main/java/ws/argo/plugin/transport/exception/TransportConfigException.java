@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package ws.argo.plugin.transport.responder;
+package ws.argo.plugin.transport.exception;
 
 /**
- * TransportConfigException is an exception that can occur if the Transport is
- * provided bad configuration parameters.
+ * This exception gets thrown when some kind of error occurred during the
+ * configuration of a Transport.
  * 
  * @author jmsimpson
  *
  */
 public class TransportConfigException extends Exception {
 
-  private static final long serialVersionUID = 4913095738616220364L;
+  private static final long serialVersionUID = 753487924802419379L;
 
   public TransportConfigException() {
     super();
@@ -38,5 +38,4 @@ public class TransportConfigException extends Exception {
   public TransportConfigException(String message) {
     super(message);
   }
-
 }

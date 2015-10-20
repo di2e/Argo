@@ -21,18 +21,16 @@ import ws.argo.probe.ProbeSender;
  * @author jmsimpson
  *
  */
-public class ClientTransport {
+public class ClientProbeSenders {
 
-  private static final Logger    LOGGER  = Logger.getLogger(ClientTransport.class.getName());
+  private static final Logger    LOGGER  = Logger.getLogger(ClientProbeSenders.class.getName());
 
   private TransportConfig        config;
   private Properties             transportProps;
   private ArrayList<ProbeSender> senders = new ArrayList<ProbeSender>();
   private boolean                enabled;
 
-  // private ArrayList<Transport> transports = new ArrayList<Transport>();
-
-  public ClientTransport(TransportConfig config) {
+  public ClientProbeSenders(TransportConfig config) {
     this.config = config;
     enabled = config.isEnabled();
   }

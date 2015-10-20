@@ -14,7 +14,7 @@ import net.dharwin.common.tools.cli.api.CompoundCommand;
 import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
-import ws.argo.CLClient.ClientTransport;
+import ws.argo.CLClient.ClientProbeSenders;
 
 /**
  * This Config command is used to configure various things including the probe
@@ -61,7 +61,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        ClientTransport transport = context.getClientTransportNamed(_transportName);
+        ClientProbeSenders transport = context.getClientTransportNamed(_transportName);
         if (transport != null) {
           Console.info(transport.showConfiguration());
         } else {
@@ -84,9 +84,9 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        ArrayList<ClientTransport> gens = context.getClientTransports();
+        ArrayList<ClientProbeSenders> gens = context.getClientTransports();
 
-        for (ClientTransport t : gens) {
+        for (ClientProbeSenders t : gens) {
           Console.info(t.getDescription());
         }
 
@@ -110,7 +110,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        ClientTransport transport = context.getClientTransportNamed(_transportName);
+        ClientProbeSenders transport = context.getClientTransportNamed(_transportName);
 
         if (transport != null) {
           transport.setEnabled(true);
@@ -138,7 +138,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        ClientTransport transport = context.getClientTransportNamed(_transportName);
+        ClientProbeSenders transport = context.getClientTransportNamed(_transportName);
 
         if (transport != null) {
           transport.setEnabled(false);
@@ -255,7 +255,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
     /**
      * Enable or use the specified NI. This will tell the
-     * {@linkplain ClientTransport#getSenders()} call to return the pre-created
+     * {@linkplain ClientProbeSenders#getSenders()} call to return the pre-created
      * MC probe sender in the list of ProbeSender to use when sending a probe.
      * 
      * @author jmsimpson
@@ -386,9 +386,9 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
       Console.info("\n------------------ Configured Transports --------------------");
 
-      List<ClientTransport> transports = context.getClientTransports();
+      List<ClientProbeSenders> transports = context.getClientTransports();
 
-      for (ClientTransport t : transports) {
+      for (ClientProbeSenders t : transports) {
         Console.info(t.showConfiguration());
       }
 

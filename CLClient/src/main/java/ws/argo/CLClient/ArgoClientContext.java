@@ -36,15 +36,15 @@ public class ArgoClientContext extends CLIContext {
 
   public static final String DEFAULT_CID = "ARGO-CommandLineClient";
 
-  private String defaultCID = DEFAULT_CID;
+  private String _defaultCID = DEFAULT_CID;
 
-  private HashSet<String>        niList = new HashSet<String>();
-  private HashMap<String, Probe> probes = new HashMap<String, Probe>();
+  private HashSet<String>        _niList = new HashSet<String>();
+  private HashMap<String, Probe> _probes = new HashMap<String, Probe>();
 
   // Index is the probe ID
-  private HashMap<String, ProbeSentRecord> sentProbes = new HashMap<String, ProbeSentRecord>();
+  private HashMap<String, ProbeSentRecord> _sentProbes = new HashMap<String, ProbeSentRecord>();
 
-  private ArrayList<ClientTransport> clientTransports = new ArrayList<ClientTransport>();
+  private ArrayList<ClientProbeSenders> _clientSenders = new ArrayList<ClientProbeSenders>();
 
   /**
    * Create a new instance of the ArgoClientContext with its parent CL UI app.
@@ -71,10 +71,10 @@ public class ArgoClientContext extends CLIContext {
    */
   private void initializeTransports(ArrayList<TransportConfig> transportConfigs) {
     for (TransportConfig config : transportConfigs) {
-      ClientTransport transport = new ClientTransport(config);
+      ClientProbeSenders transport = new ClientProbeSenders(config);
       try {
         transport.initialize(this);
-        clientTransports.add(transport);
+        _clientSenders.add(transport);
       } catch (TransportConfigException e) {
         LOGGER.log(Level.WARNING, "Transport [" + config.getName() + "] failed to initialize.", e);
         Console.error("Unable to initialize the Transport [" + config.getName() + "].  Ignoring.");
@@ -83,8 +83,8 @@ public class ArgoClientContext extends CLIContext {
 
   }
 
-  public ArrayList<ClientTransport> getClientTransports() {
-    return clientTransports;
+  public ArrayList<ClientProbeSenders> getClientTransports() {
+    return _clientSenders;
   }
 
 
@@ -107,7 +107,7 @@ public class ArgoClientContext extends CLIContext {
   }
 
   public HashMap<String, Probe> getProbes() {
-    return probes;
+    return _probes;
   }
 
   public Probe getProbe(String name) {
@@ -120,19 +120,19 @@ public class ArgoClientContext extends CLIContext {
   }
 
   public String getDefaultCID() {
-    return defaultCID;
+    return _defaultCID;
   }
 
   public void setDefaultCID(String cid) {
-    defaultCID = cid;
+    _defaultCID = cid;
   }
 
   public Set<String> getNIList() {
-    return niList;
+    return _niList;
   }
   
   public void resetNIList() {
-    niList = new HashSet<String>();
+    _niList = new HashSet<String>();
     initializeLocalhostNI();
   }
 
@@ -141,11 +141,11 @@ public class ArgoClientContext extends CLIContext {
   }
 
   public Map<String, ProbeSentRecord> getSentProbes() {
-    return sentProbes;
+    return _sentProbes;
   }
 
   public void addSentProbe(String name, ProbeSentRecord psr) {
-    sentProbes.put(name, psr);
+    _sentProbes.put(name, psr);
   }
 
   /**
@@ -204,11 +204,11 @@ public class ArgoClientContext extends CLIContext {
    * @param transportName client transport name
    * @return the ClientTransport that matches the name
    */
-  public ClientTransport getClientTransportNamed(String transportName) {
+  public ClientProbeSenders getClientTransportNamed(String transportName) {
     
-    ClientTransport found = null;
+    ClientProbeSenders found = null;
     
-    for (ClientTransport t : clientTransports) {
+    for (ClientProbeSenders t : _clientSenders) {
       if (t.getName().equalsIgnoreCase(transportName)) {
         found = t;
         break;

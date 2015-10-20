@@ -16,7 +16,6 @@
 
 package ws.argo.plugin.probehandler;
 
-
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
 
