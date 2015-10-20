@@ -24,7 +24,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 
 import ws.argo.plugin.transport.sender.Transport;
-import ws.argo.plugin.transport.sender.TransportException;
+import ws.argo.plugin.transport.exception.TransportException;
 import ws.argo.probe.Probe.ProbeIdEntry;
 
 /**

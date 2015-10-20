@@ -1,7 +1,7 @@
 package ws.argo.probe;
 
 import ws.argo.plugin.transport.sender.Transport;
-import ws.argo.plugin.transport.sender.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.transport.probe.standard.AmazonSNSTransport;
 import ws.argo.transport.probe.standard.MulticastTransport;
 

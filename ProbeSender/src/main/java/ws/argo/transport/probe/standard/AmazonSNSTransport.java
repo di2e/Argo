@@ -12,11 +12,10 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 
+import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportException;
 import ws.argo.plugin.transport.sender.Transport;
-import ws.argo.plugin.transport.sender.TransportConfigException;
-import ws.argo.plugin.transport.sender.TransportException;
 import ws.argo.probe.Probe;
-import ws.argo.probe.ProbeSenderException;
 
 /**
  * The AmazonSNSTransport class encapsulates the mechanics of sending the probe

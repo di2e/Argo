@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 import ws.argo.plugin.transport.responder.ProbeProcessor;
 import ws.argo.plugin.transport.responder.Transport;
-import ws.argo.plugin.transport.responder.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.responder.Responder;
 import ws.argo.wireline.probe.ProbeParseException;
 import ws.argo.wireline.probe.ProbeWrapper;

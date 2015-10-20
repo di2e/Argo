@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import ws.argo.plugin.transport.sender.Transport;
-import ws.argo.plugin.transport.sender.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.probe.ProbeSender;
 
 /**

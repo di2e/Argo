@@ -24,7 +24,7 @@ import com.amazonaws.services.sns.model.SubscribeRequest;
 
 import ws.argo.plugin.transport.responder.ProbeProcessor;
 import ws.argo.plugin.transport.responder.Transport;
-import ws.argo.plugin.transport.responder.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.responder.Responder;
 import ws.argo.responder.transport.sns.SNSListener;
 

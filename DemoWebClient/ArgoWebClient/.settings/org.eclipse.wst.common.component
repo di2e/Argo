@@ -7,10 +7,10 @@
         <dependent-module archiveName="ProbeSender-0.4.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ProbeSender/ProbeSender">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="ArgoWirelineFormat-0.4.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ArgoWirelineFormat/ArgoWirelineFormat">
+        <dependent-module archiveName="PluginFramework-0.4.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/PluginFramework/PluginFramework">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="PluginFramework-0.4.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/PluginFramework/PluginFramework">
+        <dependent-module archiveName="ArgoWirelineFormat-0.4.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ArgoWirelineFormat/ArgoWirelineFormat">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="java-output-path" value="/ArgoWebClient/target/classes"/>
