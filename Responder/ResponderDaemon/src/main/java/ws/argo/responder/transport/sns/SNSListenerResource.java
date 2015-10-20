@@ -29,8 +29,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import ws.argo.plugin.transport.responder.TransportConfigException;
 import ws.argo.responder.transport.AmazonSNSTransport;
-import ws.argo.responder.transport.TransportConfigException;
 import ws.argo.wireline.probe.ProbeParseException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.XMLSerializer;

@@ -1,4 +1,4 @@
-package ws.argo.responder.transport;
+package ws.argo.plugin.transport.responder;
 
 import ws.argo.wireline.probe.ProbeWrapper;
 
