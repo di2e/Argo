@@ -44,8 +44,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import ws.argo.plugin.transport.sender.TransportConfigException;
-import ws.argo.plugin.transport.sender.TransportException;
+import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportException;
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeSender;
 import ws.argo.probe.ProbeSenderException;
