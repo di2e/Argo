@@ -29,7 +29,7 @@ import ws.argo.wireline.response.ResponseWrapper;
  * @author jmsimpson
  *
  */
-public interface ProbeHandlerPluginIntf {
+public interface ProbeHandlerPlugin {
 
   public ResponseWrapper handleProbeEvent(ProbeWrapper payload);
 

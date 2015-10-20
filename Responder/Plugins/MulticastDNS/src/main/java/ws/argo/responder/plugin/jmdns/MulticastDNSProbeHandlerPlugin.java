@@ -26,20 +26,20 @@ import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
-import ws.argo.plugin.probehandler.ProbeHandlerPluginIntf;
+import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;
 
-public class MulticastDNSProbeHandlerPluginImpl implements ServiceListener, ServiceTypeListener,
-    ProbeHandlerPluginIntf {
+public class MulticastDNSProbeHandlerPlugin implements ServiceListener, ServiceTypeListener,
+    ProbeHandlerPlugin {
 
-  private static final Logger LOGGER      = Logger.getLogger(MulticastDNSProbeHandlerPluginImpl.class.getName());
+  private static final Logger LOGGER      = Logger.getLogger(MulticastDNSProbeHandlerPlugin.class.getName());
 
   protected JmDNS             jmmDNS;
   ArrayList<ServiceWrapper>   serviceList = new ArrayList<ServiceWrapper>();
 
-  public MulticastDNSProbeHandlerPluginImpl() {
+  public MulticastDNSProbeHandlerPlugin() {
   }
 
   @Override

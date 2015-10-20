@@ -47,7 +47,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.joda.time.Instant;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
-import ws.argo.plugin.probehandler.ProbeHandlerPluginIntf;
+import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
 import ws.argo.plugin.transport.responder.ProbeProcessor;
 import ws.argo.plugin.transport.responder.Transport;
 import ws.argo.plugin.transport.exception.TransportConfigException;
@@ -72,7 +72,7 @@ public class Responder implements ProbeProcessor {
 
   private ArrayList<Transport>              _transports        = new ArrayList<Transport>();
 
-  private ArrayList<ProbeHandlerPluginIntf> _handlers          = new ArrayList<ProbeHandlerPluginIntf>();
+  private ArrayList<ProbeHandlerPlugin> _handlers          = new ArrayList<ProbeHandlerPlugin>();
 
   protected InetAddress                     maddress;
 
@@ -181,7 +181,7 @@ public class Responder implements ProbeProcessor {
     return _runtimeId;
   }
 
-  public ArrayList<ProbeHandlerPluginIntf> getHandlers() {
+  public ArrayList<ProbeHandlerPlugin> getHandlers() {
     return _handlers;
   }
 
@@ -205,17 +205,17 @@ public class Responder implements ProbeProcessor {
     } catch (ClassNotFoundException e1) {
       throw new ProbeHandlerConfigException("Error loading the handler class", e1);
     }
-    ProbeHandlerPluginIntf handler;
+    ProbeHandlerPlugin handler;
 
     try {
-      handler = (ProbeHandlerPluginIntf) handlerClass.newInstance();
+      handler = (ProbeHandlerPlugin) handlerClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
       LOGGER.warning("Could not create an instance of the configured handler class - " + classname);
       throw new ProbeHandlerConfigException("Error instantiating the handler class " + classname, e);
       // LOGGER.warning("Using default handler");
       // LOGGER.fine("The issue was:");
       // LOGGER.fine(e.getMessage());
-      // handler = new ConfigFileProbeHandlerPluginImpl();
+      // handler = new ConfigFileProbeHandlerPlugin();
     }
 
     handler.initializeWithPropertiesFilename(configFilename);

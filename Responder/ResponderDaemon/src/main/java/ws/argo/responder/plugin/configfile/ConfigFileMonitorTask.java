@@ -46,7 +46,7 @@ import ws.argo.wireline.response.ServiceWrapper;
  * <p>This class also will read the config file initially - there is no other
  * mechanism to read the config file.
  * 
- * @see ConfigFileProbeHandlerPluginImpl
+ * @see ConfigFileProbeHandlerPlugin
  * @author jmsimpson
  *
  */
@@ -54,7 +54,7 @@ public class ConfigFileMonitorTask extends TimerTask {
 
   private static final Logger              LOGGER        = Logger.getLogger(ConfigFileMonitorTask.class.getName());
 
-  private ConfigFileProbeHandlerPluginImpl _plugin;
+  private ConfigFileProbeHandlerPlugin _plugin;
   private Date                             _lastTimeRead = null;
   private File                             _xmlConfigFile;
   private ServiceListConfiguration         _config;
@@ -68,7 +68,7 @@ public class ConfigFileMonitorTask extends TimerTask {
    * @throws ConfigurationException if something goes wrong
    * 
    */
-  public ConfigFileMonitorTask(ConfigFileProbeHandlerPluginImpl configFileProbeHandlerPluginImpl) throws ConfigurationException {
+  public ConfigFileMonitorTask(ConfigFileProbeHandlerPlugin configFileProbeHandlerPluginImpl) throws ConfigurationException {
     _plugin = configFileProbeHandlerPluginImpl;
     Properties config = _plugin.getConfiguration();
     String xmlConfigFilename = config.getProperty("xmlConfigFilename");

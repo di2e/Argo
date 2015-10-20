@@ -15,7 +15,7 @@
 # 
 
 
-probeHandlerClassname.1=ws.argo.responder.plugin.configfile.ConfigFileProbeHandlerPluginImpl
+probeHandlerClassname.1=ws.argo.responder.plugin.configfile.ConfigFileProbeHandlerPlugin
 probeHandlerConfigFilename.1=@INSTALL_DIR@/responder/config/configFileProbeHandlerConfig.prop
 #
 # Uncomment to enable Argo to discovery mDNS services as well
@@ -25,7 +25,7 @@ probeHandlerConfigFilename.1=@INSTALL_DIR@/responder/config/configFileProbeHandl
 # multicast-multicast (mDNS) protocol.  Perhaps we can do some link-local leader election in a later
 # release.
 #
-#probeHandlerClassname.2=ws.argo.responder.plugin.jmdns.MulticastDNSProbeHandlerPluginImpl
+#probeHandlerClassname.2=ws.argo.responder.plugin.jmdns.MulticastDNSProbeHandlerPlugin
 #probeHandlerConfigFilename.2=
 
 # Transports

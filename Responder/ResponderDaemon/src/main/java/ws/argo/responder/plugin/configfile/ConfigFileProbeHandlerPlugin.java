@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
-import ws.argo.plugin.probehandler.ProbeHandlerPluginIntf;
+import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
 import ws.argo.responder.ResponderConfigException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
@@ -49,9 +49,9 @@ import ws.argo.wireline.response.ServiceWrapper;
  * @author jmsimpson
  *
  */
-public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf {
+public class ConfigFileProbeHandlerPlugin implements ProbeHandlerPlugin {
 
-  private static final Logger LOGGER        = Logger.getLogger(ConfigFileProbeHandlerPluginImpl.class.getName());
+  private static final Logger LOGGER        = Logger.getLogger(ConfigFileProbeHandlerPlugin.class.getName());
 
   Properties                  config        = new Properties();
 
@@ -114,7 +114,7 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
 
     ResponseWrapper response = new ResponseWrapper(probe.getProbeId());
 
-    LOGGER.fine("ConfigFileProbeHandlerPluginImpl handling probe: " + probe.asXML());
+    LOGGER.fine("ConfigFileProbeHandlerPlugin handling probe: " + probe.asXML());
 
     // do the actual lookup here
     // and create and return the ResponderPayload
@@ -160,8 +160,8 @@ public class ConfigFileProbeHandlerPluginImpl implements ProbeHandlerPluginIntf 
     InputStream is;
     // try to load the properties file off the classpath first
 
-    if (ConfigFileProbeHandlerPluginImpl.class.getResource(filename) != null) {
-      is = ConfigFileProbeHandlerPluginImpl.class.getResourceAsStream(filename);
+    if (ConfigFileProbeHandlerPlugin.class.getResource(filename) != null) {
+      is = ConfigFileProbeHandlerPlugin.class.getResourceAsStream(filename);
     } else {
       try {
         is = new FileInputStream(filename);

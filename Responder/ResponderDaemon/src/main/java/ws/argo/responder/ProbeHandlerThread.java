@@ -32,7 +32,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
-import ws.argo.plugin.probehandler.ProbeHandlerPluginIntf;
+import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.ProbeWrapper.RespondToURL;
 import ws.argo.wireline.response.ResponseWrapper;
@@ -60,7 +60,7 @@ public class ProbeHandlerThread implements Runnable {
 
   protected CloseableHttpClient httpClient;
 
-  ArrayList<ProbeHandlerPluginIntf> handlers;
+  ArrayList<ProbeHandlerPlugin> handlers;
   ProbeWrapper                      probe;
   boolean                           noBrowser;
   Responder                         responder;
@@ -211,7 +211,7 @@ public class ProbeHandlerThread implements Runnable {
         LOGGER.warning("Responder set to noBrowser mode. Discarding naked probe with id: " + probe.getProbeId());
       } else {
 
-        for (ProbeHandlerPluginIntf handler : handlers) {
+        for (ProbeHandlerPlugin handler : handlers) {
           response = handler.handleProbeEvent(probe);
           if (!response.isEmpty()) {
             LOGGER.fine("Response to probe [" + probe.getProbeId() + "] includes " + response.numberOfServices());
