@@ -51,6 +51,7 @@ import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
 import ws.argo.plugin.transport.responder.ProbeProcessor;
 import ws.argo.plugin.transport.responder.Transport;
 import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportException;
 import ws.argo.wireline.probe.ProbeWrapper;
 
 /**
@@ -64,31 +65,31 @@ import ws.argo.wireline.probe.ProbeWrapper;
  */
 public class Responder implements ProbeProcessor {
 
-  private static final String               VERSION_PROPERTIES = "/version.properties";
+  private static final String           VERSION_PROPERTIES = "/version.properties";
 
-  private static final Logger               LOGGER             = Logger.getLogger(Responder.class.getName());
+  private static final Logger           LOGGER             = Logger.getLogger(Responder.class.getName());
 
-  private static String                     ARGO_VERSION       = "UNKNOWN";
+  private static String                 ARGO_VERSION       = "UNKNOWN";
 
-  private ArrayList<Transport>              _transports        = new ArrayList<Transport>();
+  private ArrayList<Transport>          _transports        = new ArrayList<Transport>();
 
   private ArrayList<ProbeHandlerPlugin> _handlers          = new ArrayList<ProbeHandlerPlugin>();
 
-  protected InetAddress                     maddress;
+  protected InetAddress                 maddress;
 
-  protected CloseableHttpClient             httpClient;
+  protected CloseableHttpClient         httpClient;
 
-  private ResponderConfigurationBean        _cliValues;
+  private ResponderConfigurationBean    _cliValues;
 
-  private ResponderShutdown                 _shutdownHook;
+  private ResponderShutdown             _shutdownHook;
 
   // This id is for internal reporting and logging reasons
-  private String                            _runtimeId;
+  private String                        _runtimeId;
 
-  private ThreadPoolExecutor                _executorPool;
-  private ResponderMonitorThread            _monitor           = null;
+  private ThreadPoolExecutor            _executorPool;
+  private ResponderMonitorThread        _monitor           = null;
 
-  ConcurrentLinkedQueue<Instant>            messages           = new ConcurrentLinkedQueue<Instant>();
+  ConcurrentLinkedQueue<Instant>        messages           = new ConcurrentLinkedQueue<Instant>();
 
   /**
    * Utility class to encaptulate some of the Responder configuration.
@@ -164,8 +165,7 @@ public class Responder implements ProbeProcessor {
     ThreadFactory threadFactory = Executors.defaultThreadFactory();
     // creating the ThreadPoolExecutor
 
-    _executorPool = new ThreadPoolExecutor(_cliValues.threadPoolSize, _cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS, 
-        new ArrayBlockingQueue<Runnable>(_cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
+    _executorPool = new ThreadPoolExecutor(_cliValues.threadPoolSize, _cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(_cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
 
     // start the monitoring thread
     if (_cliValues.runMonitor) {
@@ -281,7 +281,11 @@ public class Responder implements ProbeProcessor {
   public void shutdown() {
     LOGGER.info("Responder shutting down: [" + _runtimeId + "]");
     for (Transport t : _transports) {
-      t.shutdown();
+      try {
+        t.shutdown();
+      } catch (TransportException e) {
+        LOGGER.log(Level.WARNING, "Error shutting down transport: [" + t.transportName() + "]", e);
+      }
     }
   }
 
@@ -293,7 +297,8 @@ public class Responder implements ProbeProcessor {
    * This is the main run method for the Argo Responder. It starts up all the
    * configured transports in their own thread and starts their receive loops.
    * 
-   * <p>Transports run in their own thread. Thus, when all the transports are
+   * <p>
+   * Transports run in their own thread. Thus, when all the transports are
    * running, this method will exit. You can shutdown the Responder by calling
    * the {@linkplain #shutdown()} method. This method will be called by the
    * {@linkplain ResponderShutdown} hook.

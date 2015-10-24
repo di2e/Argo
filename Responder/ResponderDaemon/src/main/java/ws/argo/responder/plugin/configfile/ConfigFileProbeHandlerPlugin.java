@@ -32,7 +32,6 @@ import org.apache.commons.configuration.ConfigurationException;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
 import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
-import ws.argo.responder.ResponderConfigException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
 import ws.argo.wireline.response.ServiceWrapper;

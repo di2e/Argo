@@ -17,6 +17,7 @@
 package ws.argo.plugin.transport.responder;
 
 import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportException;
 
 /**
  * The Transport interfaces defines the API for an Argo Responder transport. The
@@ -30,7 +31,7 @@ public interface Transport extends Runnable {
 
   void initialize(ProbeProcessor p, String propertiesFilename) throws TransportConfigException;
 
-  public void shutdown();
+  public void shutdown() throws TransportException;
 
   public String transportName();
 

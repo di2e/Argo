@@ -86,6 +86,9 @@ public abstract class ResolvingXMLConfiguration {
       String name = c.getString("[@name]");
       String type = c.getString("[@type]");
       String _resolveString = c.getString("");
+      
+      if (_resolveString.isEmpty())
+        _resolveString = "localhost";
 
       String resolvedString = resolve(_resolveString, type, name);
       _interpolatorMap.put(name, resolvedString);
@@ -107,7 +110,7 @@ public abstract class ResolvingXMLConfiguration {
 
     if (type == null) {
       warn("The type for resolveIP named [" + name + "] was not specified.  Treating value as literal");
-      return resolverString;
+      return "BAD TYPE";
     }
 
     if (resolverString != null && !resolverString.isEmpty()) {
@@ -123,7 +126,7 @@ public abstract class ResolvingXMLConfiguration {
 
         default:
           warn("The type [" + type + "] specified for resolveIP named [" + name + "] is unknown.  Use ni or uri.  Treating value as literal.");
-          ipAddress = resolverString; // otherwise its a literal
+          ipAddress = "BAD TYPE"; // otherwise its bad type
       }
 
     }
