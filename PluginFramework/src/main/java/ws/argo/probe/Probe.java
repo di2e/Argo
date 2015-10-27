@@ -119,6 +119,17 @@ public class Probe {
       this.addServiceInstanceID(siid);
     }
   }
+  
+  /**
+   * Sort of a Copy constructor.
+   * 
+   * <p>This constructor is really for use in Repeater probe handlers that need
+   * to make an exact copy of a Probe from a wireline probe payload.
+   * @param probe the wireline ProbeWrapper to copy
+   */
+  public Probe(ProbeWrapper probe) {
+    _probe = probe;
+  }
 
   protected ProbeWrapper getProbeWrapper() {
     return _probe;

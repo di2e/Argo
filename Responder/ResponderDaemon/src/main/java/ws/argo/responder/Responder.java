@@ -282,7 +282,7 @@ public class Responder implements ProbeProcessor {
   public void run() {
 
     // I hope that this hits you over the head with its simplicity.
-    // That's the idea. The instances of the transports are supposed to be send
+    // That's the idea. The instances of the transports are supposed to be self
     // contained.
 
     Thread transportThread;
