@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.argo.responder;
+package ws.argo.responder.configuration;
 
 /**
  * ResponderConfigException is an exception that can occur if the Responder is

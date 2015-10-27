@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import ws.argo.responder.Responder;
-import ws.argo.responder.ResponderConfigException;
+import ws.argo.responder.configuration.ResponderConfigException;
 
 /**
  * Lauches the Responder in various guises and see if it works.

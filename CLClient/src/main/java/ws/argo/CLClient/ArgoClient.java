@@ -155,7 +155,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     if (cl.hasOption("pf")) {
       String propsFilename = cl.getOptionValue("pf");
       try {
-        config = processPropertiesFile(propsFilename);
+        config = processConfigurationFile(propsFilename);
       } catch (ConfigurationException e) {
         LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + propsFilename + "] due to:", e);
         throw e;
@@ -185,7 +185,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     return options;
   }
 
-  private ClientConfiguration processPropertiesFile(String filename) throws ConfigurationException {
+  private ClientConfiguration processConfigurationFile(String filename) throws ConfigurationException {
 
     ClientConfiguration config = new ClientConfiguration(filename);
 

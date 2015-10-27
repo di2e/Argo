@@ -32,7 +32,7 @@ import ws.argo.probe.ProbeSender;
 import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.ProbeSenderFactory;
 import ws.argo.responder.Responder;
-import ws.argo.responder.ResponderConfigException;
+import ws.argo.responder.configuration.ResponderConfigException;
 import ws.argo.responder.test.listener.ResponseListener;
 
 /**

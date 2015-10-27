@@ -1,4 +1,4 @@
-package ws.argo.CLClient;
+package ws.argo.CLClient.config;
 
 /**
  * This exception is thrown when a generic configuration exception occurs in the
@@ -7,19 +7,19 @@ package ws.argo.CLClient;
  * @author jmsimpson
  *
  */
-public class ArgoClientConfigException extends Exception {
+public class ClientConfigException extends Exception {
 
   private static final long serialVersionUID = 5456181894494745935L;
 
-  public ArgoClientConfigException() {
+  public ClientConfigException() {
     super();
   }
 
-  public ArgoClientConfigException(String message, Throwable cause) {
+  public ClientConfigException(String message, Throwable cause) {
     super(message, cause);
   }
 
-  public ArgoClientConfigException(String message) {
+  public ClientConfigException(String message) {
     super(message);
   }
 

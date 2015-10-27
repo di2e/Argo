@@ -55,7 +55,7 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
    * Sets the Listener URL. Checks to see if the URL is valid, or it does
    * nothing.
    * 
-   * @param listenerURL new URL for the client listener 
+   * @param listenerURL new URL for the client listener
    * @return if this actually changed the listener URL
    */
   public boolean setListenerURL(String listenerURL) {
@@ -78,7 +78,8 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
   }
 
   /**
-   * Sets the respondTo URL for the client probes to use.  If the URL is invalid it does nothing.
+   * Sets the respondTo URL for the client probes to use. If the URL is invalid
+   * it does nothing.
    * 
    * @param responseURL URL for the client probes to use
    */
@@ -137,7 +138,8 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
       String classname = c.getString("classname");
       String configFilename = c.getString("configFilename");
 
-      if (configFilename != null) {
+      // if the classname is empty or null then ignore it
+      if (classname != null && !classname.isEmpty()) {
         TransportConfig config = new TransportConfig(name);
         config.setClassname(classname);
         config.setEnabled(enabled);
@@ -146,6 +148,8 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
         config.setPropertiesFilename(configFilename);
 
         _transportConfigs.add(config);
+      } else {
+        warn("Encountered a blank classname in the configuration.  Without a classname, there is no Transport to configure.");
       }
     }
 
