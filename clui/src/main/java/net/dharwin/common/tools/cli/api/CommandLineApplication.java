@@ -49,7 +49,7 @@ public abstract class CommandLineApplication<T extends CLIContext> {
 	/** The CommandLineParser instance. **/
 	private CommandLineParser _clParser;
 
-  private String _prompt;
+  protected String _prompt;
 	
 	
 	/**

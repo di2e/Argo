@@ -64,6 +64,11 @@ public class ConfigFileProbeHandlerPlugin implements ProbeHandlerPlugin {
   private final Lock          readLock      = readWriteLock.readLock();
   private final Lock          writeLock     = readWriteLock.writeLock();
 
+  @Override
+  public String pluginName() {
+    return "Configuration File Service List";
+  }
+
   public Properties getConfiguration() {
     return config;
   }

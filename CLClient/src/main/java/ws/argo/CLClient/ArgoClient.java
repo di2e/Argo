@@ -1,9 +1,13 @@
 package ws.argo.CLClient;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,12 +22,16 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.configuration.ConfigurationException;
 import org.glassfish.grizzly.http.server.HttpServer;
 
+import jline.console.ConsoleReader;
+import jline.console.completer.StringsCompleter;
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.CommandLineApplication;
 import net.dharwin.common.tools.cli.api.annotations.CLIEntry;
 import net.dharwin.common.tools.cli.api.console.Console;
 import net.dharwin.common.tools.cli.api.exceptions.CLIInitException;
 import ws.argo.CLClient.config.ClientConfiguration;
+import ws.argo.CLClient.listener.CacheListener;
+import ws.argo.CLClient.listener.ProbeResponseResource;
 import ws.argo.CLClient.listener.ResponseListener;
 
 /**
@@ -34,14 +42,15 @@ import ws.argo.CLClient.listener.ResponseListener;
  *
  */
 @CLIEntry
-public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
+public class ArgoClient extends CommandLineApplication<ArgoClientContext> implements CacheListener {
 
   private static final Logger LOGGER = Logger.getLogger(ArgoClient.class.getName());
 
-  static final String DEFAULT_TOPIC_NAME    = "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
-  static final String DEFAULT_LISTENER_HOST = "localhost";
+  // static final String DEFAULT_TOPIC_NAME =
+  // "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
+  // static final String DEFAULT_LISTENER_HOST = "localhost";
 
-  private HttpServer _server;
+  private HttpServer          _server;
 
   private ClientConfiguration _config;
 
@@ -57,6 +66,8 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
                                         // checked earlier
 
     _server = ResponseListener.startServer(listenerURL);
+
+    ProbeResponseResource.setCacheUpdateListener(this);
   }
 
   @Override
@@ -95,8 +106,8 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     try {
       startListener();
     } catch (IOException | URISyntaxException e) {
-//      Console.severe("Unable to start services.");
-//      e.printStackTrace();
+      // Console.severe("Unable to start services.");
+      // e.printStackTrace();
       throw new CLIInitException("Unable to start services", e);
     }
   }
@@ -190,6 +201,17 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     ClientConfiguration config = new ClientConfiguration(filename);
 
     return config;
+  }
+
+  @Override
+  public void cacheUpdated(String message) {
+    Console.info("\nCACHE UPDATE: " + message);
+    if (Boolean.getBoolean("jlineDisable")) {
+      System.out.print(_prompt + " (no jline) >");
+    } else {
+      System.out.print(_prompt + " >");
+    }
+
   }
 
 }

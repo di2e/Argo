@@ -23,6 +23,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
 import net.dharwin.common.tools.cli.api.console.Console;
+import ws.argo.CLClient.ArgoClient;
 import ws.argo.common.cache.ExpiringService;
 import ws.argo.common.cache.ResponseCache;
 import ws.argo.wireline.response.JSONSerializer;
@@ -40,11 +41,23 @@ import ws.argo.wireline.response.XMLSerializer;
  */
 @Path("/listener")
 public class ProbeResponseResource {
+  
+  private static CacheListener cacheUpdateListener = null;
 
   private static ResponseCache cache = new ResponseCache();
 
   private static void resetCache() {
     cache = new ResponseCache();
+  }
+  
+  public static void setCacheUpdateListener(CacheListener listener) {
+    cacheUpdateListener = listener;
+  }
+  
+  private static void updateCacheListener(String message) {
+    if (cacheUpdateListener != null) {
+      cacheUpdateListener.cacheUpdated(message);
+    }
   }
 
   /**
@@ -77,8 +90,8 @@ public class ProbeResponseResource {
       cache.cache(new ExpiringService(service));
     }
 
-    String statusString = "\nSuccessfully cached " + response.getServices().size() + " services";
-    Console.info(statusString);
+    String statusString = "Successfully cached " + response.getServices().size() + " services";
+    updateCacheListener(statusString);
 
     return statusString;
   }
@@ -113,8 +126,8 @@ public class ProbeResponseResource {
       cache.cache(new ExpiringService(service));
     }
 
-    String statusString = "\nSuccessfully cached " + response.getServices().size() + " services";
-    Console.info(statusString);
+    String statusString = "Successfully cached " + response.getServices().size() + " services";
+    updateCacheListener(statusString);
 
     return statusString;
   }
@@ -131,7 +144,9 @@ public class ProbeResponseResource {
   @Produces("application/json")
   public String clearCache() {
     resetCache();
-    return "Cleared Cache";
+    String statusString = "Cleared Cache";
+    updateCacheListener(statusString);
+    return statusString;
   }
 
 }

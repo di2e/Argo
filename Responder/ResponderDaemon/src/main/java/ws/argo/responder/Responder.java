@@ -186,14 +186,11 @@ public class Responder implements ProbeProcessor {
     } catch (InstantiationException | IllegalAccessException e) {
       LOGGER.warning("Could not create an instance of the configured handler class - " + classname);
       throw new ProbeHandlerConfigException("Error instantiating the handler class " + classname, e);
-      // LOGGER.warning("Using default handler");
-      // LOGGER.fine("The issue was:");
-      // LOGGER.fine(e.getMessage());
-      // handler = new ConfigFileProbeHandlerPlugin();
     }
 
     handler.initializeWithPropertiesFilename(configFilename);
-
+    LOGGER.info("Loaded Probe Handler [" + handler.pluginName() + "] classname [" + classname + "] configFile [" + configFilename + "]");
+ 
     _handlers.add(handler);
   }
 
@@ -228,6 +225,7 @@ public class Responder implements ProbeProcessor {
     }
 
     transport.initialize(this, configFilename);
+    LOGGER.info("Loaded Transport [" + transport.transportName() + "] class [" + classname + "] with configFile [" + configFilename + "]");
 
     _transports.add(transport);
   }

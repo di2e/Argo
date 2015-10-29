@@ -98,7 +98,6 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
     protected CommandResult innerExecute(ArgoClientContext context) {
       WebTarget target = context.getConfig().getListenerTarget();
       String responseMsg = target.path("listener/clearCache").request().get(String.class);
-      Console.info(responseMsg);
       return CommandResult.OK;
     }
 

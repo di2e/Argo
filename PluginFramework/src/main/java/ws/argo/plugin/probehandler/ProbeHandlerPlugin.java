@@ -34,4 +34,6 @@ public interface ProbeHandlerPlugin {
   public ResponseWrapper handleProbeEvent(ProbeWrapper payload);
 
   public void initializeWithPropertiesFilename(String filename) throws ProbeHandlerConfigException;
+  
+  public String pluginName();
 }

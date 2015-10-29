@@ -97,6 +97,11 @@ public class MulticastDNSProbeHandlerPlugin implements ServiceListener, ServiceT
   }
 
   @Override
+  public String pluginName() {
+    return "Multicast DNS (Bonjour/Avahi/AirPrint/Google NSD)";
+  }
+
+  @Override
   public void serviceTypeAdded(ServiceEvent event) {
     // TODO Auto-generated method stub
     LOGGER.info("mDNS Service Type Added: " + event.getType());

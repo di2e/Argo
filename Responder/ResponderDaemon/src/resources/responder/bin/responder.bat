@@ -13,9 +13,5 @@ REM WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 REM See the License for the specific language governing permissions and
 REM limitations under the License.
 REM
-REM
-REM  All configuration is done via the xml configuration provided with the -pf switch
-REM
 
-
-java -cp @INSTALL_DIR@/responder/lib/* -Djava.util.logging.config.file="@INSTALL_DIR@/responder/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf @INSTALL_DIR@/responder/config/responderConfig.xml %*
+java -cp @INSTALL_DIR@/responder/lib/@JAR_NAME@.jar;@INSTALL_DIR@/responder/lib/ext/* -Djava.util.logging.config.file="@INSTALL_DIR@/responder/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf @INSTALL_DIR@/responder/config/responderConfig.prop %*
