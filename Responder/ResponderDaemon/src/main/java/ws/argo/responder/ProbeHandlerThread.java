@@ -208,7 +208,7 @@ public class ProbeHandlerThread implements Runnable {
     if (!isProbeHandled(probe.getProbeId())) {
 
       if (this.noBrowser && probe.isNaked()) {
-        LOGGER.warning("Responder set to noBrowser mode. Discarding naked probe with id: " + probe.getProbeId());
+        LOGGER.warning("Responder set to noBrowser mode. Discarding naked probe with id [" + probe.getProbeId() + "]");
       } else {
 
         for (ProbeHandlerPlugin handler : handlers) {
@@ -230,7 +230,7 @@ public class ProbeHandlerThread implements Runnable {
             }
 
           } else {
-            LOGGER.fine("Response is empty.  Not sending empty response.");
+            LOGGER.fine("Response to probe [" + probe.getProbeId() + "] is empty.  Not sending empty response.");
           }
         }
 

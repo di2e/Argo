@@ -46,10 +46,6 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> implem
 
   private static final Logger LOGGER = Logger.getLogger(ArgoClient.class.getName());
 
-  // static final String DEFAULT_TOPIC_NAME =
-  // "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
-  // static final String DEFAULT_LISTENER_HOST = "localhost";
-
   private HttpServer          _server;
 
   private ClientConfiguration _config;
