@@ -119,6 +119,13 @@
   <respondToURL></respondToURL>
   <installDir>@INSTALL_DIR@</installDir>
 
+  <allowHTTPS>false</allowHTTPS>
+  <keystoreFilename></keystoreFilename>
+  <keystorePassword></keystorePassword>
+  <truststoreType></truststoreType>
+  <truststoreFilename></truststoreFilename>
+  <truststorePassword></truststorePassword>
+
   <transports>
     <transport>
       <name>Multicast</name>

@@ -2,12 +2,23 @@ package ws.argo.CLClient.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.http.annotation.Immutable;
+import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.TransportConfig;
@@ -23,9 +34,39 @@ import ws.argo.common.config.ResolvingXMLConfiguration;
  */
 public class ClientConfiguration extends ResolvingXMLConfiguration {
 
+  /**
+   * The NO_OP HostnameVerifier essentially turns hostname verification
+   * off. This implementation is a no-op, and never throws the SSLException.
+   *
+   * @since 4.4
+   */
+  @Immutable
+  public static class NoopHostnameVerifier implements HostnameVerifier {
+
+      public static final NoopHostnameVerifier INSTANCE = new NoopHostnameVerifier();
+
+      @Override
+      public boolean verify(final String s, final SSLSession sslSession) {
+          return true;
+      }
+
+      @Override
+      public final String toString() {
+          return "NO_OP";
+      }
+
+  }
+  
   private ArrayList<TransportConfig> _transportConfigs;
   private String                     _listenerURL;
   private String                     _responseURL;
+
+  private SSLContextConfigurator     _sslContextConfigurator;
+  private boolean                    _allowHTTPS;
+  private String                     _keystore;
+  private String                     _ksPassword;
+  private String                     _truststore;
+  private String                     _tsPassword;
 
   WebTarget                          _listenerTarget;
 
@@ -38,7 +79,8 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
   }
 
   @Override
-  public void initializeConfiguration() {
+  public void initializeConfiguration() throws ConfigurationException {
+    initializeKeystoreSettings();
     initializeURLs();
     initializeTransportConfigurations();
   }
@@ -66,7 +108,7 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
     } else {
       if (!newURL.equalsIgnoreCase(_listenerURL)) {
         _listenerURL = newURL;
-        _listenerTarget = ClientBuilder.newClient().target(listenerURL);
+        _listenerTarget = createListenerTarget(newURL);
         changed = true;
       }
     }
@@ -96,6 +138,95 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
     return _transportConfigs;
   }
 
+  public SSLContextConfigurator getSSLContextConfigurator() {
+    return _sslContextConfigurator;
+  }
+
+  public String getKeystore() {
+    return _keystore;
+  }
+
+  public void setKeystore(String _keystore) {
+    this._keystore = _keystore;
+  }
+
+  public String getKSPassword() {
+    return _ksPassword;
+  }
+
+  public void setKSPassword(String _kspassword) {
+    this._ksPassword = _kspassword;
+  }
+
+  public String getTruststore() {
+    return _truststore;
+  }
+
+  public void setTruststore(String _truststore) {
+    this._truststore = _truststore;
+  }
+
+  public String getTSPassword() {
+    return _tsPassword;
+  }
+
+  public boolean isAllowHTTPS() {
+    return _allowHTTPS;
+  }
+
+  public void setTSPassword(String _tsPassword) {
+    this._tsPassword = _tsPassword;
+  }
+
+  /**
+   * This validation method will check to see if the SSL trust stores are
+   * configured correctly. It will adjust the logging level for the
+   * SSLContextConfigurator to ensure that the actual errors that occur during
+   * validation are shown to the console (as well as any other handlers).
+   * 
+   * @throws ConfigurationException
+   */
+  public void validateKeystoreConfiguration() throws ConfigurationException {
+
+    Logger logger = Grizzly.logger(SSLContextConfigurator.class);
+    Level level = logger.getLevel();
+
+    Handler consoleHandler = new ConsoleHandler();
+    consoleHandler.setLevel(Level.FINE);
+    logger.addHandler(consoleHandler);
+
+    logger.setLevel(Level.FINE);
+    if (!_sslContextConfigurator.validateConfiguration(true)) {
+      // Throwing this ConfigurationException will crash out of the client
+      // entirely. The SSL stuff needs to be configured properly for the client
+      // to start at all.
+      throw new ConfigurationException("The SSL Context is not valid. The SSL client listener WILL NOT WORK PROPERLY.  Check the log and adjust accordingly.");
+    } else {
+      Console.info("The keystore configuration is valid.");
+    }
+    logger.removeHandler(consoleHandler);
+    logger.setLevel(level);
+  }
+
+  private void initializeKeystoreSettings() throws ConfigurationException {
+
+    _keystore = _config.getString("keystoreFilename");
+    _ksPassword = _config.getString("keystorePassword");
+    _truststore = _config.getString("truststoreFilename");
+    _tsPassword = _config.getString("truststorePassword");
+
+    _sslContextConfigurator = new SSLContextConfigurator();
+
+    // set up security context contains listener self-signed certificate
+    _sslContextConfigurator.setKeyStoreFile(getKeystore());
+    _sslContextConfigurator.setKeyStorePass(getKSPassword());
+    // contains listener self-signed certificate
+    _sslContextConfigurator.setTrustStoreFile(getTruststore());
+    _sslContextConfigurator.setTrustStorePass(getTSPassword());
+
+    validateKeystoreConfiguration();
+  }
+
   private void initializeURLs() {
     String listenerURL = _config.getString("listenerURL", ResponseListener.DEFAULT_LISTENER_URI.toString());
 
@@ -104,7 +235,8 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
       error("The Response Listener URL specified in the config file is invalid. Continuing with default.");
     }
     _listenerURL = listenerURL;
-    _listenerTarget = ClientBuilder.newClient().target(listenerURL);
+    
+    _listenerTarget = createListenerTarget(listenerURL);
 
     // RespondTo URL
 
@@ -118,6 +250,13 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
       error("The respondTo URL specified in the config file is invalid. Continuing with default.");
     }
     _responseURL = respondToURL;
+  }
+
+  private WebTarget createListenerTarget(String listenerURL) {
+    SSLContext sslContext = _sslContextConfigurator.createSSLContext();
+    Client client = ClientBuilder.newBuilder().sslContext(sslContext).hostnameVerifier(NoopHostnameVerifier.INSTANCE).build();
+//    Client client = ClientBuilder.newBuilder().build();
+   return client.target(listenerURL);
   }
 
   private void initializeTransportConfigurations() {
@@ -152,7 +291,6 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
         warn("Encountered a blank classname in the configuration.  Without a classname, there is no Transport to configure.");
       }
     }
-
 
   }
 

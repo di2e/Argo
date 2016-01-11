@@ -51,19 +51,19 @@ import ws.argo.wireline.response.ResponseWrapper;
  */
 public class ProbeHandlerThread implements Runnable {
 
-  private static final Logger LOGGER = Logger.getLogger(ProbeHandlerThread.class.getName());
+  private static final Logger      LOGGER            = Logger.getLogger(ProbeHandlerThread.class.getName());
 
   // 5 minutes
-  private static final long probeCacheTimeout = 5 * 60 * 1000;
+  private static final long        probeCacheTimeout = 5 * 60 * 1000;
 
-  private static Map<String, Long> handledProbes = new ConcurrentHashMap<String, Long>();
+  private static Map<String, Long> handledProbes     = new ConcurrentHashMap<String, Long>();
 
-  protected CloseableHttpClient httpClient;
+  protected CloseableHttpClient    httpClient;
 
-  ArrayList<ProbeHandlerPlugin> handlers;
-  ProbeWrapper                      probe;
-  boolean                           noBrowser;
-  Responder                         responder;
+  ArrayList<ProbeHandlerPlugin>    handlers;
+  ProbeWrapper                     probe;
+  boolean                          noBrowser;
+  Responder                        responder;
 
   /**
    * Create a new ProbeHandler thread that will process a probe in a
@@ -219,7 +219,7 @@ public class ProbeHandlerThread implements Runnable {
 
             if (probe.getRespondToURLs().isEmpty())
               LOGGER.warning("Processed probe [" + probe.getProbeId() + "] with no respondTo address. That's odd.");
-            
+
             if (respondToURLs.hasNext()) {
               RespondToURL respondToURL = respondToURLs.next();
               // we are ignoring the label for now

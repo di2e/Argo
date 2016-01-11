@@ -16,6 +16,7 @@
 
 package ws.argo.responder.configuration;
 
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -38,6 +39,11 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
   private int                     _monitorInterval;
   private int                     _threadPoolSize;
 
+  private boolean                 _allowHTTPS;
+  private String                  _truststoreType;
+  private String                  _truststoreFilename;
+  private String                  _truststorePassword;
+
   public ResponderConfiguration() {
   }
 
@@ -51,11 +57,11 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
     initializeThreadPoolValues();
     initializeProbeHandlers();
     intializeTransports();
-
+    initializeSecurity();
   }
 
   private void intializeTransports() {
-    
+
     _transportConfigs = new ArrayList<PluginConfig>();
 
     List<HierarchicalConfiguration> transports = _config.configurationsAt("transports.transport");
@@ -63,17 +69,17 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
     for (HierarchicalConfiguration t : transports) {
       String transportClassname;
       String configFilename;
-      
+
       transportClassname = t.getString("classname");
       configFilename = t.getString("configFilename");
-    
+
       // if the classname is empty or null then ignore it
       if (transportClassname != null && !transportClassname.isEmpty()) {
         PluginConfig handlerConfig = new PluginConfig(transportClassname, configFilename);
         _transportConfigs.add(handlerConfig);
       } else {
         warn("Encountered a blank classname in the configuration.  Without a classname, there is no Transport to configure.");
-     }
+      }
     }
 
   }
@@ -95,11 +101,11 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
       if (classname != null && !classname.isEmpty()) {
         PluginConfig handlerConfig = new PluginConfig(classname, configFilename);
         _probeHandlerConfigs.add(handlerConfig);
-      } 
+      }
     }
 
   }
-  
+
   private void initializeThreadPoolValues() {
     try {
       int threadSize = Integer.parseInt(_config.getString("threadPoolSize", "10"));
@@ -120,6 +126,28 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
       warn("Error reading monitorInterval number from properties file.  Using default port of 5.");
       _monitorInterval = 5;
     }
+  }
+  
+  private void initializeSecurity() {
+    _allowHTTPS = Boolean.parseBoolean(_config.getString("allowHTTPS", "false"));
+    _truststoreType = _config.getString("truststoreType", KeyStore.getDefaultType());
+    
+    String defaultTruststore = System.getProperty("javax.net.ssl.trustStore");
+    String defaultTruststorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
+    
+    _truststoreFilename = _config.getString("truststoreFilename", defaultTruststore);
+    _truststorePassword = _config.getString("truststorePassword", defaultTruststorePassword);
+    
+    if (_truststoreFilename != null && _truststoreFilename.isEmpty())
+      _truststoreFilename = null;
+    if (_truststorePassword != null && _truststorePassword.isEmpty())
+      _truststorePassword = null;
+
+    
+  }
+  
+  public boolean isHTTPSConfigured() {
+    return (_allowHTTPS && _truststoreFilename != null && _truststorePassword != null);
   }
 
   public boolean isNoBrowser() {
@@ -170,9 +198,25 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
     this._threadPoolSize = threadPoolSize;
   }
 
+  public boolean isAllowHTTPS() {
+    return _allowHTTPS;
+  }
+
+  public String getTruststoreType() {
+    return _truststoreType;
+  }
+
+  public String geTruststoreFilename() {
+    return _truststoreFilename;
+  }
+
+  public String getTruststorePassword() {
+    return _truststorePassword;
+  }
+
   @Override
   protected void warn(String string) {
-   LOGGER.warning(string);
+    LOGGER.warning(string);
   }
 
   @Override
@@ -182,7 +226,7 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
 
   @Override
   protected void error(String string) {
-   LOGGER.severe(string);
+    LOGGER.severe(string);
   }
 
   @Override

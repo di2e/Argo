@@ -56,12 +56,13 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> implem
 
   private void startListener() throws IOException, URISyntaxException {
     String urlString = _config.getListenerURL();
+    
     URI listenerURL = ResponseListener.DEFAULT_LISTENER_URI;
     if (urlString != null)
       listenerURL = new URI(urlString); // This should not be malformed as it's
                                         // checked earlier
 
-    _server = ResponseListener.startServer(listenerURL);
+    _server = ResponseListener.startServer(listenerURL, _config.getSSLContextConfigurator());
 
     ProbeResponseResource.setCacheUpdateListener(this);
   }

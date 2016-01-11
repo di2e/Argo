@@ -25,9 +25,10 @@ import java.util.logging.Logger;
 import javax.ws.rs.core.UriBuilder;
 
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
-
 
 
 /**
@@ -42,7 +43,6 @@ public class ResponseListener {
   private static final Logger LOGGER = Logger.getLogger(ResponseListener.class.getName());
   
   public static final URI DEFAULT_LISTENER_URI = getDefaultBaseURI();
-
 
 
   /**
@@ -74,7 +74,19 @@ public class ResponseListener {
    * @return a new HttpServer
    * @throws IOException if something goes wrong creating the http server
    */
-  public static HttpServer startServer(URI listenerURI) throws IOException {
+  public static HttpServer startServer(URI listenerURI, SSLContextConfigurator sslContextConfigurator) throws IOException {
+    
+    String scheme = listenerURI.getScheme();
+    
+    if (scheme.equals("http"))
+      return startUnsecureServer(listenerURI);
+    else
+      return startSecureServer(listenerURI, sslContextConfigurator); 
+    
+  }
+  
+  private static HttpServer startUnsecureServer(URI listenerURI) throws IOException {
+    
     ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.CLClient.listener");
 
     LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
@@ -84,6 +96,38 @@ public class ResponseListener {
     LOGGER.info("Started Jersey-Grizzly2 JAX-RS listener.");
 
     return httpServer;
+    
+  }
+  
+  private static HttpServer startSecureServer(URI listenerURI, SSLContextConfigurator sslContextConfigurator) throws IOException {
+    
+    ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.CLClient.listener");
+
+    LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS Secure listener...");
+
+    // Grizzly ssl configuration
+    SSLEngineConfigurator sslEngineConfigurator = new  SSLEngineConfigurator(sslContextConfigurator);
+    sslEngineConfigurator.setNeedClientAuth(false);
+    sslEngineConfigurator.setWantClientAuth(false);
+    sslEngineConfigurator.setClientMode(false);
+
+    LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS secure server...");
+    
+    HttpServer httpServer= GrizzlyHttpServerFactory.createHttpServer(
+        listenerURI,
+        resourceConfig,
+        true,
+        sslEngineConfigurator
+        );
+    
+    
+    
+    httpServer.getServerConfiguration().setName("Test HTTPS Server");
+    httpServer.start();
+    LOGGER.info("Started Jersey-Grizzly2 JAX-RS secure server.");
+
+    return httpServer;
+    
   }
 
 }

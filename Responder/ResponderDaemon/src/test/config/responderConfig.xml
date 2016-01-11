@@ -4,6 +4,19 @@
   <installDir>@INSTALL_DIR@</installDir>
 
   <!-- 
+  This section describes the configuration for allowing the Responder to HTTPS as a legitimate
+  response protocol.  By default, it's false, meaning that any probes that come in with a
+  respondTo address that uses the HTTPS scheme will fail.  If you set the allowHTTPS flag to true
+  then the Responder will send responses to clients that want to use TLS to protect the answers
+  from Responders.  If you set the allowHTTPS flag to true and leave the rest of the parameters
+  blank then the client will use the default Java VM trust store.
+   -->
+  <allowHTTPS>false</allowHTTPS>
+  <truststoreType></truststoreType>
+  <truststoreFilename></truststoreFilename>
+  <truststorePassword></truststorePassword>
+
+  <!-- 
   The Responder has a thread pool that is uses to manage the load in inbound probes as they
   get distributed to the probeHandlers.  Each probe gets distributed to each Probe Handler in
   serial for each probe that comes in.  A thread is allocated per probe that comes in over one

@@ -319,7 +319,7 @@ public abstract class ResolvingXMLConfiguration {
    * This method NEEDS to be completed. It's the main concrete initialization
    * method for the configuration.
    */
-  protected abstract void initializeConfiguration();
+  protected abstract void initializeConfiguration() throws ConfigurationException;
 
   protected abstract void warn(String string);
 

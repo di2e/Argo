@@ -21,6 +21,7 @@
     <module>DemoWebClient</module>
     <module>CommonUtils</module>
     <module>PluginFramework</module>
+    <module>ArgoMainWebSite</module>
   </modules>
   <licenses>
     <license>

@@ -16,9 +16,14 @@
 
 package ws.argo.responder;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.UUID;
@@ -32,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -41,19 +48,29 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContexts;
 import org.joda.time.Instant;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
 import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
+import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportException;
 import ws.argo.plugin.transport.responder.ProbeProcessor;
 import ws.argo.plugin.transport.responder.Transport;
 import ws.argo.responder.configuration.PluginConfig;
 import ws.argo.responder.configuration.ResponderConfigException;
 import ws.argo.responder.configuration.ResponderConfiguration;
-import ws.argo.plugin.transport.exception.TransportConfigException;
-import ws.argo.plugin.transport.exception.TransportException;
 import ws.argo.wireline.probe.ProbeWrapper;
 
 /**
@@ -124,11 +141,87 @@ public class Responder implements ProbeProcessor {
    */
   public Responder(ResponderConfiguration config) {
     this._config = config;
-    httpClient = HttpClients.createDefault();
+    initializeHTTPClient();
     UUID uuid = UUID.randomUUID();
     _runtimeId = uuid.toString();
 
     intializeThreadPool();
+  }
+
+  /**
+   * Create HTTP Client.
+   */
+  private void initializeHTTPClient() {
+
+    if (_config.isHTTPSConfigured()) {
+      try {
+        KeyStore trustKeystore = getClientTruststore();
+        SSLContext sslContext = SSLContexts.custom()
+            .loadTrustMaterial(trustKeystore, new TrustSelfSignedStrategy())
+            .build();
+
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+
+        // Allow both HTTP and HTTPS connections
+        Registry<ConnectionSocketFactory> r = RegistryBuilder.<ConnectionSocketFactory> create()
+            .register("http", PlainConnectionSocketFactory.INSTANCE)
+            .register("https", sslsf)
+            .build();
+
+        HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(r);
+
+        httpClient = HttpClients.custom()
+            .setConnectionManager(cm)
+            .build();
+
+      } catch (Exception e) {
+        LOGGER.log(Level.SEVERE, "Issue creating HTTP client using supplied configuration. Proceeding with default non-SSL client.", e);
+        httpClient = HttpClients.createDefault();
+      }
+    } else {
+
+      httpClient = HttpClients.createDefault();
+    }
+  }
+
+  /**
+   * Read the KeyStore information supplied from the responder configuration file.
+   * 
+   * @return the KeyStore object
+   * @throws KeyStoreException if there is an issue reading the keystore
+   * @throws NoSuchAlgorithmException if the truststore type is incorrect
+   * @throws CertificateException if there is some issues reading in the certs
+   * @throws IOException if there is an issue reading the keystore
+   */
+  private KeyStore getClientTruststore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+    KeyStore ks = null;
+    
+    if (_config.getTruststoreType() != null && !_config.getTruststoreType().isEmpty()) {
+      try {
+        ks = KeyStore.getInstance(_config.getTruststoreType());
+      } catch (KeyStoreException e) {
+        LOGGER.log(Level.WARNING, "The specified truststore type [" + _config.getTruststoreType() + "] didn't work.", e);
+        throw e;
+      }
+    } else {
+      ks = KeyStore.getInstance(KeyStore.getDefaultType());
+    }
+    
+    // get user password and file input stream
+    char[] password = _config.getTruststorePassword().toCharArray();
+
+    java.io.FileInputStream fis = null;
+    try {
+      fis = new java.io.FileInputStream(_config.geTruststoreFilename());
+      ks.load(fis, password);
+    } finally {
+      if (fis != null) {
+        fis.close();
+      }
+    }
+
+    return ks;
   }
 
   private void intializeThreadPool() {
@@ -190,7 +283,7 @@ public class Responder implements ProbeProcessor {
 
     handler.initializeWithPropertiesFilename(configFilename);
     LOGGER.info("Loaded Probe Handler [" + handler.pluginName() + "] classname [" + classname + "] configFile [" + configFilename + "]");
- 
+
     _handlers.add(handler);
   }
 
@@ -445,7 +538,7 @@ public class Responder implements ProbeProcessor {
 
     // This needs to be sent to stdout as there is no way to force the logging
     // of this via the LOGGER
-    System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started  [" + responder._runtimeId + "]");
+    System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started  [" + responder._runtimeId + "] :: Responding as [" + (config.isHTTPSConfigured() ? "Secure HTTPS" : "Non-secure HTTP") + "]");
 
     return responder;
   }
