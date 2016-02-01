@@ -3,7 +3,7 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.4.1-SNAPSHOT</version>
+    <version>0.4.1</version>
   </parent>
   <artifactId>CLClient</artifactId>
   <name>Command Line Client</name>
@@ -18,17 +18,17 @@
     <dependency>
       <groupId>ws.argo.common</groupId>
       <artifactId>CommonUtils</artifactId>
-      <version>0.4.1-SNAPSHOT</version>
+      <version>0.4.1</version>
     </dependency>
     <dependency>
       <groupId>ws.argo.probe</groupId>
-      <version>0.4.1-SNAPSHOT</version>
+      <version>0.4.1</version>
       <artifactId>ProbeSender</artifactId>
     </dependency>
     <dependency>
       <groupId>ws.argo.commandline</groupId>
       <artifactId>clui</artifactId>
-      <version>0.4.1-SNAPSHOT</version>
+      <version>0.4.1</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>

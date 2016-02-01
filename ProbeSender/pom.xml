@@ -4,10 +4,10 @@
 	<parent>
 		<groupId>ws.argo</groupId>
 		<artifactId>Argo</artifactId>
-		<version>0.4.1-SNAPSHOT</version>
+		<version>0.4.1</version>
 	</parent>
 	<groupId>ws.argo.probe</groupId>
-	<version>0.4.1-SNAPSHOT</version>
+	<version>0.4.1</version>
 	<artifactId>ProbeSender</artifactId>
 	<dependencies>
 		<dependency>
@@ -30,7 +30,7 @@
 		<dependency>
 		  <groupId>ws.argo.plugin</groupId>
 		  <artifactId>PluginFramework</artifactId>
-		  <version>0.4.1-SNAPSHOT</version>
+		  <version>0.4.1</version>
 		</dependency>
 	</dependencies>
 	<name>Probe Sender</name>

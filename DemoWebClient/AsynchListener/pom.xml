@@ -6,11 +6,11 @@
 	<parent>
 		<groupId>ws.argo</groupId>
 		<artifactId>DemoWebClient</artifactId>
-		<version>0.4.1-SNAPSHOT</version>
+		<version>0.4.1</version>
 	</parent>
 	<groupId>ws.argo.DemoWebClient</groupId>
 	<artifactId>AsynchListener</artifactId>
-	<version>0.4.1-SNAPSHOT</version>
+	<version>0.4.1</version>
 	<packaging>war</packaging>
 	<name>AsynchListener Webapp</name>
 	<url>http://argo.ws</url>
@@ -40,12 +40,12 @@
 		<dependency>
 			<groupId>ws.argo.wireline</groupId>
 			<artifactId>ArgoWirelineFormat</artifactId>
-			<version>0.4.1-SNAPSHOT</version>
+			<version>0.4.1</version>
 		</dependency>
 		<dependency>
 		  <groupId>ws.argo.common</groupId>
 		  <artifactId>CommonUtils</artifactId>
-		  <version>0.4.1-SNAPSHOT</version>
+		  <version>0.4.1</version>
 		</dependency>
 	</dependencies>
 	<build>

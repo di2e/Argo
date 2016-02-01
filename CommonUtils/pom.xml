@@ -3,11 +3,11 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.4.1-SNAPSHOT</version>
+    <version>0.4.1</version>
   </parent>
   <artifactId>CommonUtils</artifactId>
   <groupId>ws.argo.common</groupId>
-  <version>0.4.1-SNAPSHOT</version>
+  <version>0.4.1</version>
   <name>Argo Common Utilities</name>
 
   <dependencies>
@@ -30,7 +30,7 @@
     <dependency>
       <groupId>ws.argo.wireline</groupId>
       <artifactId>ArgoWirelineFormat</artifactId>
-      <version>0.4.1-SNAPSHOT</version>
+      <version>0.4.1</version>
     </dependency>
 
     <dependency>
