@@ -21,6 +21,7 @@ import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
 import ws.argo.CLClient.ClientProbeSenders;
+import ws.argo.plugin.transport.exception.TransportConfigException;
 
 /**
  * This Config command is used to configure various things including the probe
@@ -120,6 +121,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
         if (transport != null) {
           transport.setEnabled(true);
+          Console.info("Enabled transport named [" + _transportName + "]");
         } else {
           Console.error("No transport named [" + _transportName + "]");
         }
@@ -148,6 +150,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
         if (transport != null) {
           transport.setEnabled(false);
+          Console.info("Disabled transport named [" + _transportName + "]");
         } else {
           Console.error("No transport named [" + _transportName + "]");
         }
@@ -185,12 +188,30 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     @Parameters(commandNames = { "restart" }, commandDescription = "restart a transport with the given name.")
     public class Restart extends Command<ArgoClientContext> {
 
-      @Parameter(names = { "-n", "--name" }, description = "name of the transport.", required = true)
+      @Parameter(names = { "-n", "--name" }, description = "name of the transport.", required = false)
       private String _transportName;
+      
+      private boolean _all = false;
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
+        if (_transportName == null || _transportName.isEmpty())
+          _all = true;
+        
+        for (ClientProbeSenders senders : context.getClientTransports()) {
+          if (_all || (_transportName != null && _transportName.equalsIgnoreCase(senders.getName()))) {
+            try {
+              Console.info("Restarting the Client Probe Sender [" + senders.getName() + "].");
+              senders.close();
+              senders.restart(context);
+              Console.info("Successfully restarted [" + senders.getName() + "].");
+            } catch (TransportConfigException e) {
+              Console.error(e.getLocalizedMessage());
+            }
+          }
+        }
+        
         return CommandResult.OK;
       }
 

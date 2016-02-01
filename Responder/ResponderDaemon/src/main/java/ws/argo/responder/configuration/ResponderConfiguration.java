@@ -128,6 +128,11 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
     }
   }
   
+  /**
+   * The initializeSecurity method will setup the necessary values from either the config file
+   * or the system properties (so you can override the config file with the -D switch I guess).
+   * None of this is actually used unless the "allowHTTPS" flag is set to true in the config file.
+   */
   private void initializeSecurity() {
     _allowHTTPS = Boolean.parseBoolean(_config.getString("allowHTTPS", "false"));
     _truststoreType = _config.getString("truststoreType", KeyStore.getDefaultType());

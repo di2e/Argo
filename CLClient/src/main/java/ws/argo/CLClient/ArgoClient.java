@@ -111,6 +111,9 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> implem
 
   @Override
   protected void shutdown() {
+    for (ClientProbeSenders senders : ((ArgoClientContext) _appContext).getClientTransports()) {
+      senders.close();
+    }
     _server.shutdownNow();
     System.out.println("Shutting down ArgoClient.");
   }

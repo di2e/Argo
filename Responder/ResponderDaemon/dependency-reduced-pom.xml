@@ -332,12 +332,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>ws.argo.probe</groupId>
-      <artifactId>ProbeSender</artifactId>
-      <version>0.4.1-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>

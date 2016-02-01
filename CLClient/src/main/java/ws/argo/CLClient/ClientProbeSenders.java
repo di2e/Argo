@@ -12,11 +12,15 @@ import java.util.logging.Logger;
 
 import ws.argo.plugin.transport.sender.Transport;
 import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportException;
 import ws.argo.probe.ProbeSender;
 
 /**
  * The ClientTransport is an encapsulation object that containers the
  * ProbeSenders configured for the Client.
+ * 
+ * There is an array of ProbeSender if and only if the Transport depends on a
+ * set of Network Interfaces. If not, then there is only one ProbeSender.
  * 
  * @author jmsimpson
  *
@@ -27,7 +31,7 @@ public class ClientProbeSenders {
 
   private TransportConfig        config;
   private Properties             transportProps;
-  private ArrayList<ProbeSender> senders = new ArrayList<ProbeSender>();
+  private ArrayList<ProbeSender> senders;
   private boolean                enabled;
 
   public ClientProbeSenders(TransportConfig config) {
@@ -45,27 +49,7 @@ public class ClientProbeSenders {
   public void initialize(ArgoClientContext context) throws TransportConfigException {
     transportProps = processPropertiesFile(config.getPropertiesFilename());
 
-    if (config.usesNetworkInterface()) {
-      try {
-        for (String niName : context.getAvailableNetworkInterfaces(config.requiresMulticast())) {
-          try {
-            Transport transport = instantiateTransportClass(config.getClassname());
-            transport.initialize(transportProps, niName);
-            ProbeSender sender = new ProbeSender(transport);
-            senders.add(sender);
-          } catch (TransportConfigException e) {
-            LOGGER.log(Level.WARNING, e.getLocalizedMessage());
-          }
-        }
-      } catch (SocketException e) {
-        throw new TransportConfigException("Error getting available network interfaces", e);
-      }
-    } else {
-      Transport transport = instantiateTransportClass(config.getClassname());
-      transport.initialize(transportProps, "");
-      ProbeSender sender = new ProbeSender(transport);
-      senders.add(sender);
-    }
+    createProbeSenders(context);
 
   }
 
@@ -95,7 +79,7 @@ public class ClientProbeSenders {
     StringBuffer buf = new StringBuffer();
     String transportName = config.getName();
     for (ProbeSender sender : senders) {
-      buf.append(transportName).append(" -- ").append(config.isEnabled() ? "Enabled" : "Disabled")
+      buf.append(transportName).append(" -- ").append(isEnabled() ? "Enabled" : "Disabled")
           .append(" -- ").append(sender.getDescription());
     }
     return buf.toString();
@@ -111,7 +95,7 @@ public class ClientProbeSenders {
     StringBuffer buf = new StringBuffer();
     buf.append("\n  Client Transport Configuration\n");
     buf.append("     Name ...................... ").append(config.getName()).append("\n");
-    buf.append("     Is Enabled................. ").append(config.isEnabled()).append("\n");
+    buf.append("     Is Enabled................. ").append(isEnabled()).append("\n");
     buf.append("     Required Multicast ........ ").append(config.requiresMulticast()).append("\n");
     buf.append("     Uses NI ................... ").append(config.usesNetworkInterface()).append("\n");
     buf.append("     Classname ................. ").append(config.getClassname()).append("\n");
@@ -127,13 +111,86 @@ public class ClientProbeSenders {
 
   }
 
+  /**
+   * This closes any of the underlying resources that a ProbeSender might be
+   * using, such as a connection to a server somewhere.
+   */
+  public void close() {
+    for (ProbeSender sender : getSenders()) {
+      try {
+        sender.close();
+      } catch (TransportException e) {
+        LOGGER.log(Level.WARNING, "Issue closing the ProbeSender [" + sender.getDescription() + "]", e);
+      }
+    }
+  }
+
+  /**
+   * Restart the Senders. This will use whatever transport configuration was
+   * already loaded in at
+   * 
+   * @param context the context of the client application for parameters
+   * @throws TransportConfigException if something goes wonky reading specific
+   *           configs for each transport
+   */
+  public void restart(ArgoClientContext context) throws TransportConfigException {
+    createProbeSenders(context);
+  }
+
+  /**
+   * Reload the transport configuration files and restart the ProbeSenders.
+   * 
+   * @param context the context of the client application for parameters
+   * @throws TransportConfigException if something goes wonky reading specific
+   *           configs for each transport
+   */
+  public void reloadAndRestart(ArgoClientContext context) throws TransportConfigException {
+    initialize(context);
+  }
+
+  /**
+   * Create the actual ProbeSender instances given the configuration
+   * information. If the transport depends on Network Interfaces, then create a
+   * ProbeSender for each NI we can find on this machine.
+   * 
+   * @param context the main client configuration information
+   * @throws TransportConfigException if there is some issue initializing the
+   *           transport.
+   */
+  private void createProbeSenders(ArgoClientContext context) throws TransportConfigException {
+    
+    senders = new ArrayList<ProbeSender>();
+    
+    if (config.usesNetworkInterface()) {
+      try {
+        for (String niName : context.getAvailableNetworkInterfaces(config.requiresMulticast())) {
+          try {
+            Transport transport = instantiateTransportClass(config.getClassname());
+            transport.initialize(transportProps, niName);
+            ProbeSender sender = new ProbeSender(transport);
+            senders.add(sender);
+          } catch (TransportConfigException e) {
+            LOGGER.log(Level.WARNING, e.getLocalizedMessage());
+          }
+        }
+      } catch (SocketException e) {
+        throw new TransportConfigException("Error getting available network interfaces", e);
+      }
+    } else {
+      Transport transport = instantiateTransportClass(config.getClassname());
+      transport.initialize(transportProps, "");
+      ProbeSender sender = new ProbeSender(transport);
+      senders.add(sender);
+    }
+  }
+
   private Transport instantiateTransportClass(String classname) throws TransportConfigException {
     ClassLoader cl = ClassLoader.getSystemClassLoader();
     Class<?> transportClass;
     try {
       transportClass = cl.loadClass(classname);
     } catch (ClassNotFoundException e1) {
-      throw new TransportConfigException("Error loading the Transport class [" +classname + "]", e1);
+      throw new TransportConfigException("Error loading the Transport class [" + classname + "]", e1);
     }
 
     Transport transport;
@@ -141,8 +198,8 @@ public class ClientProbeSenders {
     try {
       transport = (Transport) transportClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
-      LOGGER.warning("Could not create an instance of the configured transport class [" + classname +"]");
-      throw new TransportConfigException("Error instantiating the transport class [" + classname +"]", e);
+      LOGGER.warning("Could not create an instance of the configured transport class [" + classname + "]");
+      throw new TransportConfigException("Error instantiating the transport class [" + classname + "]", e);
     }
     return transport;
 

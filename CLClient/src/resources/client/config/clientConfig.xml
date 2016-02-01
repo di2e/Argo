@@ -119,7 +119,6 @@
   <respondToURL></respondToURL>
   <installDir>@INSTALL_DIR@</installDir>
 
-  <allowHTTPS>false</allowHTTPS>
   <keystoreFilename></keystoreFilename>
   <keystorePassword></keystorePassword>
   <truststoreType></truststoreType>
