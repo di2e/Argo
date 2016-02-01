@@ -5,11 +5,11 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>DemoWebClient</artifactId>
-    <version>0.4.1-SNAPSHOT</version>
+    <version>0.4.1</version>
   </parent>
   <groupId>ws.argo.DemoWebClient</groupId>
   <artifactId>ArgoWebClient</artifactId>
-  <version>0.4.1-SNAPSHOT</version>
+  <version>0.4.1</version>
   <packaging>war</packaging>
   <name>Argo Client Webapp</name>
   <url>http://www.argo.ws</url>
@@ -33,7 +33,7 @@
     </dependency>
 	<dependency>
 	  <groupId>ws.argo.probe</groupId>
-	  <version>0.4.1-SNAPSHOT</version>
+	  <version>0.4.1</version>
 	  <artifactId>ProbeSender</artifactId>
     </dependency>
     <dependency>

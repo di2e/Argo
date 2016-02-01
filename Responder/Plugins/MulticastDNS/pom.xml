@@ -3,7 +3,7 @@
   <parent>
     <groupId>ws.argo.responder.plugins</groupId>
     <artifactId>Plugins</artifactId>
-    <version>0.4.1-SNAPSHOT</version>
+    <version>0.4.1</version>
   </parent>
   <artifactId>MulticastDNS</artifactId>
   <name>mDNS Plugin for Argo Responder</name>
@@ -11,7 +11,7 @@
     <dependency>
       <groupId>ws.argo.plugin</groupId>
       <artifactId>PluginFramework</artifactId>
-      <version>0.4.1-SNAPSHOT</version>
+      <version>0.4.1</version>
     </dependency>
     <dependency>
       <groupId>javax.jmdns</groupId>
