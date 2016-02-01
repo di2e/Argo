@@ -3,7 +3,7 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.4.0-BETA</version>
+    <version>0.4.1-SNAPSHOT</version>
   </parent>
   <artifactId>CLClient</artifactId>
   <name>Command Line Client</name>
@@ -18,17 +18,17 @@
     <dependency>
       <groupId>ws.argo.common</groupId>
       <artifactId>CommonUtils</artifactId>
-      <version>0.4.0-BETA</version>
+      <version>0.4.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>ws.argo.probe</groupId>
-      <version>0.4.0-BETA</version>
+      <version>0.4.1-SNAPSHOT</version>
       <artifactId>ProbeSender</artifactId>
     </dependency>
     <dependency>
       <groupId>ws.argo.commandline</groupId>
       <artifactId>clui</artifactId>
-      <version>0.4.0-BETA</version>
+      <version>0.4.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -63,7 +63,7 @@
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
-      <artifactId>jersey-container-grizzly2-servlet</artifactId>
+      <artifactId>jersey-container-grizzly2-http</artifactId>
       <version>2.21</version>
     </dependency>
     <dependency>

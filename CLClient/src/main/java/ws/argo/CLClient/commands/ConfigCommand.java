@@ -4,6 +4,12 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -14,7 +20,8 @@ import net.dharwin.common.tools.cli.api.CompoundCommand;
 import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
-import ws.argo.CLClient.ClientTransport;
+import ws.argo.CLClient.ClientProbeSenders;
+import ws.argo.plugin.transport.exception.TransportConfigException;
 
 /**
  * This Config command is used to configure various things including the probe
@@ -31,7 +38,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
   @Parameter(names = "-defaultCID", description = "set the default cid used in new probes")
   private String _defaultCID;
 
-  @Parameter(names = { "-url", "--listenerURL" }, description = "URL for the client response listener.  Setting this will restart the listener.")
+  @Parameter(names = { "-url", "--listenerURL" }, description = "URL for the client response listener.  Setting this will automatically restart the listener.")
   private String _url;
 
   @Parameter(names = { "-rurl", "--respondToURL" }, description = "respondTo URL to use for the probes.")
@@ -61,7 +68,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        ClientTransport transport = context.getClientTransportNamed(_transportName);
+        ClientProbeSenders transport = context.getClientTransportNamed(_transportName);
         if (transport != null) {
           Console.info(transport.showConfiguration());
         } else {
@@ -84,9 +91,9 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        ArrayList<ClientTransport> gens = context.getClientTransports();
+        ArrayList<ClientProbeSenders> gens = context.getClientTransports();
 
-        for (ClientTransport t : gens) {
+        for (ClientProbeSenders t : gens) {
           Console.info(t.getDescription());
         }
 
@@ -110,10 +117,11 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        ClientTransport transport = context.getClientTransportNamed(_transportName);
+        ClientProbeSenders transport = context.getClientTransportNamed(_transportName);
 
         if (transport != null) {
           transport.setEnabled(true);
+          Console.info("Enabled transport named [" + _transportName + "]");
         } else {
           Console.error("No transport named [" + _transportName + "]");
         }
@@ -138,10 +146,11 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
-        ClientTransport transport = context.getClientTransportNamed(_transportName);
+        ClientProbeSenders transport = context.getClientTransportNamed(_transportName);
 
         if (transport != null) {
           transport.setEnabled(false);
+          Console.info("Disabled transport named [" + _transportName + "]");
         } else {
           Console.error("No transport named [" + _transportName + "]");
         }
@@ -179,12 +188,30 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
     @Parameters(commandNames = { "restart" }, commandDescription = "restart a transport with the given name.")
     public class Restart extends Command<ArgoClientContext> {
 
-      @Parameter(names = { "-n", "--name" }, description = "name of the transport.", required = true)
+      @Parameter(names = { "-n", "--name" }, description = "name of the transport.", required = false)
       private String _transportName;
+      
+      private boolean _all = false;
 
       @Override
       protected CommandResult innerExecute(ArgoClientContext context) {
 
+        if (_transportName == null || _transportName.isEmpty())
+          _all = true;
+        
+        for (ClientProbeSenders senders : context.getClientTransports()) {
+          if (_all || (_transportName != null && _transportName.equalsIgnoreCase(senders.getName()))) {
+            try {
+              Console.info("Restarting the Client Probe Sender [" + senders.getName() + "].");
+              senders.close();
+              senders.restart(context);
+              Console.info("Successfully restarted [" + senders.getName() + "].");
+            } catch (TransportConfigException e) {
+              Console.error(e.getLocalizedMessage());
+            }
+          }
+        }
+        
         return CommandResult.OK;
       }
 
@@ -255,8 +282,9 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
 
     /**
      * Enable or use the specified NI. This will tell the
-     * {@linkplain ClientTransport#getSenders()} call to return the pre-created
-     * MC probe sender in the list of ProbeSender to use when sending a probe.
+     * {@linkplain ClientProbeSenders#getSenders()} call to return the
+     * pre-created MC probe sender in the list of ProbeSender to use when
+     * sending a probe.
      * 
      * @author jmsimpson
      *
@@ -365,6 +393,91 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
   }
 
   /**
+   * The restart command explicitly restarts the client listener if the user makes certain changes
+   * to the security key store parameters.
+   * 
+   * @author jmsimpson
+   *
+   */
+  @Parameters(commandNames = { "restart" }, commandDescription = "restart the listener.")
+  public class Restart extends Command<ArgoClientContext> {
+
+    @Override
+    protected CommandResult innerExecute(ArgoClientContext context) {
+
+      context.restartListener(context.getListenerURL());
+
+      return CommandResult.OK;
+    }
+
+  }
+  
+  @Parameters(commandNames = { "keystores" }, commandDescription = "manages the keystore information.")
+  public class Keystores extends Command<ArgoClientContext> {
+
+    @Parameter(names = {"-ks", "--keystoreFilename"}, description = "the keystore filename")
+    private String _keystoreFilename;
+    @Parameter(names = {"-kspw", "--keystorePassword"}, description = "the keystore password")
+    private String _keystorePassword;
+    @Parameter(names = {"-ts", "--truststoreFilename"}, description = "the truststore filename")
+    private String _truststoreFilename;
+    @Parameter(names = {"-tspw", "--truststorePassword"}, description = "the truststore password")
+    private String _truststorePassword;
+    
+    @Parameter(names = {"-v", "--validate"}, description = "the truststore password")
+    private Boolean _validate = false;
+  
+
+    @Override
+    protected CommandResult innerExecute(ArgoClientContext context) {
+      
+      if (_keystoreFilename != null) {
+        context.getConfig().setKeystore(_keystoreFilename);
+      }
+      
+      if (_keystorePassword != null) {
+        context.getConfig().setKSPassword(_keystorePassword);
+      }
+
+      if (_truststoreFilename != null) {
+        context.getConfig().setTruststore(_truststoreFilename);
+      }
+
+      if (_truststorePassword != null) {
+        context.getConfig().setTSPassword(_truststorePassword);
+      }
+      
+      if (_validate) {
+        SSLContextConfigurator sslContext = new SSLContextConfigurator();
+        
+        // set up security context
+        sslContext.setKeyStoreFile(context.getConfig().getKeystore()); // contains listener self-signed certificate
+        sslContext.setKeyStorePass(context.getConfig().getKSPassword());
+        sslContext.setTrustStoreFile(context.getConfig().getTruststore()); // contains listener self-signed certificate
+        sslContext.setTrustStorePass(context.getConfig().getTSPassword());
+        
+        Logger logger = Grizzly.logger(SSLContextConfigurator.class);
+        Level level = logger.getLevel();
+        final ConsoleHandler handler = new ConsoleHandler();
+        logger.setLevel(Level.ALL);
+        handler.setLevel(Level.ALL);
+        logger.addHandler(handler);
+        
+        if (!sslContext.validateConfiguration(true)) {
+          Console.warn("The SSL Context is not valid. To see details, set the logging level to FINE.");
+          Console.warn("The client listener MAY NOT WORK PROPERLY.  Check the log and adjust accordingly.");
+        } else {
+          Console.info("The keystore configuration is valid.");
+        }
+        logger.setLevel(level);
+      }
+
+      return CommandResult.OK;
+    }
+
+  }
+  
+  /**
    * The show command shows the current configuration.
    * 
    * @author jmsimpson
@@ -384,11 +497,17 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
       Console.info("  Default CID ... " + context.getDefaultCID());
       Console.info("    (use 'config -defaultCID' to change)");
 
+      Console.info("\n------------------ Client Keystore Information --------------------");
+      Console.info("    Keystore Filename: " + context.getConfig().getKeystore()); 
+      Console.info("    Keystore Password: " + context.getConfig().getKSPassword()); 
+      Console.info("  Truststore Filename: " + context.getConfig().getTruststore()); 
+      Console.info("  Truststore Password: " + context.getConfig().getTSPassword()); 
+      
       Console.info("\n------------------ Configured Transports --------------------");
 
-      List<ClientTransport> transports = context.getClientTransports();
+      List<ClientProbeSenders> transports = context.getClientTransports();
 
-      for (ClientTransport t : transports) {
+      for (ClientProbeSenders t : transports) {
         Console.info(t.showConfiguration());
       }
 

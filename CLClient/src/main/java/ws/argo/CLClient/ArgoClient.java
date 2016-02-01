@@ -1,9 +1,13 @@
 package ws.argo.CLClient;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,12 +22,16 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.configuration.ConfigurationException;
 import org.glassfish.grizzly.http.server.HttpServer;
 
+import jline.console.ConsoleReader;
+import jline.console.completer.StringsCompleter;
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.CommandLineApplication;
 import net.dharwin.common.tools.cli.api.annotations.CLIEntry;
 import net.dharwin.common.tools.cli.api.console.Console;
 import net.dharwin.common.tools.cli.api.exceptions.CLIInitException;
 import ws.argo.CLClient.config.ClientConfiguration;
+import ws.argo.CLClient.listener.CacheListener;
+import ws.argo.CLClient.listener.ProbeResponseResource;
 import ws.argo.CLClient.listener.ResponseListener;
 
 /**
@@ -34,14 +42,11 @@ import ws.argo.CLClient.listener.ResponseListener;
  *
  */
 @CLIEntry
-public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
+public class ArgoClient extends CommandLineApplication<ArgoClientContext> implements CacheListener {
 
   private static final Logger LOGGER = Logger.getLogger(ArgoClient.class.getName());
 
-  static final String DEFAULT_TOPIC_NAME    = "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
-  static final String DEFAULT_LISTENER_HOST = "localhost";
-
-  private HttpServer server;
+  private HttpServer          _server;
 
   private ClientConfiguration _config;
 
@@ -51,12 +56,15 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
 
   private void startListener() throws IOException, URISyntaxException {
     String urlString = _config.getListenerURL();
+    
     URI listenerURL = ResponseListener.DEFAULT_LISTENER_URI;
     if (urlString != null)
       listenerURL = new URI(urlString); // This should not be malformed as it's
                                         // checked earlier
 
-    server = ResponseListener.startServer(listenerURL);
+    _server = ResponseListener.startServer(listenerURL, _config.getSSLContextConfigurator());
+
+    ProbeResponseResource.setCacheUpdateListener(this);
   }
 
   @Override
@@ -80,8 +88,8 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
    */
   public void restartListener(String _url) {
     if (getConfig().setListenerURL(_url)) {
-      if (server != null)
-        server.shutdownNow();
+      if (_server != null)
+        _server.shutdownNow();
       try {
         startListener();
       } catch (IOException | URISyntaxException e) {
@@ -91,18 +99,22 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     }
   }
 
-  private void startServices() {
+  private void startServices() throws CLIInitException {
     try {
       startListener();
     } catch (IOException | URISyntaxException e) {
-      Console.severe("Unable to start services.");
-      e.printStackTrace();
+      // Console.severe("Unable to start services.");
+      // e.printStackTrace();
+      throw new CLIInitException("Unable to start services", e);
     }
   }
 
   @Override
   protected void shutdown() {
-    server.shutdownNow();
+    for (ClientProbeSenders senders : ((ArgoClientContext) _appContext).getClientTransports()) {
+      senders.close();
+    }
+    _server.shutdownNow();
     System.out.println("Shutting down ArgoClient.");
   }
 
@@ -154,7 +166,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     if (cl.hasOption("pf")) {
       String propsFilename = cl.getOptionValue("pf");
       try {
-        config = processPropertiesFile(propsFilename);
+        config = processConfigurationFile(propsFilename);
       } catch (ConfigurationException e) {
         LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + propsFilename + "] due to:", e);
         throw e;
@@ -184,11 +196,22 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> {
     return options;
   }
 
-  private ClientConfiguration processPropertiesFile(String filename) throws ConfigurationException {
+  private ClientConfiguration processConfigurationFile(String filename) throws ConfigurationException {
 
     ClientConfiguration config = new ClientConfiguration(filename);
 
     return config;
+  }
+
+  @Override
+  public void cacheUpdated(String message) {
+    Console.info("\nCACHE UPDATE: " + message);
+    if (Boolean.getBoolean("jlineDisable")) {
+      System.out.print(_prompt + " (no jline) >");
+    } else {
+      System.out.print(_prompt + " >");
+    }
+
   }
 
 }

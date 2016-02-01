@@ -32,6 +32,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
+import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.ProbeWrapper.RespondToURL;
 import ws.argo.wireline.response.ResponseWrapper;
@@ -50,19 +51,19 @@ import ws.argo.wireline.response.ResponseWrapper;
  */
 public class ProbeHandlerThread implements Runnable {
 
-  private static final Logger LOGGER = Logger.getLogger(ProbeHandlerThread.class.getName());
+  private static final Logger      LOGGER            = Logger.getLogger(ProbeHandlerThread.class.getName());
 
   // 5 minutes
-  private static final long probeCacheTimeout = 5 * 60 * 1000;
+  private static final long        probeCacheTimeout = 5 * 60 * 1000;
 
-  private static Map<String, Long> handledProbes = new ConcurrentHashMap<String, Long>();
+  private static Map<String, Long> handledProbes     = new ConcurrentHashMap<String, Long>();
 
-  protected CloseableHttpClient httpClient;
+  protected CloseableHttpClient    httpClient;
 
-  ArrayList<ProbeHandlerPluginIntf> handlers;
-  ProbeWrapper                      probe;
-  boolean                           noBrowser;
-  Responder                         responder;
+  ArrayList<ProbeHandlerPlugin>    handlers;
+  ProbeWrapper                     probe;
+  boolean                          noBrowser;
+  Responder                        responder;
 
   /**
    * Create a new ProbeHandler thread that will process a probe in a
@@ -207,10 +208,10 @@ public class ProbeHandlerThread implements Runnable {
     if (!isProbeHandled(probe.getProbeId())) {
 
       if (this.noBrowser && probe.isNaked()) {
-        LOGGER.warning("Responder set to noBrowser mode. Discarding naked probe with id: " + probe.getProbeId());
+        LOGGER.warning("Responder set to noBrowser mode. Discarding naked probe with id [" + probe.getProbeId() + "]");
       } else {
 
-        for (ProbeHandlerPluginIntf handler : handlers) {
+        for (ProbeHandlerPlugin handler : handlers) {
           response = handler.handleProbeEvent(probe);
           if (!response.isEmpty()) {
             LOGGER.fine("Response to probe [" + probe.getProbeId() + "] includes " + response.numberOfServices());
@@ -218,7 +219,7 @@ public class ProbeHandlerThread implements Runnable {
 
             if (probe.getRespondToURLs().isEmpty())
               LOGGER.warning("Processed probe [" + probe.getProbeId() + "] with no respondTo address. That's odd.");
-            
+
             if (respondToURLs.hasNext()) {
               RespondToURL respondToURL = respondToURLs.next();
               // we are ignoring the label for now
@@ -229,7 +230,7 @@ public class ProbeHandlerThread implements Runnable {
             }
 
           } else {
-            LOGGER.fine("Response is empty.  Not sending empty response.");
+            LOGGER.fine("Response to probe [" + probe.getProbeId() + "] is empty.  Not sending empty response.");
           }
         }
 

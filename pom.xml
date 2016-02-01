@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ws.argo</groupId>
   <artifactId>Argo</artifactId>
-  <version>0.4.0-BETA</version>
+  <version>0.4.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>Parent project for the Runtime Service Discovery components</description>
   
@@ -11,15 +11,16 @@
   <url>http://www.argo.ws</url>
   
   <modules>
-    <module>Responder</module>
-    <module>ProbeGenerator</module>
-    <module>MulticastGateway</module>
     <module>build-tools</module>
-    <module>CLClient</module>
-    <module>clui</module>
     <module>ArgoWirelineFormat</module>
-    <module>DemoWebClient</module>
+    <module>PluginFramework</module>
     <module>CommonUtils</module>
+    <module>ProbeSender</module>
+    <module>Responder</module>
+    <module>clui</module>
+    <module>CLClient</module>
+    <module>MulticastGateway</module>
+    <module>DemoWebClient</module>
   </modules>
   <licenses>
     <license>
@@ -89,7 +90,7 @@
             <dependency>
               <groupId>ws.argo</groupId>
               <artifactId>build-tools</artifactId>
-              <version>0.4.0-BETA</version>
+              <version>0.4.1-SNAPSHOT</version>
             </dependency>
           </dependencies>
         </plugin>

@@ -13,13 +13,5 @@ REM WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 REM See the License for the specific language governing permissions and
 REM limitations under the License.
 REM
-REM Optional Arguments:
-REM -nb : This switches the responder in to "no browser" mode.  Meaning that the responder will not
-REM       send any responses to a "naked probe" or a probe with no contract IDs or service instances specified.
-REM       Such a "naked probe" is the same as a "select all" request.  This type of request is used with probes
-REM       from browser or scanning clients.  It's useful when you don't want otherwise correctly formed and
-REM       authenticated probes from resulting in providing ALL services in a network
-REM -ni <networkInteface Name> : this tells the responder to listen for mulitcast traffic from a particular 
-REM       network interface.  Some multi-home systems have specific interfaces that allow outside traffic in.
 
-java -cp @INSTALL_DIR@/responder/lib/@JAR_NAME@.jar -Djava.util.logging.config.file="@INSTALL_DIR@/responder/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf @INSTALL_DIR@/responder/config/responderConfig.prop %*
+java -cp @INSTALL_DIR@/responder/lib/@JAR_NAME@.jar;@INSTALL_DIR@/responder/lib/ext/* -Djava.util.logging.config.file="@INSTALL_DIR@/responder/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf @INSTALL_DIR@/responder/config/responderConfig.prop %*

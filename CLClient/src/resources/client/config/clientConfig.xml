@@ -119,13 +119,19 @@
   <respondToURL></respondToURL>
   <installDir>@INSTALL_DIR@</installDir>
 
+  <keystoreFilename></keystoreFilename>
+  <keystorePassword></keystorePassword>
+  <truststoreType></truststoreType>
+  <truststoreFilename></truststoreFilename>
+  <truststorePassword></truststorePassword>
+
   <transports>
     <transport>
       <name>Multicast</name>
       <enableOnStartup>true</enableOnStartup>
       <usesNI>true</usesNI>
       <requiresMulticast>true</requiresMulticast>
-      <classname>ws.argo.probe.transport.MulticastTransport</classname>
+      <classname>ws.argo.transport.probe.standard.MulticastTransport</classname>
       <configFilename>${installDir}/client/config/multicastTransport.prop</configFilename>
     </transport>
 
@@ -145,7 +151,7 @@
       <enableOnStartup>true</enableOnStartup>
       <usesNI>false</usesNI>
       <requiresMulticast>false</requiresMulticast>
-      <classname>ws.argo.probe.transport.AmazonSNSTransport</classname>
+      <classname>ws.argo.transport.probe.standard.AmazonSNSTransport</classname>
       <configFilename>${installDir}/client/config/amazonSNSTransport.prop</configFilename>
     </transport>
     <transport>

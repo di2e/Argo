@@ -3,21 +3,20 @@
   <parent>
     <groupId>ws.argo.responder.plugins</groupId>
     <artifactId>Plugins</artifactId>
-    <version>0.4.0-BETA</version>
+    <version>0.4.1-SNAPSHOT</version>
   </parent>
   <artifactId>MulticastDNS</artifactId>
   <name>mDNS Plugin for Argo Responder</name>
   <dependencies>
     <dependency>
-      <groupId>ws.argo.responder</groupId>
-      <artifactId>PluginClient</artifactId>
-      <version>0.4.0-BETA</version>
+      <groupId>ws.argo.plugin</groupId>
+      <artifactId>PluginFramework</artifactId>
+      <version>0.4.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>ws.argo.wireline</groupId>
-      <artifactId>ArgoWirelineFormat</artifactId>
-      <version>0.4.0-BETA</version>
-      <scope>provided</scope>
+      <groupId>javax.jmdns</groupId>
+      <artifactId>jmdns</artifactId>
+      <version>3.4.1</version>
     </dependency>
   </dependencies>
 </project>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #
+  # Copyright 2015 Jeff Simpson.
+  #
+  # Licensed under the MIT License, (the "License"); 
+  # you may not use this file except in compliance with the License. 
+  # You may obtain a copy of the License at 
+  # 
+  # http://opensource.org/licenses/MIT 
+  # 
+  # Unless required by applicable law or agreed to in writing, software 
+  # distributed under the License is distributed on an "AS IS" BASIS, 
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+  # See the License for the specific language governing permissions and 
+  # limitations under the License. 
+  # 
+  -->
+  
+  
+<!--
+  ** Resolving internal and external addresses **
+  
+  The IP addresses in the configuration may not want to be hardcoded and may
+  only be known at runtime.  The configuration allows you to provide some
+  IP address resolvers that will resolve to an actual run-time IP address and
+  can be used as a replacement variable (e.g. ${internalIP}) in other configuration
+  values.
+  
+  Items with the "resolve" tag special items that will follow special rules
+  to resolve to an IP address.  The name attribute of the tag is how you will reference
+  the resolved value in the rest of the configuration file.
+  
+  For example:
+  
+  The XML processing in Argo XML files allows for replacement variables.
+  For example, if you have an item named `<installDir>/opt/argo</installDir>` defined 
+  in the file, if you use the replacement variable syntax in the file, the value defined
+  in the item will be inserted.  
+   
+  For example, `<configuration>${installDir}/myconfig/config.xml</configuration>` 
+  would resolve to `<configuration>/opt/argo/myconfig/config.xml</configuration>`.
+  It’s a well understood and convenient way to parameterize a configuration file.
+
+ The `<resolveIP>` items are a special kind of replacement variable that can be used in the file to help facilitate a configuration that can be used on hosts without direct editing of this configuration file but still get all the IP address and URLs correct in the defined services. There are two types of resolveIP items:
+
+  * ni - meaning a network interface type
+  * uri - meaning a URI type
+ 
+ A resolveIP item that looks like:
+   `<resolveIP name="internalIP" type="ni">eth0:ipv4</resolveIP>`
+ will resolve to the first IPv4 address associated with network interface named `eth0`.
+ The full syntax and usage can be found [here]().
+ 
+
+        
+  
+  ** Replacement Variables **
+  
+  This XML file is capable of replacement variables.  The Argo configuration XML files has a special
+  replacement variable resolution capability called the `resolveIP` item.  The values of
+  this item will be resolved in special ways depending on the type and the value of the item.
+  
+  Both the listenerURL and the respondToURL can use the interpolation
+  replacement variables defined in the configuration.
+  
+  Examples:
+    internalIP will resolve to the IPV4 address assigned to the interface named eth0
+    <resolveIP name="internalIP" type=ni">eth0:ipv4</resolve>
+    <listenerURL>http://${resolveIP:internalIP}:12345</listenerURL>
+    
+    externalIP will resolve to value of the HTTP GET call to the AWS external IP service
+    (Note: this will only work on configurations running in a AWS EC2 instance)
+    <resolveIP name="externalDNS">http://169.254.169.254/latest/meta-data/hostname</resolveIP>
+    <respondToURL>http://${resolveIP:externalDNS}:80</respondToURL>
+    
+  The client configuration does a sanity check on all URLs to make sure that are
+  well formed (reachable is another matter ... better check your work).
+
+  ** Other Replacement Resolvers **
+  
+  Other then the "resolveIP" prefix (e.g. ${resolveIP:internalIP}) there are other prefixes
+  you can use to inject values from other contexts.  The following are supported:
+  
+  Prefix: sys - This prefix marks a variable to be a system property
+  Example: ${sys:user.home}
+  
+  Will search for a system property with the given name and replace the variable by its value.
+  This is a very easy means for accessing the values of system properties.
+  
+  Prefix: env  - Variables can also reference OS-specific environment properties.
+  Example: ${env:JAVA_HOME}
+
+-->
+
+<testConfig> 
+
+<!--
+  ip address resolution ("ni" type) format:
+  
+  <network interface name>:<scheme>:<type>:<index>
+  
+  <network interface name> is the name of the NI as reported by the OS.
+  For example: en0.  The list of NI names for the host machine can be found by the
+  ifconfig (unix) or ipconfig (Windows) command.  The NI name of "localhost" is
+  treated specially and automatically return the sitelocal address associted with
+  the localhost reference in the host OS.
+  
+  <scheme> is the either IPv4 or IPv6.  Each NI can have one or more of each scheme.
+  
+  <type> is either global, sitelocal or linklocal.  Each IP address associated with
+  a NI is one of these types.  If the NI has an IP address that is addressable from 
+  the open internet, then its type is "global".  If the IP address is only locally
+  addressible (such as 192.168.0.0/16 or 10.0.0.0/24 addresses) then its type is
+  site local.  
+  
+  <index> refers to the index in the list of IP addresses that might be resolved
+  given the previous information.  As any NI can have more then 1 IPv4 and/or IPv6
+  address (and they usually do - especially IPv6 linklocal addresses) then you need
+  to specify which one you want.  The default is 0, the first in the list as reported
+  by the OS.
+  
+  Each value in the "ni" format has a default value:
+    <network interface name> defaults to "localhost"
+    
+    This means that an empty resolveIP element (e.g. <resolveIP name="internalIP" type="ni"/>)
+    will be treated the same as <resolveIP name="internalIP" type="ni">localhost<resolveIP/>
+    
+    <scheme> will default to ipv4
+    
+    <type> will default to "global" - unless the NI is "localhost"
+    
+    <index> will default to 0 - meaning the first IP address is the list specified by the 
+    first three values.
+  
+  You should usually use a resolutions format that looks like this:
+  
+    en0  or  en0:ipv4
+  
+  This will resolve to the first global IPv4 address on the en0 NI (IPv4 is the default).
+  
+    en0:ipv4:sitelocal
+    
+  This will resolve to the first sitelocal IPv4 address on the en0 NI.
+  
+  In general, if you are detailing the specifiation at this level, it's advised that
+  you know exactly what you are doing and have a good idea what the OS will report for
+  network interfaces and IP address types.  These specification are targeted towards
+  configurations that will be replicated across VM instances that will be dymanically
+  instantiated in a cloud environment.  It's assumed that the installer of Argo will
+  have a clue what the networking requirements for that VM are and configure appropriately.
+  
+  
+
+-->
+
+  <resolveIP name="internalIP" type="ni">localhost</resolveIP>
+  <resolveIP name="internalIP1" type="ni">en0</resolveIP>
+  <resolveIP name="internalIP2" type="ni">xxx1:ipv4</resolveIP>
+  <resolveIP name="internalIP3" type="ni">en0:ipv4:sitelocal</resolveIP>
+  <resolveIP name="internalIP4" type="ni">en0:ipv6:sitelocal</resolveIP>
+  <resolveIP name="globalIPv4" type="ni">en0:ipv4:global</resolveIP>
+  <resolveIP name="globalIPv6" type="ni">en0:ipv6:global</resolveIP>
+  <resolveIP name="linklocalIPv4" type="ni">en0:ipv4:linklocal</resolveIP>
+  <resolveIP name="linklocalIPv6" type="ni">en0:ipv6:linklocal</resolveIP>
+  <resolveIP name="internalIP5" type="ni">en0:ipv6:sitesadfalocal</resolveIP>
+  <resolveIP name="internalIP6" type="ni">en0:ipv9:sitesadfalocal</resolveIP>
+  <resolveIP name="internalIP7" type="ni">localhost:ipv4:global:9</resolveIP>
+  <resolveIP name="internalIP8" type="ni">localhost:::9</resolveIP>
+
+  <resolveIP name="externalIP" type="uri">https://api.ipify.org</resolveIP>
+  <resolveIP name="explicitIP">192.168.0.123</resolveIP>
+  <resolveIP name="badTypeIP" type="badType">192.168.0.123</resolveIP>
+    
+  <listenerURL>http://${resolveIP:internalIP}:4009</listenerURL>
+  
+  <internalIP>${resolveIP:internalIP}</internalIP>
+  <internalIP1>${resolveIP:internalIP1}</internalIP1>
+  <internalIP2>${resolveIP:internalIP2}</internalIP2>
+  <internalIP3>${resolveIP:internalIP3}</internalIP3>
+  <internalIP4>${resolveIP:internalIP4}</internalIP4>
+  <internalIP5>${resolveIP:internalIP5}</internalIP5>
+  <internalIP6>${resolveIP:internalIP6}</internalIP6>
+  <internalIP7>${resolveIP:internalIP7}</internalIP7>
+  <internalIP8>${resolveIP:internalIP8}</internalIP8>
+  
+  <linklocalIPv4>${resolveIP:linklocalIPv4}</linklocalIPv4>
+  <linklocalIPv6>${resolveIP:linklocalIPv6}</linklocalIPv6>
+  <globalIPv4>${resolveIP:globalIPv4}</globalIPv4>
+  <globalIPv6>${resolveIP:globalIPv6}</globalIPv6>
+  
+  <explicitIP>${resolveIP:explicitIP}</explicitIP>
+  
+  <badTypeIP>${resolveIP:badTypeIP}</badTypeIP>
+
+</testConfig>

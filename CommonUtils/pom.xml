@@ -3,11 +3,11 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.4.0-BETA</version>
+    <version>0.4.1-SNAPSHOT</version>
   </parent>
   <artifactId>CommonUtils</artifactId>
   <groupId>ws.argo.common</groupId>
-  <version>0.4.0-BETA</version>
+  <version>0.4.1-SNAPSHOT</version>
   <name>Argo Common Utilities</name>
 
   <dependencies>
@@ -25,6 +25,19 @@
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
       <version>2.21</version>
+    </dependency>
+
+    <dependency>
+      <groupId>ws.argo.wireline</groupId>
+      <artifactId>ArgoWirelineFormat</artifactId>
+      <version>0.4.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>

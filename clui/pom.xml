@@ -3,14 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ws.argo.commandline</groupId>
   <artifactId>clui</artifactId>
-  <version>0.4.0-BETA</version>
+  <version>0.4.1-SNAPSHOT</version>
   <name>Command Line Interface API</name>
   <packaging>jar</packaging>
 
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.4.0-BETA</version>
+    <version>0.4.1-SNAPSHOT</version>
   </parent>
 
   <licenses>

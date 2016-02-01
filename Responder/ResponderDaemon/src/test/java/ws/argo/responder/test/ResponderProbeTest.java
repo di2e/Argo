@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Jeff Simpson.
+ *
+ * Licensed under the MIT License, (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ws.argo.responder.test;
 
 import java.io.IOException;
@@ -10,12 +26,13 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportException;
 import ws.argo.probe.ProbeSender;
 import ws.argo.probe.ProbeSenderException;
 import ws.argo.probe.ProbeSenderFactory;
-import ws.argo.probe.transport.TransportConfigException;
 import ws.argo.responder.Responder;
-import ws.argo.responder.ResponderConfigException;
+import ws.argo.responder.configuration.ResponderConfigException;
 import ws.argo.responder.test.listener.ResponseListener;
 
 /**
@@ -98,7 +115,7 @@ public abstract class ResponderProbeTest {
    * @throws ProbeSenderException if some problem occurred closing the transport
    */
   @AfterClass
-  public static void tearDown() throws InterruptedException, ProbeSenderException {
+  public static void tearDown() throws InterruptedException, TransportException {
 
     responder.stopResponder();
     gen.close();

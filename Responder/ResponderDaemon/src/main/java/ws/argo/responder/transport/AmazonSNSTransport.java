@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Jeff Simpson.
+ *
+ * Licensed under the MIT License, (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ws.argo.responder.transport;
 
 import java.io.FileInputStream;
@@ -22,6 +38,9 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 
+import ws.argo.plugin.transport.responder.ProbeProcessor;
+import ws.argo.plugin.transport.responder.Transport;
+import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.responder.Responder;
 import ws.argo.responder.transport.sns.SNSListener;
 
@@ -36,20 +55,20 @@ public class AmazonSNSTransport implements Transport {
 
   private static final Logger LOGGER     = Logger.getLogger(AmazonSNSTransport.class.getName());
 
-  private HttpServer          server;
+  private HttpServer          _server;
   WebTarget                   target;
 
-  private AmazonSNSClient     snsClient;
-  private String              argoTopicName;
-  private boolean             inShutdown = false;
+  private AmazonSNSClient     _snsClient;
+  private String              _argoTopicName;
+  private boolean             _inShutdown = false;
 
   // Configuration params
-  private String              subscriptionArn;
-  private ProbeProcessor      processor;
-  private String              listenerURL;
-  private String              amazonAK;
-  private String              amazonSK;
-  private String              subscriptionURL;
+  private String              _subscriptionArn;
+  private ProbeProcessor      _processor;
+  private String              _listenerURL;
+  private String              _amazonAK;
+  private String              _amazonSK;
+  private String              _subscriptionURL;
 
   public AmazonSNSTransport() {
   }
@@ -62,13 +81,13 @@ public class AmazonSNSTransport implements Transport {
     try {
       uri = getBaseListenerURI();
     } catch (URISyntaxException e) {
-      LOGGER.warning("The listenerURL specified in the configuration file [" + listenerURL + "] is invalid. ");
+      LOGGER.warning("The listenerURL specified in the configuration file [" + _listenerURL + "] is invalid. ");
       LOGGER.info("Using the default listner URL assocaited with the loca host [" + SNSListener.getLocalBaseURI() + "]");
       uri = SNSListener.getLocalBaseURI();
     }
 
     try {
-      server = SNSListener.startServer(uri, this);
+      _server = SNSListener.startServer(uri, this);
     } catch (IOException e) {
       LOGGER.log(Level.SEVERE, "There was an error starting the SNS Listener.", e);
     }
@@ -81,29 +100,29 @@ public class AmazonSNSTransport implements Transport {
     } catch (URISyntaxException | TransportConfigException e) {
       LOGGER.log(Level.SEVERE, "Error subscribing to SNS topic.");
       LOGGER.log(Level.SEVERE, "Amazon SNS transport failed startup - shuting down SNS listener.", e);
-      if (server != null)
-        server.shutdownNow();
+      if (_server != null)
+        _server.shutdownNow();
     }
 
   }
 
   @Override
   public void initialize(ProbeProcessor p, String propertiesFilename) throws TransportConfigException {
-    this.processor = p;
+    this._processor = p;
     processPropertiesFile(propertiesFilename);
-    if (argoTopicName == null || amazonAK == null || amazonSK == null)
+    if (_argoTopicName == null || _amazonAK == null || _amazonSK == null)
       throw new TransportConfigException("The Argo TopicName, AK and/or the SK was not specified.");
 
-    initializeAWSClient(amazonAK, amazonSK);
+    initializeAWSClient(_amazonAK, _amazonSK);
   }
 
   @Override
   public void shutdown() {
-    LOGGER.info("SNSTransport shutting down URL [" + listenerURL + "] for processor [" + processor.getRuntimeID() + "]");
-    inShutdown = true;
+    LOGGER.info("SNSTransport shutting down URL [" + _listenerURL + "] for processor [" + _processor.getRuntimeID() + "]");
+    _inShutdown = true;
     unsubscribe();
-    if (server != null)
-      server.shutdownNow();
+    if (_server != null)
+      _server.shutdownNow();
   }
 
   @Override
@@ -113,10 +132,10 @@ public class AmazonSNSTransport implements Transport {
 
   private URI getBaseListenerURI() throws URISyntaxException {
     URI url;
-    if (listenerURL == null) {
+    if (_listenerURL == null) {
       url = SNSListener.getLocalBaseURI();
     } else {
-      url = new URI(listenerURL);
+      url = new URI(_listenerURL);
     }
     return url;
 
@@ -124,10 +143,10 @@ public class AmazonSNSTransport implements Transport {
 
   private URI getBaseSubscriptionURI() throws URISyntaxException {
     URI url;
-    if (subscriptionURL == null) {
+    if (_subscriptionURL == null) {
       url = getBaseListenerURI();
     } else {
-      url = new URI(subscriptionURL);
+      url = new URI(_subscriptionURL);
     }
     return url;
 
@@ -150,7 +169,7 @@ public class AmazonSNSTransport implements Transport {
      * occasional house keeping and clears out the subscriptions, running
      * transports will just re-subscribe.
      */
-    if (inShutdown)
+    if (_inShutdown)
       return;
 
     URI url = getBaseSubscriptionURI();
@@ -158,19 +177,19 @@ public class AmazonSNSTransport implements Transport {
     String subscriptionURL = url.toString() + "listener/sns";
     LOGGER.info("Subscription  URI - " + subscriptionURL);
 
-    SubscribeRequest subRequest = new SubscribeRequest(argoTopicName, "http", subscriptionURL);
+    SubscribeRequest subRequest = new SubscribeRequest(_argoTopicName, "http", subscriptionURL);
     try {
       getSNSClient().subscribe(subRequest);
     } catch (AmazonServiceException e) {
       throw new TransportConfigException("Error subscribing to SNS topic.", e);
     }
     // get request id for SubscribeRequest from SNS metadata
-    this.subscriptionArn = getSNSClient().getCachedResponseMetadata(subRequest).toString();
-    LOGGER.info("SubscribeRequest - " + subscriptionArn);
+    this._subscriptionArn = getSNSClient().getCachedResponseMetadata(subRequest).toString();
+    LOGGER.info("SubscribeRequest - " + _subscriptionArn);
   }
 
   private void unsubscribe() {
-    snsClient.unsubscribe(argoTopicName);
+    _snsClient.unsubscribe(_argoTopicName);
   }
 
   private void initializeAWSClient(String ak, String sk) {
@@ -179,15 +198,15 @@ public class AmazonSNSTransport implements Transport {
   }
 
   public AmazonSNSClient getSNSClient() {
-    return snsClient;
+    return _snsClient;
   }
 
   public ProbeProcessor getProcessor() {
-    return processor;
+    return _processor;
   }
 
   private void setSNSClient(AmazonSNSClient snsClient) {
-    this.snsClient = snsClient;
+    this._snsClient = snsClient;
   }
 
   private Properties processPropertiesFile(String propertiesFilename) throws TransportConfigException {
@@ -215,12 +234,12 @@ public class AmazonSNSTransport implements Transport {
       }
     }
 
-    subscriptionURL = prop.getProperty("subscriptionURL");
-    listenerURL = prop.getProperty("listenerURL");
+    _subscriptionURL = prop.getProperty("subscriptionURL");
+    _listenerURL = prop.getProperty("listenerURL");
 
-    argoTopicName = prop.getProperty("argoTopicName");
-    amazonAK = prop.getProperty("amazonAK");
-    amazonSK = prop.getProperty("amazonSK");
+    _argoTopicName = prop.getProperty("argoTopicName");
+    _amazonAK = prop.getProperty("amazonAK");
+    _amazonSK = prop.getProperty("amazonSK");
 
     return prop;
 

@@ -31,7 +31,7 @@ import net.dharwin.common.tools.cli.api.CompoundCommand;
 import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.ArgoClientContext;
-import ws.argo.CLClient.ClientTransport;
+import ws.argo.CLClient.ClientProbeSenders;
 import ws.argo.CLClient.ProbeSentRecord;
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeSender;
@@ -77,7 +77,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
           for (String probeName : probes.keySet())
             probeNames.add(probeName);
         } else {
-          Console.info("Listing sent probes with names matching: " + _namePatterns);
+          Console.info("Listing sent probes with names matching: [" + _namePatterns + "]");
           for (String pattern : _namePatterns) {
             for (String probeName : probes.keySet()) {
               if (probeName.matches(pattern))
@@ -135,7 +135,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
         if (probe != null) {
           sendProbe(context, probeName, probe);
         } else {
-          Console.error("Unknown probe name specified: " + probeName);
+          Console.error("Unknown probe name specified [" + probeName +"]");
         }
       }
       return CommandResult.OK;
@@ -152,7 +152,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
 
     private CommandResult sendProbe(ArgoClientContext context, String probeName, Probe probe) {
 
-      ArrayList<ClientTransport> transports = context.getClientTransports();
+      ArrayList<ClientProbeSenders> transports = context.getClientTransports();
 
       Probe reifiedProbe;
       try {
@@ -166,23 +166,23 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
 
         reifiedProbe.addRespondToURL("argo-client", respondToURL);
       } catch (MalformedURLException | UnsupportedPayloadType e1) {
-        Console.error("Probe failed: " + probeName);
+        Console.error("Probe failed [" + probeName +"]");
         Console.error(e1.getMessage());
         ProbeSentRecord psr = new ProbeSentRecord(null, e1.getMessage());
         context.addSentProbe(probeName, psr);
         return CommandResult.ERROR;
       }
 
-      for (ClientTransport t : transports) {
+      for (ClientProbeSenders t : transports) {
         if (t.isEnabled()) {
           for (ProbeSender sender : t.getSenders()) {
             try {
               sender.sendProbe(reifiedProbe);
-              Console.info("Sent probe " + probeName + " on " + sender.getDescription());
+              Console.info("Sent probe [" + probeName + "] on [" + sender.getDescription() + "]");
               ProbeSentRecord psr = new ProbeSentRecord(reifiedProbe, "Success");
               context.addSentProbe(probeName, psr);
             } catch (ProbeSenderException e) {
-              Console.error("Probe failed: " + probeName);
+              Console.error("Probe failed [" + probeName +"]");
               Console.error(e.getMessage());
               ProbeSentRecord psr = new ProbeSentRecord(reifiedProbe, e.getMessage());
               context.addSentProbe(probeName, psr);
@@ -265,7 +265,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
 
         context.getProbes().put(name, probe);
 
-        Console.info("Created new probe named " + name);
+        Console.info("Created new probe named [" + name + "]");
 
       } catch (UnsupportedPayloadType e) {
         e.printStackTrace();
@@ -414,7 +414,7 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
           Console.info("Listing all configured probes.");
           probeNames.addAll(probes.keySet());
         } else {
-          Console.info("Listing configured probes with names matching: " + _namePatterns);
+          Console.info("Listing configured probes with names matching [" + _namePatterns + "]");
           for (String pattern : _namePatterns) {
             for (String probeName : probes.keySet()) {
               if (probeName.matches(pattern))
@@ -518,9 +518,9 @@ public class ProbeCommand extends CompoundCommand<ArgoClientContext> {
 
         }
 
-        Console.info("Imported " + wList.getLength() + " from " + _importFilename);
+        Console.info("Imported [" + wList.getLength() + "] from [" + _importFilename + "]");
       } catch (ParserConfigurationException | SAXException | IOException | UnsupportedPayloadType e) {
-        Console.error("There was some issues parsing the import xml file " + e.getMessage());
+        Console.error("There was some issues parsing the import xml file [" + e.getMessage() + "]");
         // e.printStackTrace();
         return CommandResult.ERROR;
       }

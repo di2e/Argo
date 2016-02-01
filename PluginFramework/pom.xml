@@ -1,0 +1,25 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>ws.argo</groupId>
+    <artifactId>Argo</artifactId>
+    <version>0.4.1-SNAPSHOT</version>
+  </parent>
+  <groupId>ws.argo.plugin</groupId>
+  <artifactId>PluginFramework</artifactId>
+  <name>Argo Plugin Framework</name>
+  <description>Framework Components for creating an Argo Probe Handler or Transport plugin</description>
+  <dependencies>
+    <dependency>
+      <groupId>ws.argo.wireline</groupId>
+      <artifactId>ArgoWirelineFormat</artifactId>
+      <version>0.4.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-validator</groupId>
+      <artifactId>commons-validator</artifactId>
+      <version>1.4.1</version>
+    </dependency>
+
+  </dependencies>
+</project>

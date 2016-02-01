@@ -16,11 +16,14 @@
 
 package ws.argo.responder;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.UUID;
@@ -34,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -42,13 +47,30 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.UnrecognizedOptionException;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContexts;
 import org.joda.time.Instant;
 
-import ws.argo.responder.transport.ProbeProcessor;
-import ws.argo.responder.transport.Transport;
-import ws.argo.responder.transport.TransportConfigException;
+import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
+import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
+import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportException;
+import ws.argo.plugin.transport.responder.ProbeProcessor;
+import ws.argo.plugin.transport.responder.Transport;
+import ws.argo.responder.configuration.PluginConfig;
+import ws.argo.responder.configuration.ResponderConfigException;
+import ws.argo.responder.configuration.ResponderConfiguration;
 import ws.argo.wireline.probe.ProbeWrapper;
 
 /**
@@ -62,60 +84,31 @@ import ws.argo.wireline.probe.ProbeWrapper;
  */
 public class Responder implements ProbeProcessor {
 
-  private static final String               VERSION_PROPERTIES = "/version.properties";
+  private static final String           VERSION_PROPERTIES = "/version.properties";
 
-  private static final Logger               LOGGER             = Logger.getLogger(Responder.class.getName());
+  private static final Logger           LOGGER             = Logger.getLogger(Responder.class.getName());
 
-  private static String                     ARGO_VERSION       = "UNKNOWN";
+  private static String                 ARGO_VERSION       = "UNKNOWN";
 
-  private ArrayList<Transport>              _transports        = new ArrayList<Transport>();
+  private ArrayList<Transport>          _transports        = new ArrayList<Transport>();
 
-  private ArrayList<ProbeHandlerPluginIntf> _handlers          = new ArrayList<ProbeHandlerPluginIntf>();
+  private ArrayList<ProbeHandlerPlugin> _handlers          = new ArrayList<ProbeHandlerPlugin>();
 
-  protected InetAddress                     maddress;
+  protected InetAddress                 maddress;
 
-  protected CloseableHttpClient             httpClient;
+  protected CloseableHttpClient         httpClient;
 
-  private ResponderConfigurationBean        _cliValues;
+  private ResponderConfiguration        _config;
 
-  private ResponderShutdown                 _shutdownHook;
+  private ResponderShutdown             _shutdownHook;
 
   // This id is for internal reporting and logging reasons
-  private String                            _runtimeId;
+  private String                        _runtimeId;
 
-  private ThreadPoolExecutor                _executorPool;
-  private ResponderMonitorThread            _monitor           = null;
+  private ThreadPoolExecutor            _executorPool;
+  private ResponderMonitorThread        _monitor           = null;
 
-  ConcurrentLinkedQueue<Instant>            messages           = new ConcurrentLinkedQueue<Instant>();
-
-  /**
-   * Utility class to encaptulate some of the Responder configuration.
-   * 
-   * @author jmsimpson
-   *
-   */
-  private static class ResponderConfigurationBean {
-
-    public boolean                 noBrowser         = false;
-    public ArrayList<PluginConfig> appHandlerConfigs = new ArrayList<PluginConfig>();
-    public ArrayList<PluginConfig> transportConfigs  = new ArrayList<PluginConfig>();
-    public boolean                 runMonitor;
-    public int                     monitorInterval;
-    public int                     threadPoolSize;
-
-  }
-
-  /**
-   * Utility class to encapsulate the configuration of the plugin information.
-   * The plugins include the app handler and the transports.
-   * 
-   * @author jmsimpson
-   *
-   */
-  private static class PluginConfig {
-    public String classname;
-    public String configFilename;
-  }
+  ConcurrentLinkedQueue<Instant>        messages           = new ConcurrentLinkedQueue<Instant>();
 
   /**
    * Shutdown hook handler for the Responder. See
@@ -146,13 +139,89 @@ public class Responder implements ProbeProcessor {
    * 
    * @param cliValues - the list of command line arguments
    */
-  public Responder(ResponderConfigurationBean cliValues) {
-    this._cliValues = cliValues;
-    httpClient = HttpClients.createDefault();
+  public Responder(ResponderConfiguration config) {
+    this._config = config;
+    initializeHTTPClient();
     UUID uuid = UUID.randomUUID();
     _runtimeId = uuid.toString();
 
     intializeThreadPool();
+  }
+
+  /**
+   * Create HTTP Client.
+   */
+  private void initializeHTTPClient() {
+
+    if (_config.isHTTPSConfigured()) {
+      try {
+        KeyStore trustKeystore = getClientTruststore();
+        SSLContext sslContext = SSLContexts.custom()
+            .loadTrustMaterial(trustKeystore, new TrustSelfSignedStrategy())
+            .build();
+
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+
+        // Allow both HTTP and HTTPS connections
+        Registry<ConnectionSocketFactory> r = RegistryBuilder.<ConnectionSocketFactory> create()
+            .register("http", PlainConnectionSocketFactory.INSTANCE)
+            .register("https", sslsf)
+            .build();
+
+        HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(r);
+
+        httpClient = HttpClients.custom()
+            .setConnectionManager(cm)
+            .build();
+
+      } catch (Exception e) {
+        LOGGER.log(Level.SEVERE, "Issue creating HTTP client using supplied configuration. Proceeding with default non-SSL client.", e);
+        httpClient = HttpClients.createDefault();
+      }
+    } else {
+
+      httpClient = HttpClients.createDefault();
+    }
+  }
+
+  /**
+   * Read the KeyStore information supplied from the responder configuration file.
+   * 
+   * @return the KeyStore object
+   * @throws KeyStoreException if there is an issue reading the keystore
+   * @throws NoSuchAlgorithmException if the truststore type is incorrect
+   * @throws CertificateException if there is some issues reading in the certs
+   * @throws IOException if there is an issue reading the keystore
+   */
+  private KeyStore getClientTruststore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+    KeyStore ks = null;
+    
+    if (_config.getTruststoreType() != null && !_config.getTruststoreType().isEmpty()) {
+      try {
+        ks = KeyStore.getInstance(_config.getTruststoreType());
+      } catch (KeyStoreException e) {
+        LOGGER.log(Level.WARNING, "The specified truststore type [" + _config.getTruststoreType() + "] didn't work.", e);
+        throw e;
+      }
+    } else {
+      ks = KeyStore.getInstance(KeyStore.getDefaultType());
+    }
+    
+    // get user password and file input stream
+    char[] password = _config.getTruststorePassword().toCharArray();
+
+    java.io.FileInputStream fis = null;
+    try {
+      fis = new java.io.FileInputStream(_config.geTruststoreFilename());
+      ks.load(fis, password);
+    } finally {
+      if (fis != null) {
+        fis.close();
+      }
+    }
+
+    return ks;
   }
 
   private void intializeThreadPool() {
@@ -162,12 +231,12 @@ public class Responder implements ProbeProcessor {
     ThreadFactory threadFactory = Executors.defaultThreadFactory();
     // creating the ThreadPoolExecutor
 
-    _executorPool = new ThreadPoolExecutor(_cliValues.threadPoolSize, _cliValues.threadPoolSize + 2, 4, TimeUnit.SECONDS, 
-        new ArrayBlockingQueue<Runnable>(_cliValues.threadPoolSize * 2), threadFactory, rejectionHandler);
+    _executorPool = new ThreadPoolExecutor(_config
+        .getThreadPoolSize(), _config.getThreadPoolSize() + 2, 4, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(_config.getThreadPoolSize() * 2), threadFactory, rejectionHandler);
 
     // start the monitoring thread
-    if (_cliValues.runMonitor) {
-      _monitor = new ResponderMonitorThread(this, _executorPool, _cliValues.monitorInterval);
+    if (_config.isRunMonitor()) {
+      _monitor = new ResponderMonitorThread(this, _executorPool, _config.getMonitorInterval());
       Thread monitorThread = new Thread(_monitor);
       monitorThread.start();
     }
@@ -179,7 +248,7 @@ public class Responder implements ProbeProcessor {
     return _runtimeId;
   }
 
-  public ArrayList<ProbeHandlerPluginIntf> getHandlers() {
+  public ArrayList<ProbeHandlerPlugin> getHandlers() {
     return _handlers;
   }
 
@@ -194,29 +263,26 @@ public class Responder implements ProbeProcessor {
    * @throws ResponderConfigException if there is some issues with the config
    *           file
    */
-  private void addHandler(String classname, String configFilename) throws ResponderConfigException {
+  private void addHandler(String classname, String configFilename) throws ProbeHandlerConfigException {
 
     ClassLoader cl = ClassLoader.getSystemClassLoader();
     Class<?> handlerClass;
     try {
       handlerClass = cl.loadClass(classname);
     } catch (ClassNotFoundException e1) {
-      throw new ResponderConfigException("Error loading the handler class", e1);
+      throw new ProbeHandlerConfigException("Error loading the handler class", e1);
     }
-    ProbeHandlerPluginIntf handler;
+    ProbeHandlerPlugin handler;
 
     try {
-      handler = (ProbeHandlerPluginIntf) handlerClass.newInstance();
+      handler = (ProbeHandlerPlugin) handlerClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
       LOGGER.warning("Could not create an instance of the configured handler class - " + classname);
-      throw new ResponderConfigException("Error instantiating the handler class " + classname, e);
-      // LOGGER.warning("Using default handler");
-      // LOGGER.fine("The issue was:");
-      // LOGGER.fine(e.getMessage());
-      // handler = new ConfigFileProbeHandlerPluginImpl();
+      throw new ProbeHandlerConfigException("Error instantiating the handler class " + classname, e);
     }
 
     handler.initializeWithPropertiesFilename(configFilename);
+    LOGGER.info("Loaded Probe Handler [" + handler.pluginName() + "] classname [" + classname + "] configFile [" + configFilename + "]");
 
     _handlers.add(handler);
   }
@@ -252,6 +318,7 @@ public class Responder implements ProbeProcessor {
     }
 
     transport.initialize(this, configFilename);
+    LOGGER.info("Loaded Transport [" + transport.transportName() + "] class [" + classname + "] with configFile [" + configFilename + "]");
 
     _transports.add(transport);
   }
@@ -279,7 +346,11 @@ public class Responder implements ProbeProcessor {
   public void shutdown() {
     LOGGER.info("Responder shutting down: [" + _runtimeId + "]");
     for (Transport t : _transports) {
-      t.shutdown();
+      try {
+        t.shutdown();
+      } catch (TransportException e) {
+        LOGGER.log(Level.WARNING, "Error shutting down transport: [" + t.transportName() + "]", e);
+      }
     }
   }
 
@@ -291,7 +362,8 @@ public class Responder implements ProbeProcessor {
    * This is the main run method for the Argo Responder. It starts up all the
    * configured transports in their own thread and starts their receive loops.
    * 
-   * <p>Transports run in their own thread. Thus, when all the transports are
+   * <p>
+   * Transports run in their own thread. Thus, when all the transports are
    * running, this method will exit. You can shutdown the Responder by calling
    * the {@linkplain #shutdown()} method. This method will be called by the
    * {@linkplain ResponderShutdown} hook.
@@ -301,7 +373,7 @@ public class Responder implements ProbeProcessor {
   public void run() {
 
     // I hope that this hits you over the head with its simplicity.
-    // That's the idea. The instances of the transports are supposed to be send
+    // That's the idea. The instances of the transports are supposed to be self
     // contained.
 
     Thread transportThread;
@@ -320,7 +392,7 @@ public class Responder implements ProbeProcessor {
    * This is where the rubber meets the road. The transport module has
    */
   public void processProbe(ProbeWrapper probe) {
-    _executorPool.execute(new ProbeHandlerThread(this, probe, _cliValues.noBrowser));
+    _executorPool.execute(new ProbeHandlerThread(this, probe, _config.isNoBrowser()));
   }
 
   /**
@@ -372,13 +444,13 @@ public class Responder implements ProbeProcessor {
     }
   }
 
-  private void loadHandlerPlugins(ArrayList<PluginConfig> configs) throws ResponderConfigException {
+  private void loadHandlerPlugins(ArrayList<PluginConfig> configs) throws ProbeHandlerConfigException {
 
     for (PluginConfig appConfig : configs) {
 
       try {
         addHandler(appConfig.classname, appConfig.configFilename);
-      } catch (ResponderConfigException e) {
+      } catch (ProbeHandlerConfigException e) {
         LOGGER.log(Level.SEVERE, "Error loading handler for [" + appConfig.classname + "]. Skipping handler", e);
       }
     }
@@ -386,7 +458,7 @@ public class Responder implements ProbeProcessor {
     // make sure we have at least 1 active handler. If not, then fail the
     // responder process
     if (getHandlers().isEmpty()) {
-      throw new ResponderConfigException("No responders created successfully on initialization.");
+      throw new ProbeHandlerConfigException("No responders created successfully on initialization.");
     }
 
   }
@@ -441,20 +513,24 @@ public class Responder implements ProbeProcessor {
 
     LOGGER.info("Starting Argo Responder daemon process. Version " + ARGO_VERSION);
 
-    ResponderConfigurationBean cliValues = parseCommandLine(args);
+    ResponderConfiguration config = parseCommandLine(args);
 
-    if (cliValues == null) {
+    if (config == null) {
       LOGGER.log(Level.SEVERE, "Invalid Responder Configuration.  Terminating Responder process.");
       return null;
     }
 
-    Responder responder = new Responder(cliValues);
+    Responder responder = new Responder(config);
 
     // load up the handler classes specified in the configuration parameters
-    responder.loadHandlerPlugins(cliValues.appHandlerConfigs);
+    try {
+      responder.loadHandlerPlugins(config.getProbeHandlerConfigs());
+    } catch (ProbeHandlerConfigException e) {
+      throw new ResponderConfigException("Error loading handler plugins: ", e);
+    }
 
     // load up the transport classes specified in the configuration parameters
-    responder.loadTransportPlugins(cliValues.transportConfigs);
+    responder.loadTransportPlugins(config.getTransportConfigs());
 
     LOGGER.info("Responder registering shutdown hook.");
     ResponderShutdown hook = new ResponderShutdown(responder);
@@ -462,7 +538,7 @@ public class Responder implements ProbeProcessor {
 
     // This needs to be sent to stdout as there is no way to force the logging
     // of this via the LOGGER
-    System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started  [" + responder._runtimeId + "]");
+    System.out.println("Argo " + ARGO_VERSION + " :: " + "Responder started  [" + responder._runtimeId + "] :: Responding as [" + (config.isHTTPSConfigured() ? "Secure HTTPS" : "Non-secure HTTP") + "]");
 
     return responder;
   }
@@ -489,9 +565,9 @@ public class Responder implements ProbeProcessor {
     }
   }
 
-  private static ResponderConfigurationBean parseCommandLine(String[] args) throws ResponderConfigException {
+  private static ResponderConfiguration parseCommandLine(String[] args) throws ResponderConfigException {
     CommandLineParser parser = new BasicParser();
-    ResponderConfigurationBean cliValues = null;
+    ResponderConfiguration config = null;
 
     // Process the help option
     try {
@@ -509,7 +585,7 @@ public class Responder implements ProbeProcessor {
         return null;
       }
 
-      cliValues = processCommandLine(cl);
+      config = processCommandLine(cl);
 
     } catch (UnrecognizedOptionException e) {
       LOGGER.log(Level.SEVERE, "Error parsing command line:  " + e.getLocalizedMessage());
@@ -517,128 +593,43 @@ public class Responder implements ProbeProcessor {
       LOGGER.log(Level.SEVERE, "Error parsing option.", e);
     }
 
-    return cliValues;
+    return config;
   }
 
-  private static ResponderConfigurationBean processCommandLine(CommandLine cl) throws ResponderConfigException {
+  private static ResponderConfiguration processCommandLine(CommandLine cl) throws ResponderConfigException {
 
     LOGGER.fine("Parsing command line values:");
 
-    ResponderConfigurationBean propsConfig = new ResponderConfigurationBean();
+    ResponderConfiguration config;
 
     if (cl.hasOption("pf")) {
-      String propsFilename = cl.getOptionValue("pf");
+      String configFilename = cl.getOptionValue("pf");
       try {
-        propsConfig = processPropertiesValue(propsFilename, propsConfig);
-      } catch (ResponderConfigException e) {
-        LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + propsFilename + "] due to:", e);
-        throw e;
+        config = processConfigurationFile(configFilename);
+      } catch (ConfigurationException e) {
+        LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + configFilename + "] due to:", e);
+        throw new ResponderConfigException("Error reading configuration file [" + configFilename + "]", e);
       }
     } else {
-      LOGGER.warning("WARNING: no properties file specified.  Working off cli override arguments.");
+      config = new ResponderConfiguration(); // get a blank responder config
+                                             // object
+      LOGGER.warning("No properties file specified.  Working off cli override arguments.");
     }
 
     // No browser option - if set then do not process naked probes
     if (cl.hasOption("nb")) {
-      propsConfig.noBrowser = true;
+      config.setNoBrowser(true);
       LOGGER.info("Responder started in no browser mode.");
-    }
-
-    return propsConfig;
-
-  }
-
-  private static ResponderConfigurationBean processPropertiesValue(String propertiesFilename, ResponderConfigurationBean config) throws ResponderConfigException {
-    Properties prop = new Properties();
-
-    InputStream is = null;
-    try {
-      if (Responder.class.getResource(propertiesFilename) != null) {
-        is = Responder.class.getResourceAsStream(propertiesFilename);
-        LOGGER.info("Reading Responder properties file [" + propertiesFilename + "] from classpath.");
-      } else {
-        is = new FileInputStream(propertiesFilename);
-        LOGGER.info("Reading Responder properties file [" + propertiesFilename + "] from file system.");
-      }
-      prop.load(is);
-    } catch (FileNotFoundException e) {
-      throw new ResponderConfigException(e.getLocalizedMessage(), e);
-    } catch (IOException e) {
-      throw new ResponderConfigException(e.getLocalizedMessage(), e);
-    } finally {
-      try {
-        is.close();
-      } catch (Exception e) {
-        throw new ResponderConfigException(e.getLocalizedMessage(), e);
-      }
-    }
-
-    config.runMonitor = Boolean.parseBoolean(prop.getProperty("runMonitor", "false"));
-
-    try {
-      int monitorInterval = Integer.parseInt(prop.getProperty("monitorInterval", "5"));
-      config.monitorInterval = monitorInterval;
-    } catch (NumberFormatException e) {
-      LOGGER.warning("Error reading monitorInterval number from properties file.  Using default port of 5.");
-      config.monitorInterval = 5;
-    }
-
-    try {
-      int threadSize = Integer.parseInt(prop.getProperty("threadPoolSize", "10"));
-      config.threadPoolSize = threadSize;
-    } catch (NumberFormatException e) {
-      LOGGER.warning("Error reading threadPoolSize number from properties file.  Using default threadPoolSize of 10.");
-      config.threadPoolSize = 10;
-    }
-
-    // handle the list of appHandler information
-
-    boolean continueProcessing = true;
-    int number = 1;
-    while (continueProcessing) {
-      String appHandlerClassname;
-      String configFilename;
-
-      appHandlerClassname = prop.getProperty("probeHandlerClassname." + number, "ws.argo.responder.plugin.ConfigFileProbeHandlerPluginImpl");
-      configFilename = prop.getProperty("probeHandlerConfigFilename." + number, null);
-
-      if (configFilename != null) {
-        PluginConfig handlerConfig = new PluginConfig();
-        handlerConfig.classname = appHandlerClassname;
-        handlerConfig.configFilename = configFilename;
-        config.appHandlerConfigs.add(handlerConfig);
-      } else {
-        continueProcessing = false;
-      }
-      number++;
-
-    }
-
-    // handle the list of transport information
-
-    continueProcessing = true;
-    number = 1;
-    while (continueProcessing) {
-      String transportClassname;
-      String configFilename;
-
-      transportClassname = prop.getProperty("transportClassname." + number, "ws.argo.responder.transport.MulticastTransport");
-      configFilename = prop.getProperty("transportConfigFilename." + number, null);
-
-      if (configFilename != null) {
-        PluginConfig handlerConfig = new PluginConfig();
-        handlerConfig.classname = transportClassname;
-        handlerConfig.configFilename = configFilename;
-        config.transportConfigs.add(handlerConfig);
-      } else {
-        continueProcessing = false;
-      }
-      number++;
-
     }
 
     return config;
 
+  }
+
+  private static ResponderConfiguration processConfigurationFile(String propertiesFilename) throws ConfigurationException {
+    ResponderConfiguration config = new ResponderConfiguration(propertiesFilename);
+
+    return config;
   }
 
   @SuppressWarnings("static-access")
@@ -647,21 +638,10 @@ public class Responder implements ProbeProcessor {
 
     options.addOption("h", false, "display help for the Responder daemon");
     options.addOption("v", false, "display version for the Responder daemon");
-    options.addOption(OptionBuilder.withArgName("networkInterface name")
-        .hasArg()
-        .withDescription("network interface name to listen on")
-        .create("ni"));
     options.addOption(OptionBuilder.withArgName("properties filename")
         .hasArg().withType("")
         .withDescription("fully qualified properties filename")
         .create("pf"));
-    options.addOption(OptionBuilder.withArgName("multicastPort").hasArg()
-        .withType(Integer.valueOf(0))
-        .withDescription("the multicast port to broadcast on")
-        .create("mp"));
-    options.addOption(OptionBuilder.withArgName("multicastAddr").hasArg()
-        .withDescription("the multicast group address to broadcast on")
-        .create("ma"));
     options.addOption(OptionBuilder
         .withDescription("setting this switch will disable the responder from returning all services to a naked probe")
         .create("nb"));

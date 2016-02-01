@@ -98,7 +98,6 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
     protected CommandResult innerExecute(ArgoClientContext context) {
       WebTarget target = context.getConfig().getListenerTarget();
       String responseMsg = target.path("listener/clearCache").request().get(String.class);
-      Console.info(responseMsg);
       return CommandResult.OK;
     }
 
@@ -129,16 +128,6 @@ public class CacheCommand extends CompoundCommand<ArgoClientContext> {
       Cache cache = createCacheFromListener(context);
 
       if (cache != null) {
-
-        List<String> pids = new ArrayList<String>();
-        for (String name : _ids) {
-          if (context.getSentProbes().containsKey(name)) {
-            pids.add(context.getProbe(name).getProbeID());
-          } else {
-            Console.warn("Probe named [" + name + "] is not in the sent probes list. Ignoring.");
-          }
-            
-        }
         
         int i = 1;
         for (String desc : cache.descriptionsForIds(_ids, _showPayload, _prettyPayload)) {

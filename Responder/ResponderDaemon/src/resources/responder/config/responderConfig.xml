@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<responder>
+
+  <installDir>@INSTALL_DIR@</installDir>
+
+  <!-- 
+  This section describes the configuration for allowing the Responder to HTTPS as a legitimate
+  response protocol.  By default, it's false, meaning that any probes that come in with a
+  respondTo address that uses the HTTPS scheme will fail.  If you set the allowHTTPS flag to true
+  then the Responder will send responses to clients that want to use TLS to protect the answers
+  from Responders.  If you set the allowHTTPS flag to true and leave the rest of the parameters
+  blank then the client will use the default Java VM trust store.
+   -->
+  <allowHTTPS>false</allowHTTPS>
+  <truststoreType></truststoreType>
+  <truststoreFilename></truststoreFilename>
+  <truststorePassword></truststorePassword>
+
+  <!-- 
+  The Responder has a thread pool that is uses to manage the load in inbound probes as they
+  get distributed to the probeHandlers.  Each probe gets distributed to each Probe Handler in
+  serial for each probe that comes in.  A thread is allocated per probe that comes in over one
+  of the transports.
+   -->
+  <threadPoolSize>10</threadPoolSize>
+
+  <!-- 
+  The Responder has the ability to show a status list.  There is no management API for the responder
+  at this time.  To see some various stats as to how well the Responder is handling inbound load,
+  enable the run monitor to see how the thread pool is working and to see what type of load
+  the Responder is handling in messages per second.
+   -->
+  <runMonitor>false</runMonitor>
+  <monitorInterval>5</monitorInterval>  <!-- in seconds -->
+
+  <!-- 
+  Probe Handlers are what makes the Responder useful.  They encapsulate the "what now" when a 
+  Responder receives a probe over one of the configured transports.  There are several transports
+  that Argo comes with OOTB.  They include:
+  
+    ConfigFile probe handler - this handler looks into a list of services configured from a xml file.
+    
+  You can have as many probe handlers configured as you like.  You can even have more than one of the
+  same type of probe handler configured depending on your needs as long as they have different
+  configurations.
+    
+  There are other OOTB probe handlers called Repeaters.  They are explained a little lower in the file.
+  -->
+  <probeHandlers>
+  
+    <!-- 
+    The default configuration comes with the ConfigFileProbeHandlerPlugin.  This plugin uses
+    a file that contains the list of services that this responder advertises.  This plugin
+    also scans for changes to that file while the responder is running, so you can change that
+    file, the responder will pick up the changes and then report whatever the new file contents
+    provide.  The ConfigFileProbeHandlerPlugin does not read the file each time a probe is handled
+    and keeps a memory-resident list of services instead to provide the necessary speed.
+     -->
+    <probeHandler>
+      <classname>ws.argo.responder.plugin.configfile.ConfigFileProbeHandlerPlugin</classname>
+      <configFilename>${installDir}/responder/config/configFileProbeHandlerConfig.prop</configFilename>
+    </probeHandler>
+
+    <!-- 
+    Uncomment to enable Argo to discovery mDNS services as well.
+    
+    You only really need one mDNS enabled Responder for a local network.
+    If you enable more than one Argo Responder with this plugin, you'll get redundancy at the price of
+    multiple answers for a probe.  This is the trade-off with a multicast-unicast (Argo) protocol and a
+    multicast-multicast (mDNS) protocol.  Perhaps we can do some link-local leader election in a later
+    release.
+    -->
+    <!--
+    <probeHandler>
+      <classname>ws.argo.responder.plugin.jmdns.MulticastDNSProbeHandlerPlugin</classname>
+      <configFilename></configFilename>
+    </probeHandler>
+    -->
+    
+    <!-- 
+    The following configurations are for Repeater Plugins.  These are Probe Handler plugins that will
+    repeat incoming probe payloads off to a new transport with a new configuration.  There are two
+    OOTB repeater plugins: the MulticastRepeater and the AmazonSNSRepeater.  These are useful when you
+    have multiple transports types in your domain or you want to have multiple channels (perhaps at
+    different levels of granularity in your organization) that you want to send probes on.
+    
+    For example, say your enterprise domain uses Amazon SNS to send enterprise wide probes.  But, you
+    have a remote installation (on some LAN that's NOT in AWS) that wants to participate in discovery.
+    This remote location LAN uses Multicast for its transport.  If you want services to directly 
+    respond to probes from the AWS channel, setup a repeater in your LAN that will listen for probes from
+    AWS on your enterprise channel and then repeat them to the local network via multicast.  Don't 
+    worry about feedback with this setup as the repeating Responder will remember that it "processed"
+    that repeated probe and not handle it again.  The other responders inside your LAN listening on the
+    Multicast Transport will pick up the probe from AWS as if it was originated within your LAN.  
+    
+    There are other repeaters and transports located in Github at: https://github.com/argoPlugins  
+    -->
+    <!--
+    <probeHandler>
+      <classname>ws.argo.responder.plugin.repeater.MulticastRepeaterProbeHandlerPlugin</classname>
+      <configFilename>${installDir}/responder/config/multicastRepeater.prop</configFilename>
+    </probeHandler>
+    -->
+    <!--
+    <probeHandler>
+      <classname>ws.argo.responder.plugin.repeater.AmazonSNSProbeHandlerPlugin</classname>
+      <configFilename>${installDir}/responder/config/amazonSNSRepeater.prop</configFilename>
+    </probeHandler>
+    -->
+
+  </probeHandlers>
+  
+  
+  <!--   
+  The list of Transports provides the glue for the Responder to listen for probes
+  over the network.  You can have as many Transports as you like and you can also
+  have more than one type each with a difference configuration, providing the Transport 
+  class allows for that.
+  
+  For example, if you want to have 2 Multicast Transports listening, each on a different
+  multicast group/port, then just list two <transport> entries with the same classname
+  but different configuration files. 
+   -->
+  <transports>
+    <!-- 
+    The MulticastTransport is the default.  It should also likely be the transport of
+    last resort and all other transports are based on some other centralized pub/sub 
+    service.  There is more detail on how to use this transport and when in the documentation.
+     -->
+    <transport>
+      <classname>ws.argo.responder.transport.MulticastTransport</classname>
+      <configFilename>${installDir}/responder/config/multicastTransport.prop</configFilename>
+    </transport>
+
+    <!--  
+    <transport>
+      <classname>ws.argo.responder.transport.AmazonSNSTransport</classname>
+      <configFilename>${installDir}/responder/config/amazonSNSTransport.prop</configFilename>
+    </transport>    
+    -->
+
+    <!-- The following is an example of the MQTT transport for the Responder.  This is NOT OOTB
+    with Argo but is easily installed and available for download (with other plugins) at:
+    https://github.com/argoPlugins
+     -->
+    <!--
+    <transport>
+      <classname>ws.argo.responder.transport.MQTTResponderTransport</classname>
+      <configFilename>${installDir}/responder/config/mqttTransport.prop</configFilename>
+    </transport>
+    -->
+
+  </transports>
+
+</responder>
