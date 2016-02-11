@@ -14,4 +14,4 @@ REM See the License for the specific language governing permissions and
 REM limitations under the License.
 REM
 
-java -cp @INSTALL_DIR@/responder/lib/@JAR_NAME@.jar;@INSTALL_DIR@/responder/lib/ext/* -Djava.util.logging.config.file="@INSTALL_DIR@/responder/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf @INSTALL_DIR@/responder/config/responderConfig.prop %*
+java -cp @INSTALL_DIR@/responder/lib/@JAR_NAME@.jar;@INSTALL_DIR@/responder/lib/ext/* -Djava.util.logging.config.file="@INSTALL_DIR@/responder/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf @INSTALL_DIR@/responder/config/responderConfig.xml %*
