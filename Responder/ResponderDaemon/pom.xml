@@ -323,6 +323,15 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/opt/argo/responder/lib/ext</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>444</filemode>
+              <!-- <sources>
+              </sources> -->
+            </mapping>
+            <mapping>
               <directory>/opt/argo/responder/bin</directory>
               <directoryIncluded>false</directoryIncluded>
               <username>argo</username>
