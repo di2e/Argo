@@ -19,7 +19,6 @@
     <module>Responder</module>
     <module>clui</module>
     <module>CLClient</module>
-    <module>MulticastGateway</module>
     <module>DemoWebClient</module>
   </modules>
   <licenses>

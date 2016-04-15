@@ -265,7 +265,7 @@
 
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.5.3</version>
+        <version>2.6</version>
         <configuration>
           <descriptors>
             <descriptor>src/assembly/assembly.xml</descriptor>
@@ -321,6 +321,15 @@
                   </excludes>
                 </source>
               </sources>
+            </mapping>
+            <mapping>
+              <directory>/opt/argo/responder/lib/ext</directory>
+              <directoryIncluded>false</directoryIncluded>
+              <username>argo</username>
+              <groupname>argogroup</groupname>
+              <filemode>444</filemode>
+              <!-- <sources>
+              </sources> -->
             </mapping>
             <mapping>
               <directory>/opt/argo/responder/bin</directory>
