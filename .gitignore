@@ -1,10 +1,23 @@
 # Maven
-.classpath
-.checkstyle
-.project
-.DS_Store
 log/
 target/
 .settings/
 dependency-reduced-pom.xml
+
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+buildNumber.properties
+*.project
+*.settings
+*.classpath
+*.metadata
+*.iml
+*.idea
+*.checkstyle
+*.DS_Store
+*.swp
 

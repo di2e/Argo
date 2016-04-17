@@ -51,7 +51,7 @@ public class ResponseSerializationTest {
 
   @BeforeClass
   public static void setupProbeSender() throws IOException {
-    System.out.println(System.getProperty("java.version"));
+    System.out.println("Java version: " + System.getProperty("java.version"));
     readXMLFiles();
   }
 
