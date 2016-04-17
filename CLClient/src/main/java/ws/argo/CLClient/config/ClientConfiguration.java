@@ -16,6 +16,7 @@ import javax.ws.rs.client.WebTarget;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.annotation.Immutable;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
@@ -214,17 +215,21 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
     _ksPassword = _config.getString("keystorePassword");
     _truststore = _config.getString("truststoreFilename");
     _tsPassword = _config.getString("truststorePassword");
-
+    
     _sslContextConfigurator = new SSLContextConfigurator();
 
-    // set up security context contains listener self-signed certificate
-    _sslContextConfigurator.setKeyStoreFile(getKeystore());
-    _sslContextConfigurator.setKeyStorePass(getKSPassword());
-    // contains listener self-signed certificate
-    _sslContextConfigurator.setTrustStoreFile(getTruststore());
-    _sslContextConfigurator.setTrustStorePass(getTSPassword());
+    if ( StringUtils.isNotEmpty( _keystore ) && StringUtils.isNotEmpty(_ksPassword ) && StringUtils.isNotEmpty( _truststore ) && StringUtils.isNotEmpty( _tsPassword ) ){
+        // set up security context contains listener self-signed certificate
+        _sslContextConfigurator.setKeyStoreFile(getKeystore());
+        _sslContextConfigurator.setKeyStorePass(getKSPassword());
+        // contains listener self-signed certificate
+        _sslContextConfigurator.setTrustStoreFile(getTruststore());
+        _sslContextConfigurator.setTrustStorePass(getTSPassword());
 
-    validateKeystoreConfiguration();
+        validateKeystoreConfiguration();
+    }else{
+    	Console.warn( "***** WARNING: KeyStore and TrustStore were not set.  You will not be able to use SSL/TLS communications.  Update the clientConfig.xml file if SSL/TLS is needed *****" );
+    }
   }
 
   private void initializeURLs() {
