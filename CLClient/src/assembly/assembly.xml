@@ -10,10 +10,10 @@
 
   <fileSets>
     <fileSet>
-      <directory>${basedir}/target/generated-rpm-config/config</directory>
+      <directory>${basedir}/src/resources/client/config</directory>
       <outputDirectory>/client/config</outputDirectory>
       <filtered>true</filtered>
-      <fileMode>0444</fileMode>
+      <fileMode>0644</fileMode>
     </fileSet>
     <fileSet>
       <directory>${basedir}/target/generated-bin/</directory>
@@ -43,7 +43,14 @@
       </includes>
       <excludes>
         <exclude>original*</exclude>
+        <exclude>*shaded*</exclude>
       </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/src/resources/client/ext</directory>
+      <outputDirectory>/client/lib</outputDirectory>
+      <filtered>true</filtered>
+      <fileMode>0644</fileMode>
     </fileSet>
   </fileSets>
 </assembly>

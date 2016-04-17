@@ -116,16 +116,23 @@ public class ProbeSerializationTest {
   }
 
   @Test
-  public void testMarshallingNakedProbe() {
+  public void testMarshallingNakedProbe() throws ProbeParseException{
     ProbeWrapper probe = new ProbeWrapper("--ID--");
     probe.setClientId("yomama");
     probe.setRespondToPayloadType(ProbeWrapper.XML);
-
+    probe.addRespondToURL( "all", "http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse");
+    
     XMLSerializer serializer = new XMLSerializer();
-
     String payload = serializer.marshal(probe);
-
-    assertTrue(payload.equals(exemplarNakedProbePayload));
+    
+    ProbeWrapper parsedProbe = serializer.unmarshal(payload);
+    assertTrue( parsedProbe.isNaked() );
+    assertTrue( parsedProbe.getServiceContractIDs().isEmpty() );
+    assertTrue( parsedProbe.getServiceInstanceIDs().isEmpty() );
+    
+    ProbeWrapper knownGoodProbe = serializer.unmarshal(exemplarNakedProbePayload);
+    
+    assertTrue( parsedProbe.equals( knownGoodProbe ) );
   }
 
   @Test

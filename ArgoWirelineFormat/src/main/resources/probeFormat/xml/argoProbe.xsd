@@ -18,14 +18,14 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="scids">
+        <xs:element name="scids" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
               <xs:element type="xs:string" name="serviceContractID" maxOccurs="unbounded" minOccurs="0" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="siids">
+        <xs:element name="siids" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
               <xs:element type="xs:string" name="serviceInstanceID" maxOccurs="unbounded" minOccurs="0" />

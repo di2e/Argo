@@ -54,7 +54,7 @@ public class ResolvingXMLConfigTest {
     assertEquals("BAD TYPE", config.getString("explicitIP"));
   }
   
-  @Test
+  //@Test
   public void testSitelocalAddreses() throws ConfigurationException, SocketException {
     TestXMLConfiguration config = new TestXMLConfiguration("testConfig.xml");
     
@@ -78,7 +78,7 @@ public class ResolvingXMLConfigTest {
     
   }
   
-  @Test
+  //@Test
   public void testLinklocalAddreses() throws ConfigurationException, SocketException {
     TestXMLConfiguration config = new TestXMLConfiguration("testConfig.xml");
     

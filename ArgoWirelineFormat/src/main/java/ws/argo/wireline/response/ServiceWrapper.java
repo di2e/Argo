@@ -305,6 +305,7 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
    * @param ttlString the number of hops
    */
   public void setTtl(String ttlString) {
+	if ( ttlString != null && !ttlString.isEmpty() )
     try {
       this.ttl = Integer.valueOf(ttlString);
     } catch (NumberFormatException e) {

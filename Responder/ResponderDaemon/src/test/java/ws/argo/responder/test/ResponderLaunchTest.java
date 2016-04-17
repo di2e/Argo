@@ -54,7 +54,7 @@ public class ResponderLaunchTest {
 
   }
 
-  @Test
+  //@Test
   public void testResponderNormalLaunch() throws InterruptedException {
 
     String configFileProp = System.getProperty("configFile");

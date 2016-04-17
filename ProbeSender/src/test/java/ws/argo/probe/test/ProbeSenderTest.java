@@ -111,9 +111,9 @@ public class ProbeSenderTest {
   public void testWirelineFormatOfNakedProbe() throws UnsupportedPayloadType, JAXBException {
     Probe probe = new Probe(Probe.XML);
 
-    String xml = probe.asXML();
+    String xml = probe.asXML().replace("\n", "").replace("\r", "");
 
-    String testXML = targetNakedProbeXML.replaceAll("--ID--", probe.getProbeID());
+    String testXML = targetNakedProbeXML.replaceAll("--ID--", probe.getProbeID()).replace("\n", "").replace("\r", "");
 
     assertEquals(testXML, xml);
   }
@@ -155,9 +155,9 @@ public class ProbeSenderTest {
     probe.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
     probe.addServiceInstanceID("uuid:03d55093-a954-4667-b682-8116c417925d");
 
-    String testXML = targetXML.replaceAll("--ID--", probe.getProbeID());
+    String testXML = targetXML.replaceAll("--ID--", probe.getProbeID()).replace("\n", "").replace("\r", "");;
 
-    String xml = probe.asXML();
+    String xml = probe.asXML().replace("\n", "").replace("\r", "");;
 
     assertEquals(testXML, xml);
   }

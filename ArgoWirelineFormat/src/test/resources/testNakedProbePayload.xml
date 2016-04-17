@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <probe id="--ID--" DESVersion="urn:uuid:918b5b45-1496-459e-8a6b-633dbc465380">
     <respondToPayloadType>XML</respondToPayloadType>
-    <scids/>
+    <ra>
+        <respondTo label="all">http://1.1.1.1:8080/AsynchListener/api/responseHandler/probeResponse</respondTo>
+    </ra>
 </probe>

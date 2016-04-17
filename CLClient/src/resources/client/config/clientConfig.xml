@@ -117,7 +117,7 @@
 
   <listenerURL></listenerURL>
   <respondToURL></respondToURL>
-  <installDir>@INSTALL_DIR@</installDir>
+  <installDir>${env:ARGO_HOME}</installDir>
 
   <keystoreFilename></keystoreFilename>
   <keystorePassword></keystorePassword>

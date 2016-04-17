@@ -49,7 +49,7 @@ public class ResponderProbeJSONTest extends ResponderProbeTest {
    * 
    * @throws IOException if the resource is missing
    */
-  @Before
+  //@Before
   public void readTargetXMLFiles() throws IOException {
     // Read the completely filled out probe test file for comparison
     assertNotNull("nakedProbeJSONResponseFromListener.json file missing", ResponderProbeJSONTest.class.getResource("/nakedProbeJSONResponseFromListener.json"));
@@ -59,7 +59,7 @@ public class ResponderProbeJSONTest extends ResponderProbeTest {
 
   }
 
-  @Test
+  //@Test
   public void testNakedProbeJSON() throws UnsupportedPayloadType, InterruptedException, MalformedURLException, ProbeSenderException {
     Probe probe = new Probe(Probe.JSON);
     probe.addRespondToURL("", "http://localhost:9998/listener/probeResponse");
