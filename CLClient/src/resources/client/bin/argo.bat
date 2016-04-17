@@ -15,4 +15,4 @@ REM See the License for the specific language governing permissions and
 REM limitations under the License.
 REM
 
-java -cp %ARGO_HOME%/client/lib/@JAR_NAME@.jar -Djava.util.logging.config.file="%ARGO_HOME%/client/bin/logging.properties" -Dnet.java.preferIPv4Stack=true net.dharwin.common.tools.cli.api.EntryPoint -pf %ARGO_HOME%/client/config/clientConfig.xml %*
+java -cp %ARGO_HOME%/client/lib/* -Djava.util.logging.config.file="%ARGO_HOME%/client/bin/logging.properties" -Dnet.java.preferIPv4Stack=true net.dharwin.common.tools.cli.api.EntryPoint -pf %ARGO_HOME%/client/config/clientConfig.xml %*

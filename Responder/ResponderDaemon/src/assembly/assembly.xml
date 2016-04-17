@@ -54,5 +54,11 @@
         <exclude>*shaded*</exclude>
       </excludes>
     </fileSet>
+    <fileSet>
+      <directory>${basedir}/src/resources/responder/ext</directory>
+      <outputDirectory>/responder/lib</outputDirectory>
+      <filtered>true</filtered>
+      <fileMode>0644</fileMode>
+    </fileSet>
   </fileSets>
 </assembly>
