@@ -28,6 +28,8 @@ import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.ConfigurationException;
 
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration;
@@ -70,8 +72,9 @@ public class ConfigFileMonitorTask extends TimerTask {
    */
   public ConfigFileMonitorTask(ConfigFileProbeHandlerPlugin configFileProbeHandlerPluginImpl) throws ConfigurationException {
     _plugin = configFileProbeHandlerPluginImpl;
-    Properties config = _plugin.getConfiguration();
-    String xmlConfigFilename = config.getProperty("xmlConfigFilename");
+    Properties properties = _plugin.getConfiguration();
+    Configuration config = ConfigurationConverter.getConfiguration(properties);
+    String xmlConfigFilename = config.getString("xmlConfigFilename");
     _xmlConfigFile = new File(xmlConfigFilename);
   }
 
@@ -91,7 +94,8 @@ public class ConfigFileMonitorTask extends TimerTask {
         _lastTimeRead = new Date();
       }
     } catch (ConfigurationException e) {
-      LOGGER.log(Level.SEVERE, "Error loading configuation file: ", e);
+      e.printStackTrace();
+      LOGGER.log(Level.SEVERE, "Error loading configuation file: ", e );
     }
     LOGGER.fine("finish scan for config file changes");
   }
@@ -109,8 +113,9 @@ public class ConfigFileMonitorTask extends TimerTask {
    */
   private void loadServiceConfigFile() throws ConfigurationException {
 
-    Properties config = _plugin.getConfiguration();
-    String xmlConfigFilename = config.getProperty("xmlConfigFilename");
+	Properties properties = _plugin.getConfiguration();
+	Configuration config = ConfigurationConverter.getConfiguration(properties);
+    String xmlConfigFilename = config.getString("xmlConfigFilename");
 
     _config = new ServiceListConfiguration(xmlConfigFilename);
 

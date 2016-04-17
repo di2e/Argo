@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <responder>
 
-  <installDir>@INSTALL_DIR@</installDir>
+  <installDir>${env:ARGO_HOME}</installDir>
 
   <!-- 
   This section describes the configuration for allowing the Responder to HTTPS as a legitimate

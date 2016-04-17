@@ -51,6 +51,7 @@
       </includes>
       <excludes>
         <exclude>original*</exclude>
+        <exclude>*shaded*</exclude>
       </excludes>
     </fileSet>
   </fileSets>
