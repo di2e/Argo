@@ -46,11 +46,13 @@
         <exclude>*shaded*</exclude>
       </excludes>
     </fileSet>
+     <!-- 
     <fileSet>
       <directory>${basedir}/src/resources/client/ext</directory>
       <outputDirectory>/client/lib</outputDirectory>
       <filtered>true</filtered>
       <fileMode>0644</fileMode>
     </fileSet>
+     -->
   </fileSets>
 </assembly>
