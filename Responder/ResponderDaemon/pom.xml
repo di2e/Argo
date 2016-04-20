@@ -5,10 +5,10 @@
   <parent>
     <groupId>ws.argo.responder</groupId>
     <artifactId>Responder</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
   </parent>
   <artifactId>ResponderDaemon</artifactId>
-  <version>0.4.1</version>
+  <version>0.4.2</version>
   <name>Responder Daemon</name>
   <description>This project is the actual Responder daemon and its accompanying script files.</description>
   <url>http://www.argo.ws</url>
@@ -54,7 +54,7 @@
     <dependency>
       <groupId>ws.argo.common</groupId>
       <artifactId>CommonUtils</artifactId>
-      <version>0.4.1</version>
+      <version>0.4.2</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
@@ -69,7 +69,7 @@
     </dependency>
     <dependency>
       <groupId>ws.argo.probe</groupId>
-      <version>0.4.1</version>
+      <version>0.4.2</version>
       <artifactId>ProbeSender</artifactId>
     </dependency>
     <dependency>

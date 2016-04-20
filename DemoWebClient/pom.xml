@@ -3,10 +3,10 @@
   <parent>
     <groupId>ws.argo</groupId>
     <artifactId>Argo</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
   </parent>
   <artifactId>DemoWebClient</artifactId>
-  <version>0.4.1</version>
+  <version>0.4.2</version>
   <packaging>pom</packaging>
   <name>Demo Web Client</name>
   <modules>
