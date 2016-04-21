@@ -15,4 +15,4 @@
 #  limitations under the License.
 # 
 
-java -cp $ARGO_HOME/responder/lib/* -Djava.util.logging.config.file="$ARGO_HOME/responder/bin/logging.properties" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf $ARGO_HOME/responder/config/responderConfig.xml "$@"
+java -cp "$ARGO_HOME/responder/lib/*" -Dlog4j.configurationFile="$ARGO_HOME/responder/config/log4j2.xml" -Dnet.java.preferIPv4Stack=true ws.argo.responder.Responder -pf "$ARGO_HOME/responder/config/responderConfig.xml" "$@"

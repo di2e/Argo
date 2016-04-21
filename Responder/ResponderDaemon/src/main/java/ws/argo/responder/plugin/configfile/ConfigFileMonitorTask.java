@@ -23,14 +23,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration;
 import ws.argo.responder.plugin.configfile.xml.ServicesConfiguration.Service;
@@ -54,7 +54,7 @@ import ws.argo.wireline.response.ServiceWrapper;
  */
 public class ConfigFileMonitorTask extends TimerTask {
 
-  private static final Logger              LOGGER        = Logger.getLogger(ConfigFileMonitorTask.class.getName());
+  private static final Logger              LOGGER        = LogManager.getLogger(ConfigFileMonitorTask.class.getName());
 
   private ConfigFileProbeHandlerPlugin _plugin;
   private Date                             _lastTimeRead = null;
@@ -84,7 +84,7 @@ public class ConfigFileMonitorTask extends TimerTask {
    * null value for lastTimeRead means that we never read the file before.
    */
   public void run() {
-    LOGGER.fine("begin scan for config file changes ...");
+    LOGGER.debug("begin scan for config file changes ...");
     try {
       Date lastModified = new Date(_xmlConfigFile.lastModified());
 
@@ -95,9 +95,9 @@ public class ConfigFileMonitorTask extends TimerTask {
       }
     } catch (ConfigurationException e) {
       e.printStackTrace();
-      LOGGER.log(Level.SEVERE, "Error loading configuation file: ", e );
+      LOGGER.error( "Error loading configuation file: ", e );
     }
-    LOGGER.fine("finish scan for config file changes");
+    LOGGER.debug("finish scan for config file changes");
   }
 
   /**
@@ -125,7 +125,7 @@ public class ConfigFileMonitorTask extends TimerTask {
 
     ArrayList<ServiceWrapper> serviceList = _config.getServiceList();
 
-    LOGGER.fine("Setting the service list in the plugin");
+    LOGGER.debug("Setting the service list in the plugin");
     _plugin.setServiceList(serviceList);
 
   }

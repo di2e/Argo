@@ -19,7 +19,9 @@ package ws.argo.wireline.response;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The ServiceWrapper is effectively an Argo domain class. It is the
@@ -32,7 +34,7 @@ import java.util.logging.Logger;
  */
 public class ServiceWrapper implements Comparable<ServiceWrapper> {
 
-  private static final Logger LOGGER = Logger.getLogger(ServiceWrapper.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(ServiceWrapper.class.getName());
 
   public static final String HUMAN_CONSUMABLE   = "HUMAN_CONSUMABLE";
   public static final String MACHINE_CONSUMABLE = "MACHINE_CONSUMABLE";
@@ -309,7 +311,7 @@ public class ServiceWrapper implements Comparable<ServiceWrapper> {
     try {
       this.ttl = Integer.valueOf(ttlString);
     } catch (NumberFormatException e) {
-      LOGGER.warning("Error trying to format the string " + ttlString + " into an Integer.");
+      LOGGER.warn("Error trying to format the string " + ttlString + " into an Integer.");
     }
   }
 

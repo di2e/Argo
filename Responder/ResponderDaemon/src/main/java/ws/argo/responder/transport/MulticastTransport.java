@@ -28,12 +28,13 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.plugin.transport.responder.ProbeProcessor;
 import ws.argo.plugin.transport.responder.Transport;
-import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.responder.Responder;
 import ws.argo.wireline.probe.ProbeParseException;
 import ws.argo.wireline.probe.ProbeWrapper;
@@ -48,7 +49,7 @@ import ws.argo.wireline.probe.XMLSerializer;
  */
 public class MulticastTransport implements Transport {
 
-  private static final Logger LOGGER = Logger.getLogger(MulticastTransport.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(MulticastTransport.class.getName());
 
 
   private boolean           shouldRun     = true;
@@ -71,22 +72,22 @@ public class MulticastTransport implements Transport {
   public void run() {
     DatagramPacket packet;
 
-    LOGGER.fine("Starting MulticastTransport listening loop - infinite until thread terminated");
+    LOGGER.debug("Starting MulticastTransport listening loop - infinite until thread terminated");
     // infinite loop until the responder is terminated
     while (shouldRun) {
 
       byte[] buf = new byte[bufferSize * 1024];
       packet = new DatagramPacket(buf, buf.length);
-      LOGGER.fine("Waiting to recieve packet...");
+      LOGGER.debug("Waiting to recieve packet...");
       try {
         inboundSocket.receive(packet);
 
-        LOGGER.fine("Received packet");
-        LOGGER.fine("Packet contents:");
+        LOGGER.debug("Received packet");
+        LOGGER.debug("Packet contents:");
 
         // Get the actual wireline payload
         String probeStr = new String(packet.getData(), 0, packet.getLength());
-        LOGGER.fine(probeStr);
+        LOGGER.debug(probeStr);
 
         try {
           XMLSerializer serializer = new XMLSerializer();
@@ -96,13 +97,13 @@ public class MulticastTransport implements Transport {
           processor.processProbe(probe);
 
         } catch (ProbeParseException e) {
-          LOGGER.log(Level.SEVERE, "Error parsing inbound probe payload.", e);
+          LOGGER.error( "Error parsing inbound probe payload.", e);
         }
       } catch (SocketTimeoutException toe) {
-        LOGGER.finest("MulticastTransport loop timeout fired.");
+        LOGGER.debug("MulticastTransport loop timeout fired.");
       } catch (IOException e1) {
         if (shouldRun) {
-          LOGGER.severe("Error during MulticastTransport wireline read loop." + e1.getMessage());
+          LOGGER.error("Error during MulticastTransport wireline read loop." + e1.getMessage());
         }
       }
     }
@@ -131,7 +132,7 @@ public class MulticastTransport implements Transport {
       try {
         inboundSocket.leaveGroup(maddress);
       } catch (IOException e) {
-        LOGGER.log(Level.SEVERE, "Error leaving multicast group", e);
+        LOGGER.error("Error leaving multicast group", e);
       }
       inboundSocket.close();
     }
@@ -160,12 +161,12 @@ public class MulticastTransport implements Transport {
       }
       if (ni == null) {
         InetAddress localhost = InetAddress.getLocalHost();
-        LOGGER.fine("Network Interface name not specified.  Using the NI for localhost [" + localhost.getHostAddress() + "]");
+        LOGGER.debug("Network Interface name not specified.  Using the NI for localhost [" + localhost.getHostAddress() + "]");
         ni = NetworkInterface.getByInetAddress(localhost);
         if (ni != null && ni.isLoopback()) {
-          LOGGER.warning("DEFAULT NETWORK INTERFACE IS THE LOOPBACK !!!!.");
-          LOGGER.warning("Attempting to use the NI for localhost [" + ni.getName() + "] is a loopback.");
-          LOGGER.warning("Please run the Responder with the -ni switch selecting a more appropriate network interface to use (e.g. -ni eth0).");
+          LOGGER.warn("DEFAULT NETWORK INTERFACE IS THE LOOPBACK !!!!.");
+          LOGGER.warn("Attempting to use the NI for localhost [" + ni.getName() + "] is a loopback.");
+          LOGGER.warn("Please run the Responder with the -ni switch selecting a more appropriate network interface to use (e.g. -ni eth0).");
           throw new TransportConfigException("DEFAULT NETWORK INTERFACE IS THE LOOPBACK !!!!.");
         }
       }
@@ -176,7 +177,7 @@ public class MulticastTransport implements Transport {
       if (ni == null) { // for some reason NI is still NULL. Not sure why
         // this happens.
         this.inboundSocket.joinGroup(maddress);
-        LOGGER.warning("Unable to determine the network interface for the localhost address.  Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
+        LOGGER.warn("Unable to determine the network interface for the localhost address.  Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
         LOGGER.info("Unknown network interface joined group [" + socketAddress.toString() + "]");
       } else {
         this.inboundSocket.joinGroup(socketAddress, ni);
@@ -184,7 +185,7 @@ public class MulticastTransport implements Transport {
       }
     } catch (IOException e) {
       if (ni == null) {
-        LOGGER.log(Level.SEVERE, "Error attempting to joint multicast address.", e);
+        LOGGER.error( "Error attempting to joint multicast address.", e);
       } else {
         StringBuffer buf = new StringBuffer();
         try {
@@ -243,7 +244,7 @@ public class MulticastTransport implements Transport {
       int port = Integer.parseInt(prop.getProperty("multicastPort", "4003"));
       multicastPort = port;
     } catch (NumberFormatException e) {
-      LOGGER.warning("Error reading port number from properties file.  Using default port of 4003.");
+      LOGGER.warn("Error reading port number from properties file.  Using default port of 4003.");
       multicastPort = 4003;
     }
 
@@ -254,7 +255,7 @@ public class MulticastTransport implements Transport {
       int size = Integer.parseInt(prop.getProperty("bufferSize", "2"));
       bufferSize = size;
     } catch (NumberFormatException e) {
-      LOGGER.warning("Error reading bufferSize number from properties file.  Using bufferSize port of 2.");
+      LOGGER.warn("Error reading bufferSize number from properties file.  Using bufferSize port of 2.");
       multicastPort = 2;
     }
 

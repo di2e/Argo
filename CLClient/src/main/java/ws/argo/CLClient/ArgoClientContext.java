@@ -11,13 +11,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ws.rs.client.WebTarget;
 
 import net.dharwin.common.tools.cli.api.CLIContext;
 import net.dharwin.common.tools.cli.api.console.Console;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import ws.argo.CLClient.config.ClientConfiguration;
 import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.probe.Probe;
@@ -32,7 +34,7 @@ import ws.argo.probe.Probe;
  */
 public class ArgoClientContext extends CLIContext {
 
-  private static final Logger LOGGER = Logger.getLogger(ArgoClientContext.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(ArgoClientContext.class.getName());
 
   public static final String DEFAULT_CID = "ARGO-CommandLineClient";
 
@@ -76,7 +78,7 @@ public class ArgoClientContext extends CLIContext {
         transport.initialize(this);
         _clientSenders.add(transport);
       } catch (TransportConfigException e) {
-        LOGGER.log(Level.WARNING, "Transport [" + config.getName() + "] failed to initialize.", e);
+        LOGGER.warn( "Transport [" + config.getName() + "] failed to initialize.", e);
         Console.error("Unable to initialize the Transport [" + config.getName() + "].  Ignoring.");
       }
     }

@@ -2,10 +2,6 @@ package ws.argo.CLClient.config;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -14,14 +10,14 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
+import net.dharwin.common.tools.cli.api.console.Console;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.annotation.Immutable;
-import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 
-import net.dharwin.common.tools.cli.api.console.Console;
 import ws.argo.CLClient.TransportConfig;
 import ws.argo.CLClient.listener.ResponseListener;
 import ws.argo.common.config.ResolvingXMLConfiguration;
@@ -189,14 +185,14 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
    */
   public void validateKeystoreConfiguration() throws ConfigurationException {
 
-    Logger logger = Grizzly.logger(SSLContextConfigurator.class);
-    Level level = logger.getLevel();
+    //Logger logger = Grizzly.logger(SSLContextConfigurator.class);
+    //Level level = logger.getLevel();
 
-    Handler consoleHandler = new ConsoleHandler();
-    consoleHandler.setLevel(Level.FINE);
-    logger.addHandler(consoleHandler);
+    //Handler consoleHandler = new ConsoleHandler();
+    //consoleHandler.setLevel(Level.FINE);
+    //logger.addHandler(consoleHandler);
 
-    logger.setLevel(Level.FINE);
+    //logger.setLevel(Level.FINE);
     if (!_sslContextConfigurator.validateConfiguration(true)) {
       // Throwing this ConfigurationException will crash out of the client
       // entirely. The SSL stuff needs to be configured properly for the client
@@ -205,8 +201,8 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
     } else {
       Console.info("The keystore configuration is valid.");
     }
-    logger.removeHandler(consoleHandler);
-    logger.setLevel(level);
+    //logger.removeHandler(consoleHandler);
+    //logger.setLevel(level);
   }
 
   private void initializeKeystoreSettings() throws ConfigurationException {

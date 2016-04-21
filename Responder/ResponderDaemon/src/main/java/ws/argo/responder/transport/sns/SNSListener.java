@@ -20,10 +20,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.logging.Logger;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -39,7 +40,7 @@ import ws.argo.responder.transport.AmazonSNSTransport;
  */
 public class SNSListener {
 
-  private static final Logger LOGGER = Logger.getLogger(SNSListener.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(SNSListener.class.getName());
 
   private static final int DEFAULT_PORT = 4004;
   
@@ -55,7 +56,7 @@ public class SNSListener {
       localAddr = InetAddress.getLocalHost();
       addr = localAddr.getHostAddress();
     } catch (UnknownHostException e) {
-      LOGGER.warning("Issues finding ip address of locahost.  Using string 'localhost' for listener address binding");
+      LOGGER.warn("Issues finding ip address of locahost.  Using string 'localhost' for listener address binding");
       addr = "localhost";
     }
     return UriBuilder.fromUri("http://" + addr + "/").port(DEFAULT_PORT).build();
@@ -79,7 +80,7 @@ public class SNSListener {
     
 //    ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.responder.transport.sns");
 
-    LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
+    LOGGER.debug("Starting Jersey-Grizzly2 JAX-RS listener...");
     HttpServer httpServer =  GrizzlyHttpServerFactory.createHttpServer(uri, resourceConfig, false);
     httpServer.getServerConfiguration().setName("SNS Listener");
     httpServer.start();

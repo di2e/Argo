@@ -21,8 +21,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
 import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
@@ -31,7 +32,6 @@ import ws.argo.plugin.transport.sender.Transport;
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeSender;
 import ws.argo.probe.ProbeSenderException;
-import ws.argo.transport.probe.standard.AmazonSNSTransport;
 import ws.argo.transport.probe.standard.MulticastTransport;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.response.ResponseWrapper;
@@ -43,13 +43,13 @@ import ws.argo.wireline.response.ResponseWrapper;
  */
 public class MulticastRepeaterProbeHandlerPlugin implements ProbeHandlerPlugin {
 
-  private static final Logger LOGGER = Logger.getLogger(MulticastRepeaterProbeHandlerPlugin.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(MulticastRepeaterProbeHandlerPlugin.class.getName());
 
   private ProbeSender         _sender;
 
   @Override
   public ResponseWrapper handleProbeEvent(ProbeWrapper probeWrapper) {
-    LOGGER.fine("Multicast Repeater ProbeHandlerPlugin handling probe: " + probeWrapper.asXML());
+    LOGGER.debug("Multicast Repeater ProbeHandlerPlugin handling probe: " + probeWrapper.asXML());
 
     ResponseWrapper response = new ResponseWrapper(probeWrapper.getProbeId());
 
@@ -57,7 +57,7 @@ public class MulticastRepeaterProbeHandlerPlugin implements ProbeHandlerPlugin {
     try {
         _sender.sendProbe(probe);
     } catch (ProbeSenderException e) {
-        LOGGER.log(Level.WARNING, "Unable to repeat probe to Multicast Transport.", e);
+        LOGGER.warn( "Unable to repeat probe to Multicast Transport.", e);
     }
 
     return response;

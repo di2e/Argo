@@ -17,23 +17,24 @@
 package ws.argo.responder.transport.sns;
 
 import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
-import com.amazonaws.services.sns.model.ConfirmSubscriptionResult;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.responder.transport.AmazonSNSTransport;
 import ws.argo.wireline.probe.ProbeParseException;
 import ws.argo.wireline.probe.ProbeWrapper;
 import ws.argo.wireline.probe.XMLSerializer;
+
+import com.amazonaws.services.sns.model.ConfirmSubscriptionResult;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * This is the CL UI probe listener resource used by the JAX-RS container. It
@@ -45,7 +46,7 @@ import ws.argo.wireline.probe.XMLSerializer;
 @Path("/listener")
 public class SNSListenerResource {
 
-  private static final Logger LOGGER = Logger.getLogger(SNSListenerResource.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(SNSListenerResource.class.getName());
 
   private AmazonSNSTransport snsTransport;
 
@@ -109,17 +110,17 @@ public class SNSListenerResource {
       snsTransport.getProcessor().processProbe(probe);
   
     } catch (ProbeParseException e) {
-      LOGGER.log(Level.SEVERE, "Error parsing inbound probe payload.", e);
+      LOGGER.error( "Error parsing inbound probe payload.", e);
     }
   }
 
   private void handleUnsubscriptionConfirmation(String asString, String asString2) {
-    LOGGER.warning("Handling unsubscribe confirmation message.  Will resubscribe if not in shutdown.");
+    LOGGER.warn("Handling unsubscribe confirmation message.  Will resubscribe if not in shutdown.");
     
     try {
       snsTransport.subscribe();
     } catch (URISyntaxException | TransportConfigException e) {
-      LOGGER.log(Level.SEVERE, "Error during re-subscribe from housekeeping unsubscribe.", e);
+      LOGGER.error( "Error during re-subscribe from housekeeping unsubscribe.", e);
     }
     
   }

@@ -25,14 +25,15 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBException;
 
-import ws.argo.plugin.transport.sender.Transport;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.plugin.transport.exception.TransportException;
+import ws.argo.plugin.transport.sender.Transport;
 import ws.argo.probe.Probe;
 import ws.argo.probe.ProbeSenderException;
 
@@ -49,7 +50,7 @@ public class MulticastTransport implements Transport {
   public static final String DEFAULT_ARGO_PORT_STRING = "4003";
   public static final int DEFAULT_ARGO_PORT = 4003;
 
-  private static final Logger LOGGER = Logger.getLogger(MulticastTransport.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(MulticastTransport.class.getName());
 
   public String multicastAddress;
 
@@ -120,8 +121,8 @@ public class MulticastTransport implements Transport {
       String multicastPort = p.getProperty("multicastPort", DEFAULT_ARGO_PORT_STRING);
       this.multicastPort = Integer.parseInt(multicastPort);
     } catch (NumberFormatException e) {
-      LOGGER.log(Level.WARNING, "MulticastTransport initialization error.  Unable to read multicastPort during initialization.");
-      LOGGER.log(Level.WARNING, "Value provided is [" + multicastPort + "].  Using default port of [" + DEFAULT_ARGO_PORT + "]");
+      LOGGER.warn( "MulticastTransport initialization error.  Unable to read multicastPort during initialization.");
+      LOGGER.warn( "Value provided is [" + multicastPort + "].  Using default port of [" + DEFAULT_ARGO_PORT + "]");
       this.multicastPort = DEFAULT_ARGO_PORT;
     }
 
@@ -167,7 +168,7 @@ public class MulticastTransport implements Transport {
         networkInterface = NetworkInterface.getByName(niName);
       if (networkInterface == null) {
         InetAddress localhost = InetAddress.getLocalHost();
-        LOGGER.fine("Network Interface name not specified.  Using the NI for localhost " + localhost.getHostAddress());
+        LOGGER.debug("Network Interface name not specified.  Using the NI for localhost " + localhost.getHostAddress());
         networkInterface = NetworkInterface.getByInetAddress(localhost);
       }
 
@@ -175,7 +176,7 @@ public class MulticastTransport implements Transport {
       if (networkInterface == null) {
         // for some reason NI is still NULL. Not sure why this happens.
         this.outboundSocket.joinGroup(maddress);
-        LOGGER.warning("Unable to determine the network interface for the localhost address. Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
+        LOGGER.warn("Unable to determine the network interface for the localhost address. Check /etc/hosts for weird entry like 127.0.1.1 mapped to DNS name.");
         LOGGER.info("Unknown network interface joined group " + socketAddress.toString());
       } else {
         this.outboundSocket.joinGroup(socketAddress, networkInterface);
@@ -226,12 +227,12 @@ public class MulticastTransport implements Transport {
   public void sendProbe(Probe probe) throws TransportException {
 
     LOGGER.info("Sending probe [" + probe.getProbeID() + "] on network inteface [" + networkInterface.getName() + "] at port [" + multicastAddress + ":" + multicastPort + "]");
-    LOGGER.finest("Probe requesting TTL of [" + probe.getHopLimit() + "]");
+    LOGGER.debug("Probe requesting TTL of [" + probe.getHopLimit() + "]");
 
     try {
       String msg = probe.asXML();
 
-      LOGGER.finest("Probe payload (always XML): \n" + msg);
+      LOGGER.debug("Probe payload (always XML): \n" + msg);
 
       byte[] msgBytes;
       msgBytes = msg.getBytes(StandardCharsets.UTF_8);
@@ -242,7 +243,7 @@ public class MulticastTransport implements Transport {
       outboundSocket.setTimeToLive(probe.getHopLimit());
       outboundSocket.send(packet);
 
-      LOGGER.finest("Probe sent on port [" + multicastAddress + ":" + multicastPort + "]");
+      LOGGER.debug("Probe sent on port [" + multicastAddress + ":" + multicastPort + "]");
 
     } catch (IOException e) {
       throw new TransportException("Unable to send probe. Issue sending UDP packets.", e);
@@ -275,7 +276,7 @@ public class MulticastTransport implements Transport {
     try {
       return networkInterface.getMTU();
     } catch (SocketException e) {
-      LOGGER.log(Level.FINE, "Multicast Transport maxPayloadSize reqequested.  No Network Interface assigned. Returning max int value.");
+      LOGGER.debug( "Multicast Transport maxPayloadSize reqequested.  No Network Interface assigned. Returning max int value.");
       return Integer.MAX_VALUE;
     }
   }

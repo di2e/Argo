@@ -19,18 +19,17 @@ package ws.argo.responder.configuration;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.common.config.ResolvingXMLConfiguration;
-import ws.argo.responder.configuration.PluginConfig;
 
 public class ResponderConfiguration extends ResolvingXMLConfiguration {
 
-  private static final Logger     LOGGER = Logger.getLogger(ResponderConfiguration.class.getName());
+  private static final Logger     LOGGER = LogManager.getLogger(ResponderConfiguration.class.getName());
 
   private boolean                 _noBrowser;
   private ArrayList<PluginConfig> _probeHandlerConfigs;
@@ -111,7 +110,7 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
       int threadSize = Integer.parseInt(_config.getString("threadPoolSize", "10"));
       _threadPoolSize = threadSize;
     } catch (NumberFormatException e) {
-      LOGGER.warning("Error reading threadPoolSize number from properties file.  Using default threadPoolSize of 10.");
+      LOGGER.warn("Error reading threadPoolSize number from properties file.  Using default threadPoolSize of 10.");
       _threadPoolSize = 10;
     }
   }
@@ -221,7 +220,7 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
 
   @Override
   protected void warn(String string) {
-    LOGGER.warning(string);
+    LOGGER.warn(string);
   }
 
   @Override
@@ -231,11 +230,11 @@ public class ResponderConfiguration extends ResolvingXMLConfiguration {
 
   @Override
   protected void error(String string) {
-    LOGGER.severe(string);
+    LOGGER.error( string);
   }
 
   @Override
   protected void error(String string, Throwable e) {
-    LOGGER.log(Level.SEVERE, string, e);
+    LOGGER.error( string, e);
   }
 }

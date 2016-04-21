@@ -15,4 +15,4 @@
 #  limitations under the License.
 # 
 
-java -cp $ARGO_HOME/client/lib/* -Djava.util.logging.config.file="$ARGO_HOME/client/bin/logging.properties" -Dnet.java.preferIPv4Stack=true net.dharwin.common.tools.cli.api.EntryPoint -pf $ARGO_HOME/client/config/clientConfig.xml "$@"
+java -cp "$ARGO_HOME/client/lib/*" -Dlog4j.configurationFile="$ARGO_HOME/client/config/log4j2.xml" -Dnet.java.preferIPv4Stack=true net.dharwin.common.tools.cli.api.EntryPoint -pf "$ARGO_HOME/client/config/clientConfig.xml" "$@"

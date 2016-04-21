@@ -24,13 +24,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
 import ws.argo.wireline.probe.ProbeWrapper;
@@ -51,7 +51,7 @@ import ws.argo.wireline.response.ResponseWrapper;
  */
 public class ProbeHandlerThread implements Runnable {
 
-  private static final Logger      LOGGER            = Logger.getLogger(ProbeHandlerThread.class.getName());
+  private static final Logger      LOGGER            = LogManager.getLogger(ProbeHandlerThread.class.getName());
 
   // 5 minutes
   private static final long        probeCacheTimeout = 5 * 60 * 1000;
@@ -124,9 +124,9 @@ public class ProbeHandlerThread implements Runnable {
       input.setContentType(contentType);
       postRequest.setEntity(input);
 
-      LOGGER.fine("Sending response");
-      LOGGER.fine("Response payload:");
-      LOGGER.fine(responseStr);
+      LOGGER.debug("Sending response");
+      LOGGER.debug("Response payload:");
+      LOGGER.debug(responseStr);
       CloseableHttpResponse httpResponse = httpClient.execute(postRequest);
       try {
 
@@ -138,11 +138,11 @@ public class ProbeHandlerThread implements Runnable {
         if (statusCode != 204) {
           BufferedReader br = new BufferedReader(new InputStreamReader((httpResponse.getEntity().getContent())));
 
-          LOGGER.fine("Successful response from response target - " + respondToURL);
+          LOGGER.debug("Successful response from response target - " + respondToURL);
           String output;
-          LOGGER.fine("Output from Listener .... \n");
+          LOGGER.debug("Output from Listener .... \n");
           while ((output = br.readLine()) != null) {
-            LOGGER.fine(output);
+            LOGGER.debug(output);
           }
           br.close();
         }
@@ -154,15 +154,15 @@ public class ProbeHandlerThread implements Runnable {
 
     } catch (MalformedURLException e) {
       success = false;
-      LOGGER.log(Level.SEVERE, "MalformedURLException occured  for probeID [" + payload.getProbeID() + "]" + "\nThe respondTo URL was a no good.  respondTo URL is: " + respondToURL);
+      LOGGER.error( "MalformedURLException occured  for probeID [" + payload.getProbeID() + "]" + "\nThe respondTo URL was a no good.  respondTo URL is: " + respondToURL);
     } catch (IOException e) {
       success = false;
-      LOGGER.log(Level.SEVERE, "An IOException occured for probeID [" + payload.getProbeID() + "]" + " - " + e.getLocalizedMessage());
-      LOGGER.log(Level.FINE, "Stack trace for IOException for probeID [" + payload.getProbeID() + "]", e);
+      LOGGER.error( "An IOException occured for probeID [" + payload.getProbeID() + "]" + " - " + e.getLocalizedMessage());
+      LOGGER.debug( "Stack trace for IOException for probeID [" + payload.getProbeID() + "]", e);
     } catch (Exception e) {
       success = false;
-      LOGGER.log(Level.SEVERE, "Some other error occured for probeID [" + payload.getProbeID() + "]" + ".  respondTo URL is: " + respondToURL + " - " + e.getLocalizedMessage());
-      LOGGER.log(Level.FINE, "Stack trace for probeID [" + payload.getProbeID() + "]", e);
+      LOGGER.error( "Some other error occured for probeID [" + payload.getProbeID() + "]" + ".  respondTo URL is: " + respondToURL + " - " + e.getLocalizedMessage());
+      LOGGER.debug( "Stack trace for probeID [" + payload.getProbeID() + "]", e);
     }
 
     return success;
@@ -208,29 +208,29 @@ public class ProbeHandlerThread implements Runnable {
     if (!isProbeHandled(probe.getProbeId())) {
 
       if (this.noBrowser && probe.isNaked()) {
-        LOGGER.warning("Responder set to noBrowser mode. Discarding naked probe with id [" + probe.getProbeId() + "]");
+        LOGGER.warn("Responder set to noBrowser mode. Discarding naked probe with id [" + probe.getProbeId() + "]");
       } else {
 
         for (ProbeHandlerPlugin handler : handlers) {
           response = handler.handleProbeEvent(probe);
           if (!response.isEmpty()) {
-            LOGGER.fine("Response to probe [" + probe.getProbeId() + "] includes " + response.numberOfServices());
+            LOGGER.debug("Response to probe [" + probe.getProbeId() + "] includes " + response.numberOfServices());
             Iterator<RespondToURL> respondToURLs = probe.getRespondToURLs().iterator();
 
             if (probe.getRespondToURLs().isEmpty())
-              LOGGER.warning("Processed probe [" + probe.getProbeId() + "] with no respondTo address. That's odd.");
+              LOGGER.warn("Processed probe [" + probe.getProbeId() + "] with no respondTo address. That's odd.");
 
             if (respondToURLs.hasNext()) {
               RespondToURL respondToURL = respondToURLs.next();
               // we are ignoring the label for now
               boolean success = sendResponse(respondToURL.url, probe.getRespondToPayloadType(), response);
               if (!success) {
-                LOGGER.warning("Issue sending probe [" + probe.getProbeId() + "] response to [" + respondToURL.url + "]");
+                LOGGER.warn("Issue sending probe [" + probe.getProbeId() + "] response to [" + respondToURL.url + "]");
               }
             }
 
           } else {
-            LOGGER.fine("Response to probe [" + probe.getProbeId() + "] is empty.  Not sending empty response.");
+            LOGGER.error("Response to probe [" + probe.getProbeId() + "] is empty.  Not sending empty response.");
           }
         }
 
