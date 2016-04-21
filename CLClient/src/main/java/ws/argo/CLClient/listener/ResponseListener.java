@@ -63,7 +63,7 @@ public class ResponseListener {
       LOGGER.warning("Issues finding ip address of locahost.  Using string 'localhost' for listener address binding");
       addr = "localhost";
     }
-    return UriBuilder.fromUri("http://" + addr + "/").port(4005).build();
+    return UriBuilder.fromUri("http://" + addr ).port(4005).build();
   }
 
   /**
