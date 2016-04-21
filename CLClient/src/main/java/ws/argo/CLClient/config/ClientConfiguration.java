@@ -228,13 +228,17 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
     }
   }
 
-  private void initializeURLs() {
-    String listenerURL = _config.getString("listenerURL", ResponseListener.DEFAULT_LISTENER_URI.toString());
+  private void initializeURLs() throws ConfigurationException{
+    String listenerURL = _config.getString("listenerURL", ResponseListener.DEFAULT_LISTENER_URI.toString()).trim();
 
+    if ( !validSSLSettings( listenerURL, _keystore, _ksPassword )){
+        throw new ConfigurationException( "TLS Settings are invalid, Keystore and KeyStore password must be set if using a HTTPS listenerURL, please update clientConfig.xml file." );
+    }
     if (!_urlValidator.isValid(listenerURL)) {
       listenerURL = ResponseListener.DEFAULT_LISTENER_URI.toString();
       error("The Response Listener URL specified in the config file is invalid. Continuing with default.");
     }
+   
     _listenerURL = listenerURL;
     
     _listenerTarget = createListenerTarget(listenerURL);
@@ -253,7 +257,14 @@ public class ClientConfiguration extends ResolvingXMLConfiguration {
     _responseURL = respondToURL;
   }
 
-  private WebTarget createListenerTarget(String listenerURL) {
+  private boolean validSSLSettings( String listenerURL, String keystore, String password ) {
+    if ( StringUtils.startsWithIgnoreCase( listenerURL, "https" ) && ( StringUtils.isEmpty( keystore ) || StringUtils.isEmpty( password ) ) ) {
+        return false;
+    }
+    return true;
+}
+
+private WebTarget createListenerTarget(String listenerURL) {
     SSLContext sslContext = _sslContextConfigurator.createSSLContext();
     Client client = ClientBuilder.newBuilder().sslContext(sslContext).hostnameVerifier(NoopHostnameVerifier.INSTANCE).build();
 //    Client client = ClientBuilder.newBuilder().build();
