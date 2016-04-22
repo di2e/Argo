@@ -18,11 +18,11 @@ package ws.argo.responder.test.listener;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -37,7 +37,7 @@ import ws.argo.responder.Responder;
  */
 public class ResponseListener {
 
-  private static final Logger LOGGER = Logger.getLogger(Responder.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(Responder.class.getName());
 
   private static int getPort(int defaultPort) {
     // grab port from environment, otherwise fall back to default port 9998
@@ -46,7 +46,7 @@ public class ResponseListener {
       try {
         return Integer.parseInt(httpPort);
       } catch (NumberFormatException e) {
-        LOGGER.log(Level.INFO, "Error in port number format", e);
+        LOGGER.info( "Error in port number format", e);
       }
     }
     return defaultPort;
@@ -68,7 +68,7 @@ public class ResponseListener {
   public static HttpServer startServer() throws IOException {
     ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.responder.test.listener");
 
-    LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
+    LOGGER.debug("Starting Jersey-Grizzly2 JAX-RS listener...");
     HttpServer httpServer =  GrizzlyHttpServerFactory.createHttpServer(BASE_URI, resourceConfig);
     LOGGER.info("Started Jersey-Grizzly2 JAX-RS listener.");
 

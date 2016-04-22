@@ -1,15 +1,15 @@
 package ws.argo.CLClient;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import net.dharwin.common.tools.cli.api.CLIContext;
+import net.dharwin.common.tools.cli.api.CommandLineApplication;
+import net.dharwin.common.tools.cli.api.annotations.CLIEntry;
+import net.dharwin.common.tools.cli.api.console.Console;
+import net.dharwin.common.tools.cli.api.exceptions.CLIInitException;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -20,15 +20,10 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.grizzly.http.server.HttpServer;
 
-import jline.console.ConsoleReader;
-import jline.console.completer.StringsCompleter;
-import net.dharwin.common.tools.cli.api.CLIContext;
-import net.dharwin.common.tools.cli.api.CommandLineApplication;
-import net.dharwin.common.tools.cli.api.annotations.CLIEntry;
-import net.dharwin.common.tools.cli.api.console.Console;
-import net.dharwin.common.tools.cli.api.exceptions.CLIInitException;
 import ws.argo.CLClient.config.ClientConfiguration;
 import ws.argo.CLClient.listener.CacheListener;
 import ws.argo.CLClient.listener.ProbeResponseResource;
@@ -44,7 +39,7 @@ import ws.argo.CLClient.listener.ResponseListener;
 @CLIEntry
 public class ArgoClient extends CommandLineApplication<ArgoClientContext> implements CacheListener {
 
-  private static final Logger LOGGER = Logger.getLogger(ArgoClient.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(ArgoClient.class.getName());
 
   private HttpServer          _server;
 
@@ -148,9 +143,9 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> implem
       config = processCommandLine(cl);
 
     } catch (UnrecognizedOptionException e) {
-      LOGGER.log(Level.SEVERE, "Error parsing command line:  " + e.getLocalizedMessage());
+      LOGGER.error( "Error parsing command line:  " + e.getLocalizedMessage());
     } catch (ParseException e) {
-      LOGGER.log(Level.SEVERE, "Error parsing option.", e);
+      LOGGER.error( "Error parsing option.", e);
     }
 
     return config;
@@ -158,7 +153,7 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> implem
 
   private ClientConfiguration processCommandLine(CommandLine cl) throws ConfigurationException {
 
-    LOGGER.fine("Parsing command line values:");
+    LOGGER.debug("Parsing command line values:");
 
     ClientConfiguration config = new ClientConfiguration(); // default
                                                             // configuration
@@ -168,11 +163,11 @@ public class ArgoClient extends CommandLineApplication<ArgoClientContext> implem
       try {
         config = processConfigurationFile(propsFilename);
       } catch (ConfigurationException e) {
-        LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + propsFilename + "] due to:", e);
+        LOGGER.error( "Unable to read properties file named [" + propsFilename + "] due to:", e);
         throw e;
       }
     } else {
-      LOGGER.warning("WARNING: no properties file specified.  Working off defaults - Multicast transport 230.0.0.1:4003.");
+      LOGGER.warn("WARNING: no properties file specified.  Working off defaults - Multicast transport 230.0.0.1:4003.");
     }
 
     return config;

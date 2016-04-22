@@ -18,11 +18,11 @@ package ws.argo.responder.plugin.configfile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.common.config.ResolvingXMLConfiguration;
 import ws.argo.wireline.response.ServiceWrapper;
@@ -35,7 +35,7 @@ import ws.argo.wireline.response.ServiceWrapper;
  */
 public class ServiceListConfiguration extends ResolvingXMLConfiguration {
 
-  private static final Logger LOGGER = Logger.getLogger(ServiceListConfiguration.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(ServiceListConfiguration.class.getName());
 
   private ArrayList<ServiceWrapper> _serviceList;
   
@@ -89,7 +89,7 @@ public class ServiceListConfiguration extends ResolvingXMLConfiguration {
 
   @Override
   protected void warn(String msg) {
-    LOGGER.warning(msg);
+    LOGGER.warn(msg);
   }
 
   @Override
@@ -99,12 +99,12 @@ public class ServiceListConfiguration extends ResolvingXMLConfiguration {
 
   @Override
   protected void error(String msg) {
-    LOGGER.log(Level.SEVERE, msg);
+    LOGGER.error( msg);
   }
 
   @Override
   protected void error(String msg, Throwable e) {
-    LOGGER.log(Level.SEVERE, msg, e);
+    LOGGER.error( msg, e);
   }
 
 

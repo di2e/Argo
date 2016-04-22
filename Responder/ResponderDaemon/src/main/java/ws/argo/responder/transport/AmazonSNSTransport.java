@@ -23,26 +23,26 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.grizzly.http.server.HttpServer;
+
+import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.responder.ProbeProcessor;
+import ws.argo.plugin.transport.responder.Transport;
+import ws.argo.responder.Responder;
+import ws.argo.responder.transport.sns.SNSListener;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.SubscribeRequest;
-
-import ws.argo.plugin.transport.responder.ProbeProcessor;
-import ws.argo.plugin.transport.responder.Transport;
-import ws.argo.plugin.transport.exception.TransportConfigException;
-import ws.argo.responder.Responder;
-import ws.argo.responder.transport.sns.SNSListener;
 
 /**
  * The AmazonSNSTransport is a transport that uses the Amazon SNS service as the
@@ -53,7 +53,7 @@ import ws.argo.responder.transport.sns.SNSListener;
  */
 public class AmazonSNSTransport implements Transport {
 
-  private static final Logger LOGGER     = Logger.getLogger(AmazonSNSTransport.class.getName());
+  private static final Logger LOGGER     = LogManager.getLogger(AmazonSNSTransport.class.getName());
 
   private HttpServer          _server;
   WebTarget                   target;
@@ -81,7 +81,7 @@ public class AmazonSNSTransport implements Transport {
     try {
       uri = getBaseListenerURI();
     } catch (URISyntaxException e) {
-      LOGGER.warning("The listenerURL specified in the configuration file [" + _listenerURL + "] is invalid. ");
+      LOGGER.warn("The listenerURL specified in the configuration file [" + _listenerURL + "] is invalid. ");
       LOGGER.info("Using the default listner URL assocaited with the loca host [" + SNSListener.getLocalBaseURI() + "]");
       uri = SNSListener.getLocalBaseURI();
     }
@@ -89,7 +89,7 @@ public class AmazonSNSTransport implements Transport {
     try {
       _server = SNSListener.startServer(uri, this);
     } catch (IOException e) {
-      LOGGER.log(Level.SEVERE, "There was an error starting the SNS Listener.", e);
+      LOGGER.error( "There was an error starting the SNS Listener.", e);
     }
 
     Client client = ClientBuilder.newClient();
@@ -98,8 +98,8 @@ public class AmazonSNSTransport implements Transport {
     try {
       subscribe();
     } catch (URISyntaxException | TransportConfigException e) {
-      LOGGER.log(Level.SEVERE, "Error subscribing to SNS topic.");
-      LOGGER.log(Level.SEVERE, "Amazon SNS transport failed startup - shuting down SNS listener.", e);
+      LOGGER.error( "Error subscribing to SNS topic.");
+      LOGGER.error( "Amazon SNS transport failed startup - shuting down SNS listener.", e);
       if (_server != null)
         _server.shutdownNow();
     }

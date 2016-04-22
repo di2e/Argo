@@ -32,8 +32,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -43,6 +41,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.plugin.transport.exception.TransportException;
@@ -62,7 +62,7 @@ import ws.argo.probe.UnsupportedPayloadType;
 @Path("controller")
 public class BrowserController {
 
-  private static final Logger LOGGER = Logger.getLogger(BrowserController.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(BrowserController.class.getName());
 
   private static final String  PROBE_GENERATOR_PROPERTIES_FILE = "argoClient.prop";
   private static final String  DEFAULT_PROBE_RESPONSE_URL_PATH = "/AsynchListener/api/responseHandler/probeResponse";
@@ -103,10 +103,10 @@ public class BrowserController {
     NetworkInterface ni = null;
     try {
       localhost = InetAddress.getLocalHost();
-      LOGGER.fine("Network Interface name not specified.  Using the NI for localhost " + localhost.getHostAddress());
+      LOGGER.debug("Network Interface name not specified.  Using the NI for localhost " + localhost.getHostAddress());
       ni = NetworkInterface.getByInetAddress(localhost);
     } catch (UnknownHostException | SocketException e) {
-      LOGGER.log(Level.SEVERE, "Error occured dealing with network interface name lookup ", e);
+      LOGGER.error( "Error occured dealing with network interface name lookup ", e);
 
     }
 
@@ -240,8 +240,8 @@ public class BrowserController {
     try {
       is = new FileInputStream(file);
     } catch (FileNotFoundException e) {
-      LOGGER.warning("External config file " + externPropsFilename + " not found.");
-      LOGGER.warning("Using defaults located in classpath embedded in war file.");
+      LOGGER.warn("External config file " + externPropsFilename + " not found.");
+      LOGGER.warn("Using defaults located in classpath embedded in war file.");
       is = BrowserController.class.getClassLoader().getResourceAsStream(PROBE_GENERATOR_PROPERTIES_FILE);
     }
 
@@ -297,9 +297,9 @@ public class BrowserController {
         }
 
       } catch (SocketException e) {
-        LOGGER.warning("A socket exception occurred.");
+        LOGGER.warn("A socket exception occurred.");
       } catch (UnknownHostException e) {
-        LOGGER.log(Level.WARNING, "Error finding Network Interface", e);
+        LOGGER.warn( "Error finding Network Interface", e);
       }
 
     }
@@ -405,11 +405,11 @@ public class BrowserController {
       }
 
     } catch (MalformedURLException e) {
-      LOGGER.log(Level.SEVERE, "nThe respondTo URL was a no good.  respondTo URL is: " + url, e);
+      LOGGER.error( "nThe respondTo URL was a no good.  respondTo URL is: " + url, e);
     } catch (IOException e) {
-      LOGGER.log(Level.SEVERE, "An IOException occured: the error message is - ", e);
+      LOGGER.error( "An IOException occured: the error message is - ", e);
     } catch (Exception e) {
-      LOGGER.log(Level.SEVERE, "Some error occured: the error message is - ", e);
+      LOGGER.error( "Some error occured: the error message is - ", e);
     }
 
     return response;

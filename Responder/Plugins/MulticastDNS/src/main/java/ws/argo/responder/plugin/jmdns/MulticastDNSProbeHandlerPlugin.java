@@ -18,12 +18,14 @@ package ws.argo.responder.plugin.jmdns;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
 import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
@@ -34,7 +36,7 @@ import ws.argo.wireline.response.ServiceWrapper;
 public class MulticastDNSProbeHandlerPlugin implements ServiceListener, ServiceTypeListener,
     ProbeHandlerPlugin {
 
-  private static final Logger LOGGER      = Logger.getLogger(MulticastDNSProbeHandlerPlugin.class.getName());
+  private static final Logger LOGGER      = LogManager.getLogger(MulticastDNSProbeHandlerPlugin.class.getName());
 
   protected JmDNS             jmmDNS;
   ArrayList<ServiceWrapper>   serviceList = new ArrayList<ServiceWrapper>();
@@ -47,14 +49,14 @@ public class MulticastDNSProbeHandlerPlugin implements ServiceListener, ServiceT
     // TODO Auto-generated method stub
     ResponseWrapper response = new ResponseWrapper(probe.getProbeId());
 
-    LOGGER.fine("Handling probe: " + probe.asXML());
+    LOGGER.debug("Handling probe: " + probe.asXML());
 
     // do the actual lookup here
     // and create and return the ResponderPayload
     // Can you say O(n^2) lookup? Very bad - we can fix later
 
     if (probe.isNaked()) {
-      LOGGER.fine("Query all detected - no service contract IDs in probe");
+      LOGGER.debug("Query all detected - no service contract IDs in probe");
       for (ServiceWrapper entry : serviceList) {
         // If the set of contract IDs is empty, get all of them
         response.addResponse(entry);
@@ -62,7 +64,7 @@ public class MulticastDNSProbeHandlerPlugin implements ServiceListener, ServiceT
 
     } else {
       for (String serviceContractID : probe.getServiceContractIDs()) {
-        LOGGER.fine("Looking to detect " + serviceContractID + " in entry list.");
+        LOGGER.debug("Looking to detect " + serviceContractID + " in entry list.");
         for (ServiceWrapper entry : serviceList) {
           if (entry.getServiceContractID().equals(serviceContractID)) {
             // Boom Baby - we got one!!!
@@ -135,7 +137,7 @@ public class MulticastDNSProbeHandlerPlugin implements ServiceListener, ServiceT
     LOGGER.info("mDNS Service RESOLVED: " + event.toString());
 
     if (!event.getInfo().hasData()) {
-      LOGGER.warning("mDNS Service has no data - skipping: " + event.toString());
+      LOGGER.warn("mDNS Service has no data - skipping: " + event.toString());
       return;
     }
 

@@ -20,10 +20,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.logging.Logger;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
@@ -40,7 +41,7 @@ import org.glassfish.jersey.server.ResourceConfig;
  */
 public class ResponseListener {
 
-  private static final Logger LOGGER = Logger.getLogger(ResponseListener.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(ResponseListener.class.getName());
   
   public static final URI DEFAULT_LISTENER_URI = getDefaultBaseURI();
 
@@ -60,7 +61,7 @@ public class ResponseListener {
       localAddr = InetAddress.getLocalHost();
       addr = localAddr.getHostAddress();
     } catch (UnknownHostException e) {
-      LOGGER.warning("Issues finding ip address of locahost.  Using string 'localhost' for listener address binding");
+      LOGGER.warn("Issues finding ip address of locahost.  Using string 'localhost' for listener address binding");
       addr = "localhost";
     }
     return UriBuilder.fromUri("http://" + addr ).port(4005).build();
@@ -89,7 +90,7 @@ public class ResponseListener {
     
     ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.CLClient.listener");
 
-    LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS listener...");
+    LOGGER.debug("Starting Jersey-Grizzly2 JAX-RS listener...");
     HttpServer httpServer =  GrizzlyHttpServerFactory.createHttpServer(listenerURI, resourceConfig, false);
     httpServer.getServerConfiguration().setName("Argo Client Listener");
     httpServer.start();
@@ -103,7 +104,7 @@ public class ResponseListener {
     
     ResourceConfig resourceConfig = new ResourceConfig().packages("ws.argo.CLClient.listener");
 
-    LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS Secure listener...");
+    LOGGER.debug("Starting Jersey-Grizzly2 JAX-RS Secure listener...");
 
     // Grizzly ssl configuration
     SSLEngineConfigurator sslEngineConfigurator = new  SSLEngineConfigurator(sslContextConfigurator);
@@ -111,7 +112,7 @@ public class ResponseListener {
     sslEngineConfigurator.setWantClientAuth(false);
     sslEngineConfigurator.setClientMode(false);
 
-    LOGGER.finer("Starting Jersey-Grizzly2 JAX-RS secure server...");
+    LOGGER.debug("Starting Jersey-Grizzly2 JAX-RS secure server...");
     
     HttpServer httpServer= GrizzlyHttpServerFactory.createHttpServer(
         listenerURI,

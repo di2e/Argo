@@ -16,7 +16,6 @@
 
 package ws.argo.responder;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -34,8 +33,6 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
 
@@ -60,6 +57,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
@@ -86,7 +85,7 @@ public class Responder implements ProbeProcessor {
 
   private static final String           VERSION_PROPERTIES = "/version.properties";
 
-  private static final Logger           LOGGER             = Logger.getLogger(Responder.class.getName());
+  private static final Logger           LOGGER             = LogManager.getLogger(Responder.class.getName());
 
   private static String                 ARGO_VERSION       = "UNKNOWN";
 
@@ -175,7 +174,7 @@ public class Responder implements ProbeProcessor {
             .build();
 
       } catch (Exception e) {
-        LOGGER.log(Level.SEVERE, "Issue creating HTTP client using supplied configuration. Proceeding with default non-SSL client.", e);
+        LOGGER.error( "Issue creating HTTP client using supplied configuration. Proceeding with default non-SSL client.", e);
         httpClient = HttpClients.createDefault();
       }
     } else {
@@ -201,7 +200,7 @@ public class Responder implements ProbeProcessor {
       try {
         ks = KeyStore.getInstance(_config.getTruststoreType());
       } catch (KeyStoreException e) {
-        LOGGER.log(Level.WARNING, "The specified truststore type [" + _config.getTruststoreType() + "] didn't work.", e);
+        LOGGER.warn( "The specified truststore type [" + _config.getTruststoreType() + "] didn't work.", e);
         throw e;
       }
     } else {
@@ -277,7 +276,7 @@ public class Responder implements ProbeProcessor {
     try {
       handler = (ProbeHandlerPlugin) handlerClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
-      LOGGER.warning("Could not create an instance of the configured handler class - " + classname);
+      LOGGER.warn("Could not create an instance of the configured handler class - " + classname);
       throw new ProbeHandlerConfigException("Error instantiating the handler class " + classname, e);
     }
 
@@ -313,7 +312,7 @@ public class Responder implements ProbeProcessor {
     try {
       transport = (Transport) transportClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
-      LOGGER.warning("Could not create an instance of the configured transport class - " + classname);
+      LOGGER.warn("Could not create an instance of the configured transport class - " + classname);
       throw new ResponderConfigException("Error instantiating the transport class " + classname, e);
     }
 
@@ -349,7 +348,7 @@ public class Responder implements ProbeProcessor {
       try {
         t.shutdown();
       } catch (TransportException e) {
-        LOGGER.log(Level.WARNING, "Error shutting down transport: [" + t.transportName() + "]", e);
+        LOGGER.warn( "Error shutting down transport: [" + t.transportName() + "]", e);
       }
     }
   }
@@ -451,7 +450,7 @@ public class Responder implements ProbeProcessor {
       try {
         addHandler(appConfig.classname, appConfig.configFilename);
       } catch (ProbeHandlerConfigException e) {
-        LOGGER.log(Level.SEVERE, "Error loading handler for [" + appConfig.classname + "]. Skipping handler", e);
+        LOGGER.error( "Error loading handler for [" + appConfig.classname + "]. Skipping handler", e);
       }
     }
 
@@ -470,7 +469,7 @@ public class Responder implements ProbeProcessor {
       try {
         addTransport(appConfig.classname, appConfig.configFilename);
       } catch (ResponderConfigException | TransportConfigException e) {
-        LOGGER.log(Level.SEVERE, "Error loading handler for [" + appConfig.classname + "]. Skipping handler", e);
+        LOGGER.error( "Error loading handler for [" + appConfig.classname + "]. Skipping handler", e);
       }
     }
 
@@ -516,7 +515,7 @@ public class Responder implements ProbeProcessor {
     ResponderConfiguration config = parseCommandLine(args);
 
     if (config == null) {
-      LOGGER.log(Level.SEVERE, "Invalid Responder Configuration.  Terminating Responder process.");
+      LOGGER.error( "Invalid Responder Configuration.  Terminating Responder process.");
       return null;
     }
 
@@ -551,17 +550,17 @@ public class Responder implements ProbeProcessor {
         p.load(is);
         ARGO_VERSION = p.getProperty("argo-version");
       } catch (IOException e) {
-        LOGGER.warning("Cannot load the file [" + VERSION_PROPERTIES + "]");
+        LOGGER.warn("Cannot load the file [" + VERSION_PROPERTIES + "]");
       } finally {
         try {
           is.close();
         } catch (IOException e) {
-          LOGGER.warning("Cannot clost the file [" + VERSION_PROPERTIES + "] " + e.getMessage());
+          LOGGER.warn("Cannot clost the file [" + VERSION_PROPERTIES + "] " + e.getMessage());
         }
       }
 
     } else {
-      LOGGER.warning("Cannot load the file [" + VERSION_PROPERTIES + "]");
+      LOGGER.warn("Cannot load the file [" + VERSION_PROPERTIES + "]");
     }
   }
 
@@ -588,9 +587,9 @@ public class Responder implements ProbeProcessor {
       config = processCommandLine(cl);
 
     } catch (UnrecognizedOptionException e) {
-      LOGGER.log(Level.SEVERE, "Error parsing command line:  " + e.getLocalizedMessage());
+      LOGGER.error( "Error parsing command line:  " + e.getLocalizedMessage());
     } catch (ParseException e) {
-      LOGGER.log(Level.SEVERE, "Error parsing option.", e);
+      LOGGER.error( "Error parsing option.", e);
     }
 
     return config;
@@ -598,7 +597,7 @@ public class Responder implements ProbeProcessor {
 
   private static ResponderConfiguration processCommandLine(CommandLine cl) throws ResponderConfigException {
 
-    LOGGER.fine("Parsing command line values:");
+    LOGGER.debug("Parsing command line values:");
 
     ResponderConfiguration config;
 
@@ -607,13 +606,13 @@ public class Responder implements ProbeProcessor {
       try {
         config = processConfigurationFile(configFilename);
       } catch (ConfigurationException e) {
-        LOGGER.log(Level.SEVERE, "Unable to read properties file named [" + configFilename + "] due to:", e);
+        LOGGER.error( "Unable to read properties file named [" + configFilename + "] due to:", e);
         throw new ResponderConfigException("Error reading configuration file [" + configFilename + "]", e);
       }
     } else {
       config = new ResponderConfiguration(); // get a blank responder config
                                              // object
-      LOGGER.warning("No properties file specified.  Working off cli override arguments.");
+      LOGGER.warn("No properties file specified.  Working off cli override arguments.");
     }
 
     // No browser option - if set then do not process naked probes

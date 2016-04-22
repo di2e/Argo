@@ -4,24 +4,21 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.glassfish.grizzly.Grizzly;
-import org.glassfish.grizzly.ssl.SSLContextConfigurator;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
 
 import net.dharwin.common.tools.cli.api.Command;
 import net.dharwin.common.tools.cli.api.CommandResult;
 import net.dharwin.common.tools.cli.api.CompoundCommand;
 import net.dharwin.common.tools.cli.api.annotations.CLICommand;
 import net.dharwin.common.tools.cli.api.console.Console;
+
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
+
 import ws.argo.CLClient.ArgoClientContext;
 import ws.argo.CLClient.ClientProbeSenders;
 import ws.argo.plugin.transport.exception.TransportConfigException;
+
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 
 /**
  * This Config command is used to configure various things including the probe
@@ -456,12 +453,12 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
         sslContext.setTrustStoreFile(context.getConfig().getTruststore()); // contains listener self-signed certificate
         sslContext.setTrustStorePass(context.getConfig().getTSPassword());
         
-        Logger logger = Grizzly.logger(SSLContextConfigurator.class);
-        Level level = logger.getLevel();
-        final ConsoleHandler handler = new ConsoleHandler();
-        logger.setLevel(Level.ALL);
-        handler.setLevel(Level.ALL);
-        logger.addHandler(handler);
+        //Logger logger = Grizzly.logger(SSLContextConfigurator.class);
+        //Level level = logger.getLevel();
+        //final ConsoleHandler handler = new ConsoleHandler();
+        //logger.setLevel(Level.ALL);
+        //handler.setLevel(Level.ALL);
+        //logger.addHandler(handler);
         
         if (!sslContext.validateConfiguration(true)) {
           Console.warn("The SSL Context is not valid. To see details, set the logging level to FINE.");
@@ -469,7 +466,7 @@ public class ConfigCommand extends CompoundCommand<ArgoClientContext> {
         } else {
           Console.info("The keystore configuration is valid.");
         }
-        logger.setLevel(level);
+        //logger.setLevel(level);
       }
 
       return CommandResult.OK;

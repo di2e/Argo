@@ -7,12 +7,13 @@ import java.io.InputStream;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import ws.argo.plugin.transport.sender.Transport;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import ws.argo.plugin.transport.exception.TransportConfigException;
 import ws.argo.plugin.transport.exception.TransportException;
+import ws.argo.plugin.transport.sender.Transport;
 import ws.argo.probe.ProbeSender;
 
 /**
@@ -27,7 +28,7 @@ import ws.argo.probe.ProbeSender;
  */
 public class ClientProbeSenders {
 
-  private static final Logger    LOGGER  = Logger.getLogger(ClientProbeSenders.class.getName());
+  private static final Logger    LOGGER  = LogManager.getLogger(ClientProbeSenders.class.getName());
 
   private TransportConfig        config;
   private Properties             transportProps;
@@ -120,7 +121,7 @@ public class ClientProbeSenders {
       try {
         sender.close();
       } catch (TransportException e) {
-        LOGGER.log(Level.WARNING, "Issue closing the ProbeSender [" + sender.getDescription() + "]", e);
+        LOGGER.warn( "Issue closing the ProbeSender [" + sender.getDescription() + "]", e);
       }
     }
   }
@@ -170,7 +171,7 @@ public class ClientProbeSenders {
             ProbeSender sender = new ProbeSender(transport);
             senders.add(sender);
           } catch (TransportConfigException e) {
-            LOGGER.log(Level.WARNING, e.getLocalizedMessage());
+            LOGGER.warn( e.getLocalizedMessage());
           }
         }
       } catch (SocketException e) {
@@ -198,7 +199,7 @@ public class ClientProbeSenders {
     try {
       transport = (Transport) transportClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
-      LOGGER.warning("Could not create an instance of the configured transport class [" + classname + "]");
+      LOGGER.warn("Could not create an instance of the configured transport class [" + classname + "]");
       throw new TransportConfigException("Error instantiating the transport class [" + classname + "]", e);
     }
     return transport;

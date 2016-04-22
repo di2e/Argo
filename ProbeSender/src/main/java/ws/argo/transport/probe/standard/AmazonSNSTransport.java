@@ -17,21 +17,22 @@
 package ws.argo.transport.probe.standard;
 
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import ws.argo.plugin.transport.exception.TransportConfigException;
+import ws.argo.plugin.transport.exception.TransportException;
+import ws.argo.plugin.transport.sender.Transport;
+import ws.argo.probe.Probe;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
-
-import ws.argo.plugin.transport.exception.TransportConfigException;
-import ws.argo.plugin.transport.exception.TransportException;
-import ws.argo.plugin.transport.sender.Transport;
-import ws.argo.probe.Probe;
 
 /**
  * The AmazonSNSTransport class encapsulates the mechanics of sending the probe
@@ -45,7 +46,7 @@ public class AmazonSNSTransport implements Transport {
   // static final String DEFAULT_TOPIC_NAME =
   // "arn:aws:sns:us-east-1:627164602268:argoDiscoveryProtocol";
 
-  private static final Logger LOGGER = Logger.getLogger(AmazonSNSTransport.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(AmazonSNSTransport.class.getName());
 
   private AmazonSNSClient     snsClient;
   private String              argoTopicName;
@@ -96,7 +97,7 @@ public class AmazonSNSTransport implements Transport {
     PublishRequest publishRequest = new PublishRequest(argoTopicName, msg);
     PublishResult publishResult = snsClient.publish(publishRequest);
     // print MessageId of message published to SNS topic
-    LOGGER.log(Level.FINEST, "Send probe payload as message id [" + publishResult.getMessageId() + "]: " + msg);
+    LOGGER.debug( "Send probe payload as message id [" + publishResult.getMessageId() + "]: " + msg);
 
   }
 

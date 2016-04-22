@@ -21,8 +21,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
 import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
@@ -42,13 +43,13 @@ import ws.argo.wireline.response.ResponseWrapper;
  */
 public class AmazonSNSRepeaterProbeHandlerPlugin implements ProbeHandlerPlugin {
 
-  private static final Logger LOGGER = Logger.getLogger(AmazonSNSRepeaterProbeHandlerPlugin.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(AmazonSNSRepeaterProbeHandlerPlugin.class.getName());
 
   private ProbeSender         _sender;
 
   @Override
   public ResponseWrapper handleProbeEvent(ProbeWrapper probeWrapper) {
-    LOGGER.fine("AmazonSNS Repeater ProbeHandlerPlugin handling probe: " + probeWrapper.asXML());
+    LOGGER.debug("AmazonSNS Repeater ProbeHandlerPlugin handling probe: " + probeWrapper.asXML());
 
     ResponseWrapper response = new ResponseWrapper(probeWrapper.getProbeId());
 
@@ -56,7 +57,7 @@ public class AmazonSNSRepeaterProbeHandlerPlugin implements ProbeHandlerPlugin {
     try {
         _sender.sendProbe(probe);
     } catch (ProbeSenderException e) {
-        LOGGER.log(Level.WARNING, "Unable to repeat probe to Amazon SNS Transport.", e);
+        LOGGER.warn( "Unable to repeat probe to Amazon SNS Transport.", e);
     }
 
     return response;

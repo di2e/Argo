@@ -26,9 +26,10 @@ import java.util.Timer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
 
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ws.argo.plugin.probehandler.ProbeHandlerConfigException;
 import ws.argo.plugin.probehandler.ProbeHandlerPlugin;
@@ -50,7 +51,7 @@ import ws.argo.wireline.response.ServiceWrapper;
  */
 public class ConfigFileProbeHandlerPlugin implements ProbeHandlerPlugin {
 
-  private static final Logger LOGGER        = Logger.getLogger(ConfigFileProbeHandlerPlugin.class.getName());
+  private static final Logger LOGGER        = LogManager.getLogger(ConfigFileProbeHandlerPlugin.class.getName());
 
   Properties                  config        = new Properties();
 
@@ -118,14 +119,14 @@ public class ConfigFileProbeHandlerPlugin implements ProbeHandlerPlugin {
 
     ResponseWrapper response = new ResponseWrapper(probe.getProbeId());
 
-    LOGGER.fine("ConfigFileProbeHandlerPlugin handling probe: " + probe.asXML());
+    LOGGER.debug("ConfigFileProbeHandlerPlugin handling probe: " + probe.asXML());
 
     // do the actual lookup here
     // and create and return the ResponderPayload
     // Can you say O(n^2) lookup? Very bad - we can fix later
 
     if (probe.isNaked()) {
-      LOGGER.fine("Query all detected - no service contract IDs in probe");
+      LOGGER.debug("Query all detected - no service contract IDs in probe");
       for (ServiceWrapper entry : serviceList) {
         // If the set of contract IDs is empty, get all of them
         response.addResponse(entry);
@@ -133,7 +134,7 @@ public class ConfigFileProbeHandlerPlugin implements ProbeHandlerPlugin {
 
     } else {
       for (String serviceContractID : probe.getServiceContractIDs()) {
-        LOGGER.fine("Looking to detect " + serviceContractID + " in entry list.");
+        LOGGER.debug("Looking to detect " + serviceContractID + " in entry list.");
         for (ServiceWrapper entry : serviceList) {
           if (entry.getServiceContractID().equals(serviceContractID)) {
             // Boom Baby - we got one!!!
@@ -142,7 +143,7 @@ public class ConfigFileProbeHandlerPlugin implements ProbeHandlerPlugin {
         }
       }
       for (String serviceInstanceID : probe.getServiceInstanceIDs()) {
-        LOGGER.fine("Looking to detect " + serviceInstanceID + " in entry list.");
+        LOGGER.debug("Looking to detect " + serviceInstanceID + " in entry list.");
         for (ServiceWrapper entry : serviceList) {
           if (entry.getId().equals(serviceInstanceID)) {
             // Boom Baby - we got one!!!

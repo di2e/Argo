@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+    </Console>
+  
+	<RollingFile name="ArgoResponderAppender" fileName="${env:ARGO_HOME}/responder/logs/responder.log" filePattern="${env:ARGO_HOME}/responder/logs/responder-%d{yyyy-MM-dd}-%i.log">
+		<PatternLayout>
+			<Pattern>%d %p %c{8.} [%t] %m%n</Pattern>
+		  </PatternLayout>
+		<Policies> 
+		<SizeBasedTriggeringPolicy size="10 MB" /> 
+		</Policies> 
+		<DefaultRolloverStrategy max="50"/> 
+	</RollingFile>
+    <RollingFile name="ArgoResponderError" fileName="${env:ARGO_HOME}/responder/logs/responder-error.log" filePattern="${env:ARGO_HOME}/responder/logs/responder-error-%d{yyyy-MM-dd}-%i.log">
+        <ThresholdFilter level="error" onMismatch="DENY" />
+        <PatternLayout>
+            <Pattern>%d %p %c{8.} [%t] %m%n</Pattern>
+          </PatternLayout>
+        <Policies> 
+        <SizeBasedTriggeringPolicy size="10 MB" /> 
+        </Policies> 
+        <DefaultRolloverStrategy max="50"/> 
+    </RollingFile>  
+	
+    <Async name="Async">
+      <AppenderRef ref="ArgoResponderAppender"/>
+    </Async>
+  </Appenders>
+  
+  <Loggers>
+	<Logger name ="ws.argo" level="INFO" additivity="false">
+	  <AppenderRef ref="ArgoResponderAppender"/>
+	  <AppenderRef ref="ArgoResponderError"/>
+	</Logger>
+
+    
+    <Root level="INFO">
+	  <AppenderRef ref="ArgoResponderAppender"/>
+      <AppenderRef ref="ArgoResponderError"/>
+    </Root>
+    
+  </Loggers>
+</Configuration>
