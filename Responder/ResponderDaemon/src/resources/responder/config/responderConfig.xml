@@ -145,8 +145,8 @@
      -->
     <!--
     <transport>
-      <classname>ws.argo.responder.transport.MQTTResponderTransport</classname>
-      <configFilename>${installDir}/responder/config/mqttTransport.prop</configFilename>
+      <classname>ws.argo.probe.transport.responder.mqtt.MqttResponderTransport</classname>
+      <configFilename>${installDir}/responder/config/mqttTransportConfig.xml</configFilename>
     </transport>
     -->
 
