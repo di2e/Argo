@@ -159,8 +159,8 @@
       <enableOnStartup>true</enableOnStartup>
       <usesNI>false</usesNI>
       <requiresMulticast>false</requiresMulticast>
-      <classname>ws.argo.probe.transport.MQTTTransport</classname>
-      <configFilename>${installDir}/client/config/mqttTransport.prop</configFilename>
+      <classname>ws.argo.probe.transport.sender.mqtt.MqttSenderTransport</classname>
+      <configFilename>${installDir}/client/config/mqttSenderTransportConfig.prop</configFilename>
     </transport>
     <transport>
       <name>JMS</name>
