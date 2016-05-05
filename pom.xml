@@ -1,198 +1,256 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>ws.argo</groupId>
-  <artifactId>Argo</artifactId>
-  <version>0.4.2</version>
-  <packaging>pom</packaging>
-  <description>Parent project for the Runtime Service Discovery components</description>
-  
-  <name>Argo Runtime Service Discovery</name>
-  <url>http://www.argo.ws</url>
-  
-  <modules>
-    <module>build-tools</module>
-    <module>ArgoWirelineFormat</module>
-    <module>PluginFramework</module>
-    <module>CommonUtils</module>
-    <module>ProbeSender</module>
-    <module>Responder</module>
-    <module>clui</module>
-    <module>CLClient</module>
-    <module>DemoWebClient</module>
-  </modules>
-  <licenses>
-    <license>
-      <name>The MIT License</name>
-      <url>http://www.opensource.org/licenses/mit-license.php</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>ws.argo</groupId>
+	<artifactId>Argo</artifactId>
+	<version>0.4.2</version>
+	<packaging>pom</packaging>
+	<description>Parent project for the Runtime Service Discovery components</description>
 
-  <scm>
-    <connection>scm:git:git://github.com/di2e/argo.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/di2e/argo.git</developerConnection>
-    <url>http://github.com/di2e/argo</url>
-  </scm>
+	<name>Argo Runtime Service Discovery</name>
+	<url>http://www.argo.ws</url>
 
-  <issueManagement>
-    <system>github</system>
-    <url>https://github.com/di2e/argo/issues</url>
-  </issueManagement>
+	<modules>
+		<module>build-tools</module>
+		<module>ArgoWirelineFormat</module>
+		<module>PluginFramework</module>
+		<module>CommonUtils</module>
+		<module>ProbeSender</module>
+		<module>Responder</module>
+		<module>clui</module>
+		<module>CLClient</module>
+		<module>DemoWebClient</module>
+	</modules>
+	<licenses>
+		<license>
+			<name>The MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
-  <mailingLists>
-    <mailingList>
-      <name>argo-rtsd-dev</name>
-      <post>mailto:argo-rtsd-dev@googlegroups.com</post>
-      <unsubscribe>mailto:argo-rtsd-dev+unsubscribe@googlegroups.com</unsubscribe>
-      <subscribe>https://groups.google.com/group/argo-rtsd-dev</subscribe>
-      <archive>https://groups.google.com/group/argo-rtsd-dev</archive>
-    </mailingList>
+	<scm>
+		<connection>scm:git:git://github.com/di2e/argo.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/di2e/argo.git</developerConnection>
+		<url>http://github.com/di2e/argo</url>
+	</scm>
 
-  </mailingLists>
+	<issueManagement>
+		<system>github</system>
+		<url>https://github.com/di2e/argo/issues</url>
+	</issueManagement>
 
-  <developers>
-    <developer>
-      <id>jmsimpson68</id>
-      <name>Jeff Simpson</name>
-      <email>jmsimpson68@gmail.com</email>
-      <roles>
-        <role>Build Master</role>
-        <role>Developer</role>
-      </roles>
-    </developer>
-  </developers>
+	<mailingLists>
+		<mailingList>
+			<name>argo-rtsd-dev</name>
+			<post>mailto:argo-rtsd-dev@googlegroups.com</post>
+			<unsubscribe>mailto:argo-rtsd-dev+unsubscribe@googlegroups.com</unsubscribe>
+			<subscribe>https://groups.google.com/group/argo-rtsd-dev</subscribe>
+			<archive>https://groups.google.com/group/argo-rtsd-dev</archive>
+		</mailingList>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
-  </properties>
+	</mailingLists>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <version>2.5</version>
-    </dependency>
-  </dependencies>
+	<developers>
+		<developer>
+			<id>jmsimpson68</id>
+			<name>Jeff Simpson</name>
+			<email>jmsimpson68@gmail.com</email>
+			<roles>
+				<role>Build Master</role>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>jvettraino</id>
+			<name>Jeff Vettraino</name>
+			<email>jeff.vettraino@gmail.com</email>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+	</developers>
 
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>2.15</version>
-          <configuration>
-            <configLocation>Argo/argo_checks.xml</configLocation>
-            <suppressionsLocation>Argo/suppressions.xml</suppressionsLocation>
-          </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>com.puppycrawl.tools</groupId>
-              <artifactId>checkstyle</artifactId>
-              <version>6.4.1</version>
-            </dependency>
-            <dependency>
-              <groupId>ws.argo</groupId>
-              <artifactId>build-tools</artifactId>
-              <version>0.4.2</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>findbugs-maven-plugin</artifactId>
-          <version>3.0.1</version>
-          <configuration>
-            <findbugsXmlOutput>true</findbugsXmlOutput>
-            <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
-            <xmlOutput>true</xmlOutput>
-            <!-- Optional directory to put findbugs xdoc xml report -->
-            <xmlOutputDirectory>target/site</xmlOutputDirectory>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+	</properties>
 
-  <reporting>
-    <plugins>
-      <!-- OWASP Dependency Check -->
-      <plugin>
-        <groupId>org.owasp</groupId>
-        <artifactId>dependency-check-maven</artifactId>
-        <version>1.2.9</version>
-        <configuration>
-          <skipProvidedScope>false</skipProvidedScope>
-          <skipRuntimeScope>false</skipRuntimeScope>
-        </configuration>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>aggregate</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.5</version>
+		</dependency>
+	</dependencies>
 
-  </reporting>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>2.15</version>
+					<configuration>
+						<configLocation>Argo/argo_checks.xml</configLocation>
+						<suppressionsLocation>Argo/suppressions.xml</suppressionsLocation>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>com.puppycrawl.tools</groupId>
+							<artifactId>checkstyle</artifactId>
+							<version>6.4.1</version>
+						</dependency>
+						<dependency>
+							<groupId>ws.argo</groupId>
+							<artifactId>build-tools</artifactId>
+							<version>0.4.2</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>findbugs-maven-plugin</artifactId>
+					<version>3.0.1</version>
+					<configuration>
+						<findbugsXmlOutput>true</findbugsXmlOutput>
+						<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+						<xmlOutput>true</xmlOutput>
+						<!-- Optional directory to put findbugs xdoc xml report -->
+						<xmlOutputDirectory>target/site</xmlOutputDirectory>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<reporting>
+		<plugins>
+			<!-- OWASP Dependency Check -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>1.2.9</version>
+				<configuration>
+					<skipProvidedScope>false</skipProvidedScope>
+					<skipRuntimeScope>false</skipRuntimeScope>
+				</configuration>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>aggregate</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+
+	</reporting>
 
 
-  <distributionManagement>
-    <site>
-      <id>docs.argo.ws</id>
-      <url>scp://docs.argo.ws/docs/</url>
-    </site>
+	<distributionManagement>
+		<site>
+			<id>docs.argo.ws</id>
+			<url>scp://docs.argo.ws/docs/</url>
+		</site>
 
-  </distributionManagement>
+	</distributionManagement>
 
-  <profiles>
-    <profile>
-      <id>public-release</id>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.sonatype.plugins</groupId>
-              <artifactId>nexus-staging-maven-plugin</artifactId>
-              <version>1.6.3</version>
-              <extensions>true</extensions>
-              <configuration>
-                <serverId>ossrh</serverId>
-                <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                <autoReleaseAfterClose>true</autoReleaseAfterClose>
-              </configuration>
-            </plugin>
-          </plugins>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.2.1</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.9.1</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
 
-        </pluginManagement>
-      </build>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
 
-      <distributionManagement>
-        <snapshotRepository>
-          <id>sonatype-nexus-snapshots</id>
-          <name>Sonatype Nexus snapshot repository</name>
-          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-          <id>sonatype-nexus-staging</id>
-          <name>Sonatype Nexus release repository</name>
-          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-      </distributionManagement>
-    </profile>
-    <profile> 
-      <id>rpm</id> 
-      <activation> 
-        <os> 
-          <family>linux</family> 
-          <arch>i386</arch> 
-        </os> 
-      </activation> 
-    </profile> 
-  </profiles>
+		</profile>
+		<profile>
+			<id>public-release</id>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.sonatype.plugins</groupId>
+							<artifactId>nexus-staging-maven-plugin</artifactId>
+							<version>1.6.3</version>
+							<extensions>true</extensions>
+							<configuration>
+								<serverId>ossrh</serverId>
+								<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+								<autoReleaseAfterClose>true</autoReleaseAfterClose>
+							</configuration>
+						</plugin>
+					</plugins>
+
+				</pluginManagement>
+			</build>
+
+			<distributionManagement>
+				<snapshotRepository>
+					<id>sonatype-nexus-snapshots</id>
+					<name>Sonatype Nexus snapshot repository</name>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+				</snapshotRepository>
+				<repository>
+					<id>sonatype-nexus-staging</id>
+					<name>Sonatype Nexus release repository</name>
+					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+				</repository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>rpm</id>
+			<activation>
+				<os>
+					<family>linux</family>
+					<arch>i386</arch>
+				</os>
+			</activation>
+		</profile>
+	</profiles>
 
 </project>
