@@ -136,7 +136,7 @@ public class Responder implements ProbeProcessor {
   /**
    * Create a new instance of a Responder.
    * 
-   * @param cliValues - the list of command line arguments
+   * @param config  - the list of command line arguments
    */
   public Responder(ResponderConfiguration config) {
     this._config = config;

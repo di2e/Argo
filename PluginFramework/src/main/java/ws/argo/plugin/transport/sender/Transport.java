@@ -38,16 +38,16 @@ public interface Transport {
    * @param networkInterface name of the network interface
    * @throws TransportConfigException if something goes wrong
    */
-  public void initialize(Properties p, String networkInterface) throws TransportConfigException;
+  void initialize(Properties p, String networkInterface) throws TransportConfigException;
 
   /**
    * Actually send the probe out on transport mechanism.
    * 
    * @param probe the Probe instance that has been pre-configured
-   * @throws ProbeSenderException if something bad happened when sending the
+   * @throws TransportException if something bad happened when sending the
    *           probe
    */
-  public void sendProbe(Probe probe) throws TransportException;
+  void sendProbe(Probe probe) throws TransportException;
 
   /**
    * Return the maximum payload size that this transport can handle. For
@@ -58,20 +58,20 @@ public interface Transport {
    * 
    * @return max payload size in bytes
    */
-  public int maxPayloadSize();
+  int maxPayloadSize();
 
   /**
    * Return the name of the network interface associated with this transport.
    * 
    * @return the name of the network interface associated with this transport
    */
-  public String getNetworkInterfaceName();
+  String getNetworkInterfaceName();
 
   /**
    * Close the transport.
    * 
-   * @throws ProbeSenderException if something bad happened
+   * @throws TransportException if something bad happened
    */
-  public void close() throws TransportException;
+  void close() throws TransportException;
 
 }
