@@ -220,7 +220,7 @@ public class MulticastTransport implements Transport {
    * Actually send the probe out on the wire.
    * 
    * @param probe the Probe instance that has been pre-configured
-   * @throws ProbeSenderException if something bad happened when sending the
+   * @throws TransportException if something bad happened when sending the
    *           probe
    */
   @Override

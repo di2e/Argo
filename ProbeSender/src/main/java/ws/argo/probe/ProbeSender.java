@@ -90,7 +90,7 @@ public class ProbeSender {
   /**
    * Close the underlying transport if necessary.
    * 
-   * @throws ProbeSenderException if something goes wrong
+   * @throws TransportException if something goes wrong
    */
   public void close() throws TransportException {
     probeTransport.close();
