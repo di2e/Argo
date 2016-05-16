@@ -1,0 +1,22 @@
+<!-- 
+  Please update the following in this file:
+  
+   1. Remove any of the files (nad wrapper elements) that you are not providing.
+      For example if you are not providing an WSDLs remove the WSDL tag and mywsdl URL
+   
+   2. Update the [IP_ADDRESS] to the Px IP Address of your system
+ -->
+<Artifacts>
+  <Organization>
+    http://[IP_ADDRESS]:8282/organization.xml
+  </Organization>
+  <Software_Component>
+    http://[IP_ADDRESS]]:8282/software_component.xml
+  </Software_Component>
+  <WSDL>
+    http://[]IP_ADDRESS]:8282/mywsdl.wsdl
+  </WSDL>
+  <Describe>
+    http://[IP_ADDRESS]:8282/describe.xml
+  </Describe>
+</Artifacts>

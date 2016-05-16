@@ -1,0 +1,24 @@
+#
+# Please update the following in this file
+# - Replace [Company Name] with the Name of your company
+#
+
+# If needed place the host IP here.  If not present the code will try to determine 
+# the correct IP address to use
+services.host.ip=
+services.host.port=8282
+
+# Comma separated list of Service Ids, you want Argo to respond to
+service.ids=px-artifacts-v1.0,px-describe-v1.0
+
+# Artifacts Detials
+px-artifacts-v1.0.name=[Company Name] Artifacts
+px-artifacts-v1.0.description=List of Artifacts for Company
+px-artifacts-v1.0.contract.description=DoD CIO Artifacts Description
+px-artifacts-v1.0.files=artifacts.xml
+
+# Describe Details
+px-describe-v1.0.name=[Company Name] Describe
+px-describe-v1.0.description=Describe Document for Company [Company Name]
+px-describe-v1.0.contract.description=Px Describe Service
+px-describe-v1.0.files=describe.xml

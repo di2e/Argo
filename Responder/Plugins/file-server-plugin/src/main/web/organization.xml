@@ -1,0 +1,16 @@
+<!-- 
+  Please update the following in this file:
+  
+   1. Update the name and title of the company in the XML below.
+      Most of the time it will be the same value unless there is a particular division,
+      then place the division in the title field.
+
+ -->
+<Organization>
+  <metadata xmlns="http://www.wso2.org/governance/metadata">
+    <overview>
+      <name>[Name of Company]</name>
+      <title>[Name of Company]</title>
+    </overview>
+  </metadata>
+</Organization>

@@ -1,0 +1,33 @@
+<!-- 
+  Please update the following in this file:
+  
+   1. Replace [Name of Product] with the name of your product
+   
+   2. Replace the [Description] with a description of your product
+   
+   3. Replace the [Version] with a version of your product
+   
+   4. Repeat the metadata elements and contents in there for any additional products
+ -->
+<Software_Component>
+  <metadata xmlns="http://www.wso2.org/governance/metadata">
+    <overview>
+      <name>[Name of Product]</name>
+      <description>[Description]</description>
+      <version>[Version]</version>
+    </overview>
+  </metadata>
+<!-- 
+  If you have more than one product, repeat the metadata element and details between
+  For example remove the comments below and it fill in the details for a second service
+ -->
+<!-- 
+  <metadata xmlns="http://www.wso2.org/governance/metadata">
+    <overview>
+      <name>[Name of Product]</name>
+      <description>[Description Of Product]</description>
+      <version>[Version Of Product]</version>
+    </overview>
+  </metadata>
+-->
+</Software_Component>
